@@ -36,12 +36,28 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
 
   if (
     lower.includes("only sac or site administrators") ||
+    lower.includes("only a club owner") ||
     lower.includes("permission denied") ||
     lower.includes("42501") ||
     lower.includes("row-level security") ||
     lower.includes("rls")
   ) {
     return "You do not have permission to perform this action.";
+  }
+
+  if (
+    lower.includes("create_announcement") ||
+    lower.includes("edit_announcement") ||
+    lower.includes("review_announcement") ||
+    lower.includes("archive_announcement")
+  ) {
+    if (
+      lower.includes("could not find") ||
+      lower.includes("does not exist") ||
+      lower.includes("pgrst202")
+    ) {
+      return "Announcement workflow is unavailable. A required database function is missing.";
+    }
   }
 
   if (lower.includes("failed to fetch") || lower.includes("network")) {

@@ -13,6 +13,12 @@ import { RegisterClubPage } from "./pages/RegisterClubPage";
 import { MyRequestsPage } from "./pages/MyRequestsPage";
 import { MyClubsPage } from "./pages/MyClubsPage";
 import { AdminClubRequestsPage } from "./pages/AdminClubRequestsPage";
+import { AnnouncementsPage } from "./pages/AnnouncementsPage";
+import { AnnouncementDetailPage } from "./pages/AnnouncementDetailPage";
+import { CreateAnnouncementPage } from "./pages/CreateAnnouncementPage";
+import { EditAnnouncementPage } from "./pages/EditAnnouncementPage";
+import { MyAnnouncementsPage } from "./pages/MyAnnouncementsPage";
+import { AdminAnnouncementsPage } from "./pages/AdminAnnouncementsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 export default function App() {
@@ -30,6 +36,34 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <ClubManagePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="announcements" element={<AnnouncementsPage />} />
+            <Route
+              path="announcements/new"
+              element={
+                <ProtectedRoute>
+                  <CreateAnnouncementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="announcements/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditAnnouncementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
+
+            <Route
+              path="my-announcements"
+              element={
+                <ProtectedRoute>
+                  <MyAnnouncementsPage />
                 </ProtectedRoute>
               }
             />
@@ -72,6 +106,16 @@ export default function App() {
                 <ProtectedRoute>
                   <AdminRoute>
                     <AdminClubRequestsPage />
+                  </AdminRoute>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/announcements"
+              element={
+                <ProtectedRoute>
+                  <AdminRoute>
+                    <AdminAnnouncementsPage />
                   </AdminRoute>
                 </ProtectedRoute>
               }

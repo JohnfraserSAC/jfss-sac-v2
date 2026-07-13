@@ -12,6 +12,8 @@ import {
   getCurrentProfile,
   getCurrentUserSystemRoles,
 } from "../services/profiles";
+import { getOwnedClubsForAnnouncements } from "../services/announcements";
+import { canCreateAnnouncement } from "../utils/announcementPermissions";
 import { isAllowedEmailDomain } from "../utils/domain";
 import { getErrorMessage } from "../utils/errors";
 
@@ -21,6 +23,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [systemRoles, setSystemRoles] = useState([]);
+  const [ownedClubs, setOwnedClubs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -29,6 +32,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setProfile(null);
     setSystemRoles([]);
+    setOwnedClubs([]);
   }, []);
 
   const refreshProfile = useCallback(async (userId) => {
@@ -53,6 +57,18 @@ export function AuthProvider({ children }) {
     const nextRoles = await getCurrentUserSystemRoles(id);
     setSystemRoles(nextRoles);
     return nextRoles;
+  }, [user?.id]);
+
+  const refreshOwnedClubs = useCallback(async (userId) => {
+    const id = userId ?? user?.id;
+    if (!id) {
+      setOwnedClubs([]);
+      return [];
+    }
+
+    const nextClubs = await getOwnedClubsForAnnouncements(id);
+    setOwnedClubs(nextClubs);
+    return nextClubs;
   }, [user?.id]);
 
   const processUser = useCallback(
@@ -101,6 +117,14 @@ export function AuthProvider({ children }) {
           "Could not load your system roles.",
         );
         nextError = nextError ? `${nextError} ${rolesMessage}` : rolesMessage;
+      }
+
+      try {
+        const nextClubs = await getOwnedClubsForAnnouncements(currentUser.id);
+        setOwnedClubs(nextClubs);
+      } catch (clubsError) {
+        setOwnedClubs([]);
+        console.error(clubsError);
       }
 
       if (nextError) {
@@ -168,40 +192,55 @@ export function AuthProvider({ children }) {
 
   const isSacAdmin = roleCodes.includes("SAC_ADMIN");
   const isSiteAdmin = roleCodes.includes("SITE_ADMIN");
+  const isFacultyAdvisor = roleCodes.includes("FACULTY_ADVISOR");
   const isAdmin = isSacAdmin || isSiteAdmin;
+  const canCreateAnnouncements = canCreateAnnouncement({
+    isSacAdmin,
+    isSiteAdmin,
+    isFacultyAdvisor,
+    ownedClubs,
+  });
 
   const value = useMemo(
     () => ({
       user,
       profile,
       systemRoles,
+      ownedClubs,
       isAuthenticated: Boolean(user),
       isLoading,
       isSacAdmin,
       isSiteAdmin,
+      isFacultyAdvisor,
       isAdmin,
+      canCreateAnnouncements,
       accessDenied,
       authError,
       signInWithGoogle,
       signOut,
       refreshProfile,
       refreshRoles,
+      refreshOwnedClubs,
       setAuthError,
     }),
     [
       user,
       profile,
       systemRoles,
+      ownedClubs,
       isLoading,
       isSacAdmin,
       isSiteAdmin,
+      isFacultyAdvisor,
       isAdmin,
+      canCreateAnnouncements,
       accessDenied,
       authError,
       signInWithGoogle,
       signOut,
       refreshProfile,
       refreshRoles,
+      refreshOwnedClubs,
     ],
   );
 

@@ -4,6 +4,7 @@ const STATUS_LABELS = {
   UNDER_REVIEW: "Under review",
   CHANGES_REQUESTED: "Changes requested",
   APPROVED: "Approved",
+  PUBLISHED: "Published",
   REJECTED: "Rejected",
   WITHDRAWN: "Withdrawn",
   ACTIVE: "Active",

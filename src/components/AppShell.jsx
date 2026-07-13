@@ -6,15 +6,18 @@ import { RoleBadge } from "./RoleBadge";
 
 const publicLinks = [
   { to: "/", label: "Home", end: true },
+  { to: "/announcements", label: "Announcements" },
   { to: "/clubs", label: "Clubs" },
 ];
 
 const signedInLinks = [
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/announcements", label: "Announcements" },
   { to: "/clubs", label: "Clubs" },
   { to: "/register-club", label: "Register Club" },
   { to: "/my-requests", label: "My Requests" },
   { to: "/my-clubs", label: "My Clubs" },
+  { to: "/my-announcements", label: "My Announcements" },
 ];
 
 export function AppShell() {
@@ -23,6 +26,7 @@ export function AppShell() {
     profile,
     isAuthenticated,
     isAdmin,
+    canCreateAnnouncements,
     systemRoles,
     signOut,
   } = useAuth();
@@ -76,18 +80,45 @@ export function AppShell() {
                 </li>
               ))}
 
-              {isAdmin ? (
+              {isAuthenticated && canCreateAnnouncements ? (
                 <li>
                   <NavLink
-                    to="/admin/club-requests"
+                    to="/announcements/new"
                     className={({ isActive }) =>
                       isActive ? "nav-link nav-link--active" : "nav-link"
                     }
                     onClick={() => setMenuOpen(false)}
                   >
-                    Club Request Queue
+                    Create Announcement
                   </NavLink>
                 </li>
+              ) : null}
+
+              {isAdmin ? (
+                <>
+                  <li>
+                    <NavLink
+                      to="/admin/club-requests"
+                      className={({ isActive }) =>
+                        isActive ? "nav-link nav-link--active" : "nav-link"
+                      }
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Club Request Queue
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/admin/announcements"
+                      className={({ isActive }) =>
+                        isActive ? "nav-link nav-link--active" : "nav-link"
+                      }
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Announcement Review Queue
+                    </NavLink>
+                  </li>
+                </>
               ) : null}
             </ul>
 

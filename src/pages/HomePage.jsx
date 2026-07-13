@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ErrorMessage } from "../components/ErrorMessage";
+import { HomepageAnnouncements } from "../components/HomepageAnnouncements";
 import { RoleBadge } from "../components/RoleBadge";
 import { Spinner } from "../components/Spinner";
 import { displayName } from "../utils/format";
@@ -14,6 +15,7 @@ export function HomePage() {
     systemRoles,
     isAuthenticated,
     isAdmin,
+    canCreateAnnouncements,
     accessDenied,
     authError,
     signInWithGoogle,
@@ -66,6 +68,9 @@ export function HomePage() {
                 "Continue with Google"
               )}
             </button>
+            <Link to="/announcements" className="button button--secondary">
+              View announcements
+            </Link>
             <Link to="/clubs" className="button button--secondary">
               Browse approved clubs
             </Link>
@@ -75,6 +80,8 @@ export function HomePage() {
             Sign in with a Google account to continue.
           </p>
         </section>
+
+        <HomepageAnnouncements />
       </div>
     );
   }
@@ -128,19 +135,26 @@ export function HomePage() {
           <Link to="/register-club" className="quick-link">
             Register a club
           </Link>
-          <Link to="/my-requests" className="quick-link">
-            My requests
+          <Link to="/my-announcements" className="quick-link">
+            My announcements
           </Link>
           <Link to="/my-clubs" className="quick-link">
             My clubs
           </Link>
+          {canCreateAnnouncements ? (
+            <Link to="/announcements/new" className="quick-link">
+              Create announcement
+            </Link>
+          ) : null}
           {isAdmin ? (
-            <Link to="/admin/club-requests" className="quick-link">
-              Admin queue
+            <Link to="/admin/announcements" className="quick-link">
+              Announcement queue
             </Link>
           ) : null}
         </div>
       </section>
+
+      <HomepageAnnouncements />
 
       <details
         className="diagnostics"
