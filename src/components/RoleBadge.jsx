@@ -3,7 +3,6 @@ const ROLE_LABELS = {
   EXEC: "Executive",
   MEMBER: "Member",
   SAC_ADMIN: "SAC Admin",
-  SITE_ADMIN: "Site Admin",
   SAC_EXEC: "SAC Executive",
   FACULTY_ADVISOR: "Faculty Advisor",
 };

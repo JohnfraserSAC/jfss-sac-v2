@@ -1,19 +1,29 @@
 import { supabase } from "../lib/supabase";
+import { CLUB_APPLICATION_SCHOOL_YEAR } from "../config/clubApplications";
 import { getErrorMessage, logServiceError } from "../utils/errors";
 import { validateClubRequestForm, validateClubSlug } from "../utils/validation";
 
 const REQUEST_FIELDS = `
   id,
   requested_by,
+  respondent_email,
+  school_year,
   proposed_name,
   short_description,
   description,
   purpose,
+  student_benefit,
+  potential_event_ideas,
+  leader_details,
+  leader_contact_information,
+  club_contact_information,
+  teacher_supervisor_emails,
   faculty_advisor_name,
   faculty_advisor_email,
   expected_member_count,
   meeting_plan,
   constitution_url,
+  teacher_supervisor_form_storage_path,
   status,
   review_notes,
   reviewed_by,
@@ -39,6 +49,35 @@ export async function getMyClubRequests(userId) {
   }
 
   return data ?? [];
+}
+
+export async function submitClubRegistrationApplication(payload) {
+  const { data, error } = await supabase.rpc(
+    "submit_club_registration_application",
+    {
+      p_request_id: payload.requestId,
+      p_proposed_name: payload.proposedName,
+      p_description: payload.description,
+      p_student_benefit: payload.studentBenefit,
+      p_leader_details: payload.leaderDetails,
+      p_teacher_supervisor_emails: payload.teacherSupervisorEmails,
+      p_club_contact_information: payload.clubContactInformation,
+      p_teacher_supervisor_form_storage_path:
+        payload.teacherSupervisorFormStoragePath,
+      p_potential_event_ideas: payload.potentialEventIdeas || null,
+      p_leader_contact_information: payload.leaderContactInformation || null,
+      p_school_year: payload.schoolYear || CLUB_APPLICATION_SCHOOL_YEAR,
+    },
+  );
+
+  if (error) {
+    logServiceError("submitClubRegistrationApplication", error);
+    throw new Error(
+      getErrorMessage(error, "Could not submit your club application."),
+    );
+  }
+
+  return data;
 }
 
 export async function submitClubRequest(userId, formValues) {
@@ -179,23 +218,21 @@ export async function updateClubRequestReview({
   requestId,
   status,
   reviewNotes = null,
-  reviewedBy,
 }) {
-  const payload = {
-    status,
-    reviewed_by: reviewedBy,
-  };
+  const action = String(status || "").toUpperCase();
 
-  if (reviewNotes !== undefined) {
-    payload.review_notes = reviewNotes;
+  if (!["UNDER_REVIEW", "CHANGES_REQUESTED", "REJECTED"].includes(action)) {
+    throw new Error("Invalid club request review action.");
   }
 
-  const { data, error } = await supabase
-    .from("club_registration_requests")
-    .update(payload)
-    .eq("id", requestId)
-    .select(REQUEST_FIELDS)
-    .single();
+  const { data, error } = await supabase.rpc(
+    "review_club_registration_request",
+    {
+      p_request_id: requestId,
+      p_action: action,
+      p_review_notes: reviewNotes || null,
+    },
+  );
 
   if (error) {
     logServiceError("updateClubRequestReview", error);

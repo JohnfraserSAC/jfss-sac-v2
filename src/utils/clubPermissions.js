@@ -14,7 +14,21 @@ export function getClubRoleLabel(role) {
   return CLUB_ROLE_LABELS[role] || role || "Unknown";
 }
 
+/** Display label for a scoped club membership, e.g. "CS Club Executive". */
+export function formatClubScopedRole(clubName, role) {
+  const club = String(clubName || "Unknown club").trim() || "Unknown club";
+  return `${club} ${getClubRoleLabel(role)}`;
+}
+
+export function isSacAdmin(systemRoles) {
+  return (systemRoles || []).some((role) => role.code === "SAC_ADMIN");
+}
+
 export function getMembershipRole(memberships, clubId) {
+  return getClubRole(memberships, clubId);
+}
+
+export function getClubRole(memberships, clubId) {
   const match = (memberships || []).find(
     (membership) => membership.club_id === clubId,
   );
@@ -29,6 +43,10 @@ export function isClubExec(role) {
   return role === "EXEC";
 }
 
+export function isClubExecutive(role) {
+  return isClubExec(role);
+}
+
 export function isClubMember(role) {
   return role === "MEMBER";
 }
@@ -37,25 +55,16 @@ export function isClubLeader(role) {
   return isClubOwner(role) || isClubExec(role);
 }
 
-export function canManageClubMembers({
-  clubRole,
-  isSacAdmin = false,
-  isSiteAdmin = false,
-}) {
-  return (
-    isSacAdmin ||
-    isSiteAdmin ||
-    isClubOwner(clubRole) ||
-    isClubExec(clubRole)
-  );
+export function canManageClubMembers({ clubRole, isSacAdmin = false }) {
+  return isSacAdmin || isClubOwner(clubRole) || isClubExec(clubRole);
 }
 
-export function getAddableRoles({
-  currentUserRole,
-  isSacAdmin = false,
-  isSiteAdmin = false,
-}) {
-  if (isSacAdmin || isSiteAdmin || isClubOwner(currentUserRole)) {
+export function canSearchStudents({ clubRole, isSacAdmin = false }) {
+  return isSacAdmin || isClubOwner(clubRole) || isClubExec(clubRole);
+}
+
+export function getAddableRoles({ currentUserRole, isSacAdmin = false }) {
+  if (isSacAdmin || isClubOwner(currentUserRole)) {
     return ["EXEC", "MEMBER"];
   }
 
@@ -70,17 +79,27 @@ export function canAddRole({
   currentUserRole,
   targetRole,
   isSacAdmin = false,
-  isSiteAdmin = false,
 }) {
-  if (targetRole === "OWNER") {
+  return canAddClubRole({
+    currentUserRole,
+    newRole: targetRole,
+    isSacAdmin,
+  });
+}
+
+export function canAddClubRole({
+  currentUserRole,
+  newRole,
+  isSacAdmin = false,
+}) {
+  if (newRole === "OWNER") {
     return false;
   }
 
   return getAddableRoles({
     currentUserRole,
     isSacAdmin,
-    isSiteAdmin,
-  }).includes(targetRole);
+  }).includes(newRole);
 }
 
 export function canChangeMemberRole({
@@ -88,21 +107,39 @@ export function canChangeMemberRole({
   targetCurrentRole,
   targetNewRole,
   isSacAdmin = false,
-  isSiteAdmin = false,
 }) {
-  if (!targetNewRole || targetCurrentRole === targetNewRole) {
+  return canChangeClubRole({
+    currentUserRole,
+    targetRole: targetCurrentRole,
+    newRole: targetNewRole,
+    isSacAdmin,
+  });
+}
+
+export function canChangeClubRole({
+  currentUserRole,
+  targetRole,
+  targetCurrentRole,
+  newRole,
+  targetNewRole,
+  isSacAdmin = false,
+}) {
+  const currentTargetRole = targetCurrentRole ?? targetRole;
+  const nextRole = targetNewRole ?? newRole;
+
+  if (!nextRole || currentTargetRole === nextRole) {
     return false;
   }
 
-  if (targetCurrentRole === "OWNER" || targetNewRole === "OWNER") {
+  if (currentTargetRole === "OWNER" || nextRole === "OWNER") {
     return false;
   }
 
-  if (isSacAdmin || isSiteAdmin || isClubOwner(currentUserRole)) {
-    return targetNewRole === "EXEC" || targetNewRole === "MEMBER";
+  // EXEC may only keep MEMBER as MEMBER (reactivation), not promote/demote.
+  if (isSacAdmin || isClubOwner(currentUserRole)) {
+    return nextRole === "EXEC" || nextRole === "MEMBER";
   }
 
-  // EXEC may update MEMBER rows, but RLS only allows keeping role = MEMBER.
   return false;
 }
 
@@ -111,13 +148,26 @@ export function canRemoveMember({
   targetRole,
   isSelf = false,
   isSacAdmin = false,
-  isSiteAdmin = false,
+}) {
+  return canRemoveClubMember({
+    currentUserRole,
+    targetRole,
+    isSelf,
+    isSacAdmin,
+  });
+}
+
+export function canRemoveClubMember({
+  currentUserRole,
+  targetRole,
+  isSelf = false,
+  isSacAdmin = false,
 }) {
   if (targetRole === "OWNER") {
     return false;
   }
 
-  if (isSacAdmin || isSiteAdmin) {
+  if (isSacAdmin) {
     return true;
   }
 
@@ -158,4 +208,20 @@ export function sortClubMemberships(memberships) {
 
     return aLabel.localeCompare(bLabel);
   });
+}
+
+export function normalizePdsbEmail(email) {
+  return String(email ?? "").trim().toLowerCase();
+}
+
+export function getEmailDomain(email) {
+  return normalizePdsbEmail(email).split("@").pop() || "";
+}
+
+export function isValidPdsbEmail(email) {
+  const normalized = normalizePdsbEmail(email);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    return false;
+  }
+  return getEmailDomain(normalized) === "pdsb.net";
 }

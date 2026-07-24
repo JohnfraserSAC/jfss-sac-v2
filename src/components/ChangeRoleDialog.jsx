@@ -14,8 +14,7 @@ export function ChangeRoleDialog({
   membership,
   clubName,
   currentUserRole,
-  isSacAdmin,
-  isSiteAdmin,
+  isSacAdmin = false,
   onClose,
   onSuccess,
 }) {
@@ -44,7 +43,6 @@ export function ChangeRoleDialog({
         targetCurrentRole: membership.role,
         targetNewRole: newRole,
         isSacAdmin,
-        isSiteAdmin,
       })
     ) {
       setError("You do not have permission to change this member’s role.");

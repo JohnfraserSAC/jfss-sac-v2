@@ -15,7 +15,6 @@ export function MyAnnouncementsPage() {
   const {
     user,
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
     ownedClubs,
     canCreateAnnouncements,
@@ -121,7 +120,6 @@ export function MyAnnouncementsPage() {
               announcement,
               userId: user.id,
               isSacAdmin,
-              isSiteAdmin,
               isFacultyAdvisor,
               ownedClubs,
             });

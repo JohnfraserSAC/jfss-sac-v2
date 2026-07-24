@@ -191,12 +191,14 @@ export function AuthProvider({ children }) {
   );
 
   const isSacAdmin = roleCodes.includes("SAC_ADMIN");
-  const isSiteAdmin = roleCodes.includes("SITE_ADMIN");
   const isFacultyAdvisor = roleCodes.includes("FACULTY_ADVISOR");
-  const isAdmin = isSacAdmin || isSiteAdmin;
+  const isSacExec = roleCodes.includes("SAC_EXEC");
+  const isAdmin = isSacAdmin;
+  const canAccessExecDashboard =
+    isSacAdmin || isFacultyAdvisor || isSacExec;
+  const canMutateReviews = isSacAdmin || isFacultyAdvisor;
   const canCreateAnnouncements = canCreateAnnouncement({
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
     ownedClubs,
   });
@@ -210,9 +212,11 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(user),
       isLoading,
       isSacAdmin,
-      isSiteAdmin,
       isFacultyAdvisor,
+      isSacExec,
       isAdmin,
+      canAccessExecDashboard,
+      canMutateReviews,
       canCreateAnnouncements,
       accessDenied,
       authError,
@@ -230,9 +234,11 @@ export function AuthProvider({ children }) {
       ownedClubs,
       isLoading,
       isSacAdmin,
-      isSiteAdmin,
       isFacultyAdvisor,
+      isSacExec,
       isAdmin,
+      canAccessExecDashboard,
+      canMutateReviews,
       canCreateAnnouncements,
       accessDenied,
       authError,

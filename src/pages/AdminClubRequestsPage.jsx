@@ -5,6 +5,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { PermissionNotice } from "../components/PermissionNotice";
 import { Select, TextArea, TextInput } from "../components/FormField";
 import { StatusBadge } from "../components/StatusBadge";
 import { Spinner } from "../components/Spinner";
@@ -13,14 +14,16 @@ import {
   getAdminClubRequestQueue,
   updateClubRequestReview,
 } from "../services/clubRequests";
+import { createSignedClubDocumentUrl } from "../services/clubDocuments";
 import { getClubById } from "../services/clubs";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 import { slugifyClubName } from "../utils/slug";
 import { validateClubSlug } from "../utils/validation";
 
-export function AdminClubRequestsPage() {
-  const { user } = useAuth();
+export function AdminClubRequestsPage({ embedded = false }) {
+  const { canMutateReviews, isSacAdmin } = useAuth();
+  const readOnly = !canMutateReviews;
   const [requests, setRequests] = useState([]);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
@@ -36,6 +39,7 @@ export function AdminClubRequestsPage() {
   const [approveSlugError, setApproveSlugError] = useState("");
   const [approving, setApproving] = useState(false);
   const [createdClubLink, setCreatedClubLink] = useState(null);
+  const [previewUrls, setPreviewUrls] = useState({});
 
   const loadQueue = useCallback(async () => {
     setLoading(true);
@@ -67,6 +71,8 @@ export function AdminClubRequestsPage() {
   }
 
   async function runReviewAction(request, status, requireNotes) {
+    if (readOnly) return;
+
     const notes = (notesById[request.id] || "").trim();
 
     if (requireNotes && !notes) {
@@ -84,18 +90,20 @@ export function AdminClubRequestsPage() {
         requestId: request.id,
         status,
         reviewNotes: requireNotes ? notes : notes || undefined,
-        reviewedBy: user.id,
       });
       setActionSuccess(`Updated ${request.proposed_name} to ${status}.`);
       await loadQueue();
     } catch (actionErr) {
-      setActionError(getErrorMessage(actionErr, "Could not update the request."));
+      setActionError(
+        getErrorMessage(actionErr, "Could not update the request."),
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   function openApproveDialog(request) {
+    if (readOnly) return;
     setApproveTarget(request);
     setApproveSlug(slugifyClubName(request.proposed_name));
     setApproveNotes(notesById[request.id] || "");
@@ -112,7 +120,7 @@ export function AdminClubRequestsPage() {
   }
 
   async function confirmApprove() {
-    if (!approveTarget) return;
+    if (!approveTarget || readOnly) return;
 
     const slugError = validateClubSlug(approveSlug);
     if (slugError) {
@@ -168,18 +176,27 @@ export function AdminClubRequestsPage() {
   }
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Administration</p>
-          <h1>Club request queue</h1>
-          <p className="lede">
-            Review submitted club registration requests. Requester profiles are
-            not joined here because profile RLS may only allow users to read
-            their own profile.
-          </p>
-        </div>
-      </header>
+    <div className={embedded ? "exec-section" : "page"}>
+      {!embedded ? (
+        <header className="page-header">
+          <div>
+            <p className="eyebrow">Administration</p>
+            <h1>Club request queue</h1>
+            <p className="lede">
+              Review submitted club registration requests.
+            </p>
+          </div>
+        </header>
+      ) : (
+        <h2 className="exec-section__title">New Club Applications</h2>
+      )}
+
+      {readOnly ? (
+        <PermissionNotice title="Read only">
+          You can view club registration requests, but you cannot approve,
+          reject, or request changes.
+        </PermissionNotice>
+      ) : null}
 
       <div className="toolbar toolbar--split">
         <Select
@@ -256,11 +273,17 @@ export function AdminClubRequestsPage() {
                   </div>
                   <div>
                     <dt>Submitted</dt>
-                    <dd>{formatDate(request.submitted_at || request.created_at)}</dd>
+                    <dd>
+                      {formatDate(request.submitted_at || request.created_at)}
+                    </dd>
                   </div>
                   <div>
                     <dt>Expected members</dt>
                     <dd>{request.expected_member_count ?? "Not provided"}</dd>
+                  </div>
+                  <div>
+                    <dt>Applicant email</dt>
+                    <dd>{request.respondent_email || "Not recorded"}</dd>
                   </div>
                   <div>
                     <dt>Advisor</dt>
@@ -283,9 +306,38 @@ export function AdminClubRequestsPage() {
                   <p>
                     <strong>Description:</strong> {request.description}
                   </p>
+                  {request.student_benefit ? (
+                    <p>
+                      <strong>Student benefit:</strong>{" "}
+                      {request.student_benefit}
+                    </p>
+                  ) : null}
                   <p>
                     <strong>Purpose:</strong> {request.purpose}
                   </p>
+                  {request.leader_details ? (
+                    <p>
+                      <strong>Leaders:</strong> {request.leader_details}
+                    </p>
+                  ) : null}
+                  {request.club_contact_information ? (
+                    <p>
+                      <strong>Club contact:</strong>{" "}
+                      {request.club_contact_information}
+                    </p>
+                  ) : null}
+                  {(request.teacher_supervisor_emails || []).length > 0 ? (
+                    <p>
+                      <strong>Teacher supervisors:</strong>{" "}
+                      {request.teacher_supervisor_emails.join(", ")}
+                    </p>
+                  ) : null}
+                  {request.potential_event_ideas ? (
+                    <p>
+                      <strong>Event ideas:</strong>{" "}
+                      {request.potential_event_ideas}
+                    </p>
+                  ) : null}
                   {request.meeting_plan ? (
                     <p>
                       <strong>Meeting plan:</strong> {request.meeting_plan}
@@ -312,60 +364,106 @@ export function AdminClubRequestsPage() {
                   ) : null}
                 </div>
 
-                <TextArea
-                  id={`notes-${request.id}`}
-                  label="Review notes"
-                  value={notesById[request.id] || ""}
-                  onChange={(event) => setNotes(request.id, event.target.value)}
-                  rows={3}
-                  hint="Required when requesting changes or rejecting."
-                />
+                {isSacAdmin && request.teacher_supervisor_form_storage_path ? (
+                  <div className="button-row">
+                    <button
+                      type="button"
+                      className="button button--secondary"
+                      onClick={async () => {
+                        try {
+                          const url = await createSignedClubDocumentUrl(
+                            request.teacher_supervisor_form_storage_path,
+                          );
+                          setPreviewUrls((current) => ({
+                            ...current,
+                            [request.id]: url,
+                          }));
+                        } catch (previewError) {
+                          setActionError(
+                            getErrorMessage(
+                              previewError,
+                              "Could not open signed form.",
+                            ),
+                          );
+                        }
+                      }}
+                    >
+                      View signed form
+                    </button>
+                  </div>
+                ) : null}
+                {previewUrls[request.id] ? (
+                  <img
+                    src={previewUrls[request.id]}
+                    alt="Signed teacher supervisor form"
+                    className="signed-form-preview__image"
+                  />
+                ) : null}
 
-                <div className="button-row">
-                  <button
-                    type="button"
-                    className="button button--secondary"
-                    disabled={isBusy || request.status === "UNDER_REVIEW"}
-                    onClick={() =>
-                      runReviewAction(request, "UNDER_REVIEW", false)
-                    }
-                  >
-                    {isBusy ? <Spinner size="sm" label="Working" /> : null}
-                    Mark under review
-                  </button>
+                {!readOnly ? (
+                  <>
+                    <TextArea
+                      id={`notes-${request.id}`}
+                      label="Review notes"
+                      value={notesById[request.id] || ""}
+                      onChange={(event) =>
+                        setNotes(request.id, event.target.value)
+                      }
+                      rows={3}
+                      hint="Required when requesting changes or rejecting."
+                    />
 
-                  <button
-                    type="button"
-                    className="button button--secondary"
-                    disabled={isBusy}
-                    onClick={() =>
-                      runReviewAction(request, "CHANGES_REQUESTED", true)
-                    }
-                  >
-                    Request changes
-                  </button>
+                    <div className="button-row">
+                      <button
+                        type="button"
+                        className="button button--secondary"
+                        disabled={isBusy || request.status === "UNDER_REVIEW"}
+                        onClick={() =>
+                          runReviewAction(request, "UNDER_REVIEW", false)
+                        }
+                      >
+                        {isBusy ? <Spinner size="sm" label="Working" /> : null}
+                        Mark under review
+                      </button>
 
-                  <button
-                    type="button"
-                    className="button button--danger"
-                    disabled={isBusy}
-                    onClick={() => runReviewAction(request, "REJECTED", true)}
-                  >
-                    Reject
-                  </button>
+                      <button
+                        type="button"
+                        className="button button--secondary"
+                        disabled={isBusy}
+                        onClick={() =>
+                          runReviewAction(request, "CHANGES_REQUESTED", true)
+                        }
+                      >
+                        Request changes
+                      </button>
 
-                  <button
-                    type="button"
-                    className="button button--primary"
-                    disabled={
-                      isBusy ||
-                      !["SUBMITTED", "UNDER_REVIEW"].includes(request.status)
-                    }
-                    onClick={() => openApproveDialog(request)}
-                  >
-                    Approve
-                  </button>
-                </div>
+                      <button
+                        type="button"
+                        className="button button--danger"
+                        disabled={isBusy}
+                        onClick={() =>
+                          runReviewAction(request, "REJECTED", true)
+                        }
+                      >
+                        Reject
+                      </button>
+
+                      <button
+                        type="button"
+                        className="button button--primary"
+                        disabled={
+                          isBusy ||
+                          !["SUBMITTED", "UNDER_REVIEW"].includes(
+                            request.status,
+                          )
+                        }
+                        onClick={() => openApproveDialog(request)}
+                      >
+                        Approve
+                      </button>
+                    </div>
+                  </>
+                ) : null}
               </article>
             );
           })}

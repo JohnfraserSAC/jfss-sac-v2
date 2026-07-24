@@ -18,7 +18,7 @@ export function AdminRoute({ children }) {
     return (
       <div className="page">
         <ErrorMessage title="Access denied">
-          You need SAC Admin or Site Admin privileges to view this page.
+          You need SAC Admin privileges to view this page.
         </ErrorMessage>
       </div>
     );

@@ -31,7 +31,6 @@ export function EditAnnouncementPage() {
   const {
     user,
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
     ownedClubs,
   } = useAuth();
@@ -70,7 +69,6 @@ export function EditAnnouncementPage() {
           announcement: data,
           userId: user.id,
           isSacAdmin,
-          isSiteAdmin,
           isFacultyAdvisor,
           ownedClubs,
         });
@@ -112,7 +110,6 @@ export function EditAnnouncementPage() {
     id,
     user.id,
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
     ownedClubs,
   ]);
@@ -123,7 +120,6 @@ export function EditAnnouncementPage() {
         announcement,
         userId: user.id,
         isSacAdmin,
-        isSiteAdmin,
         isFacultyAdvisor,
         ownedClubs,
       }),
@@ -131,7 +127,6 @@ export function EditAnnouncementPage() {
       announcement,
       user.id,
       isSacAdmin,
-      isSiteAdmin,
       isFacultyAdvisor,
       ownedClubs,
     ],

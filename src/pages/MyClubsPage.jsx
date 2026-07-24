@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ClubRoleBadge } from "../components/ClubRoleBadge";
+import { ClubsSubnav } from "../components/ClubsSubnav";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -15,7 +16,7 @@ import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
 export function MyClubsPage() {
-  const { user, isSacAdmin, isSiteAdmin } = useAuth();
+  const { user, isSacAdmin } = useAuth();
   const [memberships, setMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -54,14 +55,16 @@ export function MyClubsPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <p className="eyebrow">Memberships</p>
-          <h1>My clubs</h1>
+          <p className="eyebrow">Clubs</p>
+          <h1>My Clubs</h1>
           <p className="lede">
             Clubs where you are an owner, executive, or member. Each row is one
             club-scoped membership.
           </p>
         </div>
       </header>
+
+      <ClubsSubnav />
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
@@ -77,7 +80,6 @@ export function MyClubsPage() {
             const canManage = canManageClubMembers({
               clubRole: membership.role,
               isSacAdmin,
-              isSiteAdmin,
             });
 
             return (

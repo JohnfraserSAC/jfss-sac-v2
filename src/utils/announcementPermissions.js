@@ -10,27 +10,33 @@ export const ANNOUNCEMENT_STATUS_LABELS = {
 
 export function canPublishDirectly({
   isSacAdmin = false,
-  isSiteAdmin = false,
   isFacultyAdvisor = false,
 }) {
-  return isSacAdmin || isSiteAdmin || isFacultyAdvisor;
+  return isSacAdmin || isFacultyAdvisor;
 }
 
 export function canReviewAnnouncements({
   isSacAdmin = false,
-  isSiteAdmin = false,
+  isFacultyAdvisor = false,
+  isSacExec = false,
 }) {
-  return isSacAdmin || isSiteAdmin;
+  return isSacAdmin || isFacultyAdvisor || isSacExec;
+}
+
+export function canMutateAnnouncementReviews({
+  isSacAdmin = false,
+  isFacultyAdvisor = false,
+}) {
+  return isSacAdmin || isFacultyAdvisor;
 }
 
 export function canCreateAnnouncement({
   isSacAdmin = false,
-  isSiteAdmin = false,
   isFacultyAdvisor = false,
   ownedClubs = [],
 }) {
   return (
-    canPublishDirectly({ isSacAdmin, isSiteAdmin, isFacultyAdvisor }) ||
+    canPublishDirectly({ isSacAdmin, isFacultyAdvisor }) ||
     (ownedClubs?.length ?? 0) > 0
   );
 }
@@ -43,13 +49,12 @@ export function canEditAnnouncement({
   announcement,
   userId,
   isSacAdmin = false,
-  isSiteAdmin = false,
   isFacultyAdvisor = false,
   ownedClubs = [],
 }) {
   if (!announcement || !userId) return false;
 
-  if (isSacAdmin || isSiteAdmin) {
+  if (isSacAdmin) {
     return announcement.status !== "ARCHIVED";
   }
 
@@ -77,20 +82,18 @@ export function canArchiveAnnouncement({
   announcement,
   userId,
   isSacAdmin = false,
-  isSiteAdmin = false,
   isFacultyAdvisor = false,
 }) {
   if (!announcement || announcement.status !== "PUBLISHED") return false;
-  if (isSacAdmin || isSiteAdmin) return true;
+  if (isSacAdmin) return true;
   return isFacultyAdvisor && announcement.created_by === userId;
 }
 
 export function getAllowedCreateActions({
   isSacAdmin = false,
-  isSiteAdmin = false,
   isFacultyAdvisor = false,
 }) {
-  if (canPublishDirectly({ isSacAdmin, isSiteAdmin, isFacultyAdvisor })) {
+  if (canPublishDirectly({ isSacAdmin, isFacultyAdvisor })) {
     return ["DRAFT", "PUBLISH"];
   }
   return ["DRAFT", "SUBMIT"];
@@ -100,7 +103,6 @@ export function getAllowedEditActions({
   announcement,
   userId,
   isSacAdmin = false,
-  isSiteAdmin = false,
   isFacultyAdvisor = false,
   ownedClubs = [],
 }) {
@@ -109,7 +111,6 @@ export function getAllowedEditActions({
       announcement,
       userId,
       isSacAdmin,
-      isSiteAdmin,
       isFacultyAdvisor,
       ownedClubs,
     })
@@ -117,7 +118,7 @@ export function getAllowedEditActions({
     return [];
   }
 
-  if (isSacAdmin || isSiteAdmin) {
+  if (isSacAdmin) {
     if (announcement.status === "PUBLISHED") return ["SAVE"];
     return ["SAVE", "PUBLISH"];
   }
@@ -163,7 +164,7 @@ export function validateAnnouncementForm(values, { requireClub = false } = {}) {
     try {
       const url = new URL(imageUrlRaw);
       if (!["http:", "https:"].includes(url.protocol)) {
-        errors.imageUrl = "Image URL must be an http(s) link.";
+        errors.imageUrl = "Enter a valid image URL.";
       }
     } catch {
       errors.imageUrl = "Enter a valid image URL.";

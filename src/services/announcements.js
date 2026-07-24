@@ -52,7 +52,8 @@ function mapAnnouncementError(error, fallback) {
     return "You do not have permission to create an announcement for this club.";
   }
 
-  if (lower.includes("only sac or site administrators may review")) {
+  if (lower.includes("only sac or site administrators may review") ||
+    lower.includes("only sac administrators may review")) {
     return "Only SAC administrators may approve club announcements.";
   }
 

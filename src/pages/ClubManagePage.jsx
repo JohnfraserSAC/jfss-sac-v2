@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AddClubMemberDialog } from "../components/AddClubMemberDialog";
+import { AddClubMemberForm } from "../components/AddClubMemberForm";
 import { ChangeRoleDialog } from "../components/ChangeRoleDialog";
 import { ClubMemberList } from "../components/ClubMemberList";
 import { ClubRoleBadge } from "../components/ClubRoleBadge";
@@ -16,26 +16,28 @@ import { getClubBySlug } from "../services/clubs";
 import {
   getClubMemberships,
   getCurrentUserClubMembership,
-  probeProfileSearchAvailability,
+  probeStudentLookupAvailability,
 } from "../services/memberships";
 import {
   canManageClubMembers,
+  canSearchStudents,
   getAddableRoles,
   getClubRoleLabel,
+  isClubLeader,
 } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
 
 export function ClubManagePage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user, isSacAdmin, isSiteAdmin, isAdmin } = useAuth();
+  const { user, isSacAdmin, isAdmin } = useAuth();
 
   const [club, setClub] = useState(null);
   const [membership, setMembership] = useState(null);
   const [memberships, setMemberships] = useState([]);
   const [profilesWarning, setProfilesWarning] = useState(null);
-  const [searchAvailable, setSearchAvailable] = useState(false);
-  const [searchWarning, setSearchWarning] = useState(null);
+  const [lookupAvailable, setLookupAvailable] = useState(false);
+  const [lookupWarning, setLookupWarning] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -43,7 +45,6 @@ export function ClubManagePage() {
   const [search, setSearch] = useState("");
   const [unauthorized, setUnauthorized] = useState(false);
 
-  const [addOpen, setAddOpen] = useState(false);
   const [changeTarget, setChangeTarget] = useState(null);
   const [removeTarget, setRemoveTarget] = useState(null);
 
@@ -72,7 +73,6 @@ export function ClubManagePage() {
       const allowed = canManageClubMembers({
         clubRole: currentMembership?.role,
         isSacAdmin,
-        isSiteAdmin,
       });
 
       if (!allowed) {
@@ -80,21 +80,21 @@ export function ClubManagePage() {
         return;
       }
 
-      const [membershipResult, searchProbe] = await Promise.all([
+      const [membershipResult, lookupProbe] = await Promise.all([
         getClubMemberships(nextClub.id),
-        probeProfileSearchAvailability(),
+        probeStudentLookupAvailability(),
       ]);
 
       setMemberships(membershipResult.memberships);
       setProfilesWarning(membershipResult.profilesWarning);
-      setSearchAvailable(searchProbe.searchAvailable);
-      setSearchWarning(searchProbe.warning);
+      setLookupAvailable(lookupProbe.available);
+      setLookupWarning(lookupProbe.warning);
     } catch (loadError) {
       setError(getErrorMessage(loadError, "Could not load club management."));
     } finally {
       setLoading(false);
     }
-  }, [slug, user.id, isSacAdmin, isSiteAdmin]);
+  }, [slug, user.id, isSacAdmin]);
 
   useEffect(() => {
     loadPage();
@@ -126,7 +126,11 @@ export function ClubManagePage() {
   const addableRoles = getAddableRoles({
     currentUserRole: membership?.role,
     isSacAdmin,
-    isSiteAdmin,
+  });
+
+  const canSearch = canSearchStudents({
+    clubRole: membership?.role,
+    isSacAdmin,
   });
 
   if (loading) {
@@ -187,7 +191,7 @@ export function ClubManagePage() {
           )}
           {isAdmin ? (
             <span className="badge badge--role badge--role-sac-admin">
-              Application admin
+              SAC Admin
             </span>
           ) : null}
         </div>
@@ -209,17 +213,27 @@ export function ClubManagePage() {
             removal.
           </li>
         </ul>
+        {membership?.status === "ACTIVE" && isClubLeader(membership.role) ? (
+          <div className="button-row" style={{ marginTop: "1rem" }}>
+            <Link
+              className="button button--primary"
+              to={`/clubs/${club.slug}/manage/event-requests/new`}
+            >
+              Submit Event for Approval
+            </Link>
+            <Link
+              className="button button--secondary"
+              to={`/clubs/${club.slug}/manage/funding`}
+            >
+              Club Funding Request
+            </Link>
+          </div>
+        ) : null}
       </section>
 
       {profilesWarning ? (
         <PermissionNotice title="Profile visibility limited">
           {profilesWarning}
-        </PermissionNotice>
-      ) : null}
-
-      {searchWarning ? (
-        <PermissionNotice title="Student search limited">
-          {searchWarning}
         </PermissionNotice>
       ) : null}
 
@@ -232,18 +246,29 @@ export function ClubManagePage() {
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
+      {canSearch && addableRoles.length > 0 ? (
+        <AddClubMemberForm
+          club={club}
+          currentUserId={user.id}
+          currentUserRole={membership?.role}
+          isSacAdmin={isSacAdmin}
+          existingMemberships={memberships}
+          lookupAvailable={lookupAvailable}
+          lookupWarning={lookupWarning}
+          onSuccess={({ role }) => {
+            setSuccess(
+              role === "EXEC"
+                ? "Student added as Executive."
+                : "Student added as Member.",
+            );
+            loadPage();
+          }}
+        />
+      ) : null}
+
       <section className="panel">
         <div className="section-heading">
           <h2>Members</h2>
-          {addableRoles.length > 0 ? (
-            <button
-              type="button"
-              className="button button--primary"
-              onClick={() => setAddOpen(true)}
-            >
-              Add member
-            </button>
-          ) : null}
         </div>
 
         <div className="toolbar toolbar--split">
@@ -273,7 +298,6 @@ export function ClubManagePage() {
           currentUserId={user.id}
           currentUserRole={membership?.role}
           isSacAdmin={isSacAdmin}
-          isSiteAdmin={isSiteAdmin}
           onChangeRole={setChangeTarget}
           onRemove={setRemoveTarget}
         />
@@ -310,36 +334,18 @@ export function ClubManagePage() {
         />
       ) : null}
 
-      <AddClubMemberDialog
-        open={addOpen}
-        club={club}
-        currentUserId={user.id}
-        currentUserRole={membership?.role}
-        isSacAdmin={isSacAdmin}
-        isSiteAdmin={isSiteAdmin}
-        existingUserIds={memberships.map((row) => row.user_id)}
-        searchAvailable={searchAvailable}
-        searchWarning={searchWarning}
-        onClose={() => setAddOpen(false)}
-        onSuccess={({ label, role }) => {
-          setSuccess(
-            `Added ${label} as ${getClubRoleLabel(role)} of ${club.name}.`,
-          );
-          loadPage();
-        }}
-      />
-
       <ChangeRoleDialog
         open={Boolean(changeTarget)}
         membership={changeTarget}
         clubName={club.name}
         currentUserRole={membership?.role}
         isSacAdmin={isSacAdmin}
-        isSiteAdmin={isSiteAdmin}
         onClose={() => setChangeTarget(null)}
-        onSuccess={({ label, role }) => {
+        onSuccess={({ role }) => {
           setSuccess(
-            `Updated ${label} to ${getClubRoleLabel(role)} for ${club.name}.`,
+            role === "EXEC"
+              ? "Member promoted to Executive."
+              : "Executive changed to Member.",
           );
           loadPage();
         }}
@@ -351,11 +357,11 @@ export function ClubManagePage() {
         clubName={club.name}
         currentUserId={user.id}
         onClose={() => setRemoveTarget(null)}
-        onSuccess={({ label, isSelf }) => {
+        onSuccess={({ isSelf }) => {
           setSuccess(
             isSelf
               ? `You left ${club.name}.`
-              : `Removed ${label} from ${club.name}.`,
+              : "Student removed from the club.",
           );
           if (isSelf && !isAdmin) {
             navigate(`/clubs/${club.slug}`, { replace: true });

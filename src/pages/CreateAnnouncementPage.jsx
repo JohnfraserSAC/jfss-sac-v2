@@ -28,7 +28,6 @@ export function CreateAnnouncementPage() {
   const {
     user,
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
     ownedClubs,
     canCreateAnnouncements,
@@ -37,7 +36,6 @@ export function CreateAnnouncementPage() {
 
   const isStaff = canPublishDirectly({
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
   });
 
@@ -106,7 +104,7 @@ export function CreateAnnouncementPage() {
           You need to be an active owner of an approved club before you can
           create a club announcement.
         </ErrorMessage>
-        <Link className="text-link" to="/my-clubs">
+        <Link className="text-link" to="/clubs/my-clubs">
           Go to My Clubs
         </Link>
       </div>

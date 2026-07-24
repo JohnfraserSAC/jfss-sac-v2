@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ClubCard } from "../components/ClubCard";
+import { ClubsSubnav } from "../components/ClubsSubnav";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -63,13 +64,15 @@ export function ClubsPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <p className="eyebrow">Directory</p>
-          <h1>Approved clubs</h1>
+          <p className="eyebrow">Clubs</p>
+          <h1>Explore</h1>
           <p className="lede">
             Browse officially approved clubs at John Fraser Secondary School.
           </p>
         </div>
       </header>
+
+      <ClubsSubnav />
 
       <div className="toolbar">
         <TextInput

@@ -2,22 +2,12 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { displayName } from "../utils/format";
-import { RoleBadge } from "./RoleBadge";
 
-const publicLinks = [
-  { to: "/", label: "Home", end: true },
-  { to: "/announcements", label: "Announcements" },
+const rightLinks = [
   { to: "/clubs", label: "Clubs" },
-];
-
-const signedInLinks = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/announcements", label: "Announcements" },
-  { to: "/clubs", label: "Clubs" },
-  { to: "/register-club", label: "Register Club" },
-  { to: "/my-requests", label: "My Requests" },
-  { to: "/my-clubs", label: "My Clubs" },
-  { to: "/my-announcements", label: "My Announcements" },
+  { to: "/schedule", label: "Schedule" },
+  { to: "/events", label: "Events" },
+  { to: "/student-resources", label: "Student Resources" },
 ];
 
 export function AppShell() {
@@ -25,14 +15,11 @@ export function AppShell() {
     user,
     profile,
     isAuthenticated,
-    isAdmin,
-    canCreateAnnouncements,
-    systemRoles,
+    canAccessExecDashboard,
     signOut,
   } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const links = isAuthenticated ? signedInLinks : publicLinks;
   const name = displayName(profile, user);
 
   async function handleSignOut() {
@@ -44,9 +31,15 @@ export function AppShell() {
     <div className="app-shell">
       <header className="site-header">
         <div className="site-header__inner">
-          <NavLink to="/" className="brand" onClick={() => setMenuOpen(false)}>
-            <span className="brand__eyebrow">John Fraser SS</span>
-            <span className="brand__name">John Fraser SAC</span>
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              isActive ? "brand brand--active" : "brand"
+            }
+            onClick={() => setMenuOpen(false)}
+          >
+            Home
           </NavLink>
 
           <button
@@ -64,12 +57,24 @@ export function AppShell() {
             className={`main-nav${menuOpen ? " main-nav--open" : ""}`}
             aria-label="Main"
           >
-            <ul>
-              {links.map((link) => (
+            <ul className="main-nav__links">
+              <li className="main-nav__home-mobile">
+                <NavLink
+                  to="/"
+                  end
+                  className={({ isActive }) =>
+                    isActive ? "nav-link nav-link--active" : "nav-link"
+                  }
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Home
+                </NavLink>
+              </li>
+
+              {rightLinks.map((link) => (
                 <li key={link.to}>
                   <NavLink
                     to={link.to}
-                    end={link.end}
                     className={({ isActive }) =>
                       isActive ? "nav-link nav-link--active" : "nav-link"
                     }
@@ -80,84 +85,67 @@ export function AppShell() {
                 </li>
               ))}
 
-              {isAuthenticated && canCreateAnnouncements ? (
+              {isAuthenticated && canAccessExecDashboard ? (
                 <li>
                   <NavLink
-                    to="/announcements/new"
+                    to="/exec-dashboard"
                     className={({ isActive }) =>
                       isActive ? "nav-link nav-link--active" : "nav-link"
                     }
                     onClick={() => setMenuOpen(false)}
                   >
-                    Create Announcement
+                    Exec Dashboard
                   </NavLink>
                 </li>
               ) : null}
 
-              {isAdmin ? (
-                <>
-                  <li>
-                    <NavLink
-                      to="/admin/club-requests"
-                      className={({ isActive }) =>
-                        isActive ? "nav-link nav-link--active" : "nav-link"
-                      }
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Club Request Queue
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/admin/announcements"
-                      className={({ isActive }) =>
-                        isActive ? "nav-link nav-link--active" : "nav-link"
-                      }
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Announcement Review Queue
-                    </NavLink>
-                  </li>
-                </>
-              ) : null}
-            </ul>
-
-            <div className="header-actions">
               {isAuthenticated ? (
                 <>
-                  <div className="user-chip">
-                    <div>
-                      <strong>{name}</strong>
-                      <span>{user?.email}</span>
-                    </div>
-                    <div className="user-chip__roles">
-                      {systemRoles.length > 0 ? (
-                        systemRoles.map((role) => (
-                          <RoleBadge key={role.code} role={role.code} />
-                        ))
-                      ) : (
-                        <span className="muted">No system roles</span>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className="button button--secondary"
-                    onClick={handleSignOut}
-                  >
-                    Sign out
-                  </button>
+                  <li>
+                    <NavLink
+                      to="/dashboard"
+                      className={({ isActive }) =>
+                        isActive
+                          ? "nav-link nav-link--active nav-link--profile"
+                          : "nav-link nav-link--profile"
+                      }
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Profile
+                    </NavLink>
+                  </li>
+                  <li className="main-nav__account-mobile">
+                    <span className="nav-account-label">
+                      {name}
+                      {user?.email ? ` · ${user.email}` : ""}
+                    </span>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className="nav-link nav-link--button"
+                      onClick={handleSignOut}
+                    >
+                      Sign out
+                    </button>
+                  </li>
                 </>
               ) : (
-                <NavLink
-                  to="/login"
-                  className="button button--primary"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Login
-                </NavLink>
+                <li>
+                  <NavLink
+                    to="/login"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "nav-link nav-link--active nav-link--profile"
+                        : "nav-link nav-link--profile"
+                    }
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Login
+                  </NavLink>
+                </li>
               )}
-            </div>
+            </ul>
           </nav>
         </div>
       </header>

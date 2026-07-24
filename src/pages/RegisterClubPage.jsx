@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ClubsSubnav } from "../components/ClubsSubnav";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { TextArea, TextInput } from "../components/FormField";
 import { Spinner } from "../components/Spinner";
@@ -69,14 +70,16 @@ export function RegisterClubPage() {
     <div className="page narrow-page">
       <header className="page-header">
         <div>
-          <p className="eyebrow">Registration</p>
-          <h1>Register a club</h1>
+          <p className="eyebrow">Clubs</p>
+          <h1>Register Club</h1>
           <p className="lede">
             Submit a club registration request for SAC review. Your signed-in
             account will be recorded as the requester.
           </p>
         </div>
       </header>
+
+      <ClubsSubnav />
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 

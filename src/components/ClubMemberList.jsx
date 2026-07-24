@@ -5,8 +5,7 @@ export function ClubMemberList({
   memberships,
   currentUserId,
   currentUserRole,
-  isSacAdmin,
-  isSiteAdmin,
+  isSacAdmin = false,
   onChangeRole,
   onRemove,
 }) {
@@ -39,7 +38,6 @@ export function ClubMemberList({
               currentUserId={currentUserId}
               currentUserRole={currentUserRole}
               isSacAdmin={isSacAdmin}
-              isSiteAdmin={isSiteAdmin}
               onChangeRole={onChangeRole}
               onRemove={onRemove}
             />

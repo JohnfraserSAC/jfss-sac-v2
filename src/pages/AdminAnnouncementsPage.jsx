@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { ReviewAnnouncementDialog } from "../components/ArchiveAnnouncementDialog";
 import { AnnouncementStatusBadge } from "../components/AnnouncementStatusBadge";
 import { AnnouncementTypeBadge } from "../components/AnnouncementTypeBadge";
@@ -16,7 +17,9 @@ import {
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
-export function AdminAnnouncementsPage() {
+export function AdminAnnouncementsPage({ embedded = false }) {
+  const { canMutateReviews } = useAuth();
+  const readOnly = !canMutateReviews;
   const [announcements, setAnnouncements] = useState([]);
   const [status, setStatus] = useState("ACTIVE");
   const [search, setSearch] = useState("");
@@ -50,6 +53,7 @@ export function AdminAnnouncementsPage() {
   }, [loadQueue]);
 
   async function runQuickAction(announcement, action) {
+    if (readOnly) return;
     setBusyId(announcement.id);
     setError("");
     setSuccess("");
@@ -59,14 +63,16 @@ export function AdminAnnouncementsPage() {
       setSuccess(`Updated “${announcement.title}” to ${action}.`);
       await loadQueue();
     } catch (actionError) {
-      setError(getErrorMessage(actionError, "Could not update the announcement."));
+      setError(
+        getErrorMessage(actionError, "Could not update the announcement."),
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function confirmReview(notes) {
-    if (!reviewDialog) return;
+    if (!reviewDialog || readOnly) return;
     setBusyId(reviewDialog.announcement.id);
     setError("");
     setSuccess("");
@@ -94,22 +100,34 @@ export function AdminAnnouncementsPage() {
   }
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Administration</p>
-          <h1>Announcement review queue</h1>
-          <p className="lede">
-            Review club-owner submissions. Creator profiles are not joined here
-            because profiles RLS may only allow users to read their own row.
-          </p>
-        </div>
-      </header>
+    <div className={embedded ? "exec-section" : "page"}>
+      {!embedded ? (
+        <header className="page-header">
+          <div>
+            <p className="eyebrow">Administration</p>
+            <h1>Announcement review queue</h1>
+            <p className="lede">
+              Review club-owner submissions. Creator profiles are not joined
+              here because profiles RLS may only allow users to read their own
+              row.
+            </p>
+          </div>
+        </header>
+      ) : (
+        <h2 className="exec-section__title">Announcement Review</h2>
+      )}
 
-      <PermissionNotice title="Creator profile limitation">
-        Moderation shows the created-by UUID. A safe creator-profile lookup RPC
-        would be needed to display names and emails.
-      </PermissionNotice>
+      {readOnly ? (
+        <PermissionNotice title="Read only">
+          You can view announcement submissions, but you cannot approve,
+          reject, request changes, or publish.
+        </PermissionNotice>
+      ) : (
+        <PermissionNotice title="Creator profile limitation">
+          Moderation shows the created-by UUID. A safe creator-profile lookup
+          RPC would be needed to display names and emails.
+        </PermissionNotice>
+      )}
 
       <div className="toolbar toolbar--split">
         <Select
@@ -209,85 +227,87 @@ export function AdminAnnouncementsPage() {
                   </div>
                 ) : null}
 
-                <div className="button-row">
-                  <button
-                    type="button"
-                    className="button button--secondary"
-                    disabled={isBusy || announcement.status !== "SUBMITTED"}
-                    onClick={() =>
-                      runQuickAction(announcement, "UNDER_REVIEW")
-                    }
-                  >
-                    {isBusy ? <Spinner size="sm" label="Working" /> : null}
-                    Mark under review
-                  </button>
+                {!readOnly ? (
+                  <div className="button-row">
+                    <button
+                      type="button"
+                      className="button button--secondary"
+                      disabled={isBusy || announcement.status !== "SUBMITTED"}
+                      onClick={() =>
+                        runQuickAction(announcement, "UNDER_REVIEW")
+                      }
+                    >
+                      {isBusy ? <Spinner size="sm" label="Working" /> : null}
+                      Mark under review
+                    </button>
 
-                  <button
-                    type="button"
-                    className="button button--secondary"
-                    disabled={
-                      isBusy ||
-                      !["SUBMITTED", "UNDER_REVIEW"].includes(
-                        announcement.status,
-                      )
-                    }
-                    onClick={() =>
-                      setReviewDialog({
-                        announcement,
-                        action: "CHANGES_REQUESTED",
-                        title: "Request changes",
-                        confirmLabel: "Request changes",
-                        requireNotes: true,
-                      })
-                    }
-                  >
-                    Request changes
-                  </button>
+                    <button
+                      type="button"
+                      className="button button--secondary"
+                      disabled={
+                        isBusy ||
+                        !["SUBMITTED", "UNDER_REVIEW"].includes(
+                          announcement.status,
+                        )
+                      }
+                      onClick={() =>
+                        setReviewDialog({
+                          announcement,
+                          action: "CHANGES_REQUESTED",
+                          title: "Request changes",
+                          confirmLabel: "Request changes",
+                          requireNotes: true,
+                        })
+                      }
+                    >
+                      Request changes
+                    </button>
 
-                  <button
-                    type="button"
-                    className="button button--danger"
-                    disabled={
-                      isBusy ||
-                      !["SUBMITTED", "UNDER_REVIEW"].includes(
-                        announcement.status,
-                      )
-                    }
-                    onClick={() =>
-                      setReviewDialog({
-                        announcement,
-                        action: "REJECTED",
-                        title: "Reject announcement",
-                        confirmLabel: "Reject",
-                        requireNotes: true,
-                      })
-                    }
-                  >
-                    Reject
-                  </button>
+                    <button
+                      type="button"
+                      className="button button--danger"
+                      disabled={
+                        isBusy ||
+                        !["SUBMITTED", "UNDER_REVIEW"].includes(
+                          announcement.status,
+                        )
+                      }
+                      onClick={() =>
+                        setReviewDialog({
+                          announcement,
+                          action: "REJECTED",
+                          title: "Reject announcement",
+                          confirmLabel: "Reject",
+                          requireNotes: true,
+                        })
+                      }
+                    >
+                      Reject
+                    </button>
 
-                  <button
-                    type="button"
-                    className="button button--primary"
-                    disabled={
-                      isBusy ||
-                      !["SUBMITTED", "UNDER_REVIEW"].includes(
-                        announcement.status,
-                      )
-                    }
-                    onClick={() =>
-                      setReviewDialog({
-                        announcement,
-                        action: "PUBLISH",
-                        title: "Approve and publish",
-                        confirmLabel: "Publish",
-                        requireNotes: false,
-                      })
-                    }
-                  >
-                    Approve and publish
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      className="button button--primary"
+                      disabled={
+                        isBusy ||
+                        !["SUBMITTED", "UNDER_REVIEW"].includes(
+                          announcement.status,
+                        )
+                      }
+                      onClick={() =>
+                        setReviewDialog({
+                          announcement,
+                          action: "PUBLISH",
+                          title: "Approve and publish",
+                          confirmLabel: "Publish",
+                          requireNotes: false,
+                        })
+                      }
+                    >
+                      Approve and publish
+                    </button>
+                  </div>
+                ) : null}
               </article>
             );
           })}

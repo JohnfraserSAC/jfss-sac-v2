@@ -27,7 +27,6 @@ export function AnnouncementDetailPage() {
     user,
     isAuthenticated,
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
     ownedClubs,
   } = useAuth();
@@ -97,12 +96,11 @@ export function AnnouncementDetailPage() {
   const isCreator = user?.id && announcement.created_by === user.id;
   const showWorkflow =
     isAuthenticated &&
-    (isCreator || isSacAdmin || isSiteAdmin);
+    (isCreator || isSacAdmin);
   const canEdit = canEditAnnouncement({
     announcement,
     userId: user?.id,
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
     ownedClubs,
   });
@@ -110,7 +108,6 @@ export function AnnouncementDetailPage() {
     announcement,
     userId: user?.id,
     isSacAdmin,
-    isSiteAdmin,
     isFacultyAdvisor,
   });
 

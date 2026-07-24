@@ -1,6 +1,10 @@
 import { supabase } from "../lib/supabase";
 import { getErrorMessage, logServiceError } from "../utils/errors";
-import { sortClubMemberships } from "../utils/clubPermissions";
+import {
+  isValidPdsbEmail,
+  normalizePdsbEmail,
+  sortClubMemberships,
+} from "../utils/clubPermissions";
 
 const MEMBERSHIP_FIELDS = `
   club_id,
@@ -12,6 +16,8 @@ const MEMBERSHIP_FIELDS = `
   updated_at
 `;
 
+export const STUDENT_LOOKUP_RPC = "find_student_by_email";
+
 function membershipDuplicateMessage(error) {
   const message = error?.message?.toLowerCase?.() || "";
   if (
@@ -22,6 +28,16 @@ function membershipDuplicateMessage(error) {
     return "This student is already a member of this club.";
   }
   return null;
+}
+
+function isMissingRpcError(error) {
+  const message = error?.message?.toLowerCase?.() || "";
+  return (
+    error?.code === "PGRST202" ||
+    message.includes("could not find the function") ||
+    message.includes(`function public.${STUDENT_LOOKUP_RPC}`) ||
+    message.includes("does not exist")
+  );
 }
 
 function mapMembershipRows(rows) {
@@ -94,8 +110,20 @@ export async function getMyMembershipForClub(userId, clubId) {
   return data;
 }
 
-export async function getCurrentUserClubMembership(clubId, userId) {
-  return getMyMembershipForClub(userId, clubId);
+export async function getCurrentUserClubMembership(clubIdOrOptions, maybeUserId) {
+  if (
+    clubIdOrOptions &&
+    typeof clubIdOrOptions === "object" &&
+    clubIdOrOptions.clubId &&
+    clubIdOrOptions.userId
+  ) {
+    return getMyMembershipForClub(
+      clubIdOrOptions.userId,
+      clubIdOrOptions.clubId,
+    );
+  }
+
+  return getMyMembershipForClub(maybeUserId, clubIdOrOptions);
 }
 
 export async function getClubMemberships(clubId) {
@@ -108,7 +136,8 @@ export async function getClubMemberships(clubId) {
         id,
         email,
         full_name,
-        is_active
+        is_active,
+        avatar_url
       ),
       added_by_profile:profiles!added_by (
         id,
@@ -156,10 +185,138 @@ export async function getClubMemberships(clubId) {
   };
 }
 
-export async function addClubMembership({ clubId, userId, role, addedBy }) {
-  if (role === "OWNER") {
+/**
+ * Privacy-preserving exact-email lookup via find_student_by_email.
+ * Never queries profiles broadly from the browser.
+ * Returns null when no eligible registered student matches.
+ */
+export async function findStudentByExactEmail({ clubId, email }) {
+  const normalizedEmail = normalizePdsbEmail(email);
+
+  if (!clubId) {
+    throw new Error("A club is required.");
+  }
+
+  if (!normalizedEmail) {
+    throw new Error("Enter the student’s complete PDSB email address.");
+  }
+
+  if (!isValidPdsbEmail(normalizedEmail)) {
     throw new Error(
-      "Creating another owner is not allowed through this workflow.",
+      "Enter the student’s complete @pdsb.net email address.",
+    );
+  }
+
+  const { data, error } = await supabase.rpc(STUDENT_LOOKUP_RPC, {
+    p_club_id: clubId,
+    p_email: normalizedEmail,
+  });
+
+  if (error) {
+    logServiceError("findStudentByExactEmail", error);
+
+    if (isMissingRpcError(error)) {
+      const missing = new Error(
+        "Student lookup is not available until the secure email-search function is installed.",
+      );
+      missing.code = "STUDENT_LOOKUP_RPC_MISSING";
+      missing.rpcName = STUDENT_LOOKUP_RPC;
+      throw missing;
+    }
+
+    const message = error.message?.toLowerCase?.() || "";
+
+    if (
+      error.code === "42501" ||
+      message.includes("permission to search") ||
+      message.includes("do not have permission")
+    ) {
+      throw new Error(
+        "You do not have permission to search for students for this club.",
+      );
+    }
+
+    if (
+      message.includes("complete @pdsb.net") ||
+      message.includes("email is required")
+    ) {
+      throw new Error(
+        "Enter the student’s complete @pdsb.net email address.",
+      );
+    }
+
+    if (message.includes("club not found") || message.includes("unavailable")) {
+      throw new Error(
+        "This club is not available for membership changes.",
+      );
+    }
+
+    if (message.includes("authentication required")) {
+      throw new Error("You must be signed in to search for students.");
+    }
+
+    throw new Error("Unable to search for that student.");
+  }
+
+  const rows = Array.isArray(data) ? data : data ? [data] : [];
+
+  if (rows.length > 1) {
+    console.error(
+      "[findStudentByExactEmail] Unexpected multiple rows returned",
+      rows.length,
+    );
+    throw new Error("Student lookup returned an unexpected result.");
+  }
+
+  // RPC returns zero rows for unknown or unregistered emails.
+  // It does not distinguish those cases, so use one safe message.
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const student = rows[0];
+
+  return {
+    id: student.id,
+    full_name: student.full_name ?? null,
+    email: student.email ?? normalizedEmail,
+    avatar_url: student.avatar_url ?? null,
+    existing_role: student.existing_role ?? null,
+    existing_status: student.existing_status ?? null,
+  };
+}
+
+export async function probeStudentLookupAvailability() {
+  const { error } = await supabase.rpc(STUDENT_LOOKUP_RPC, {
+    p_club_id: "00000000-0000-0000-0000-000000000000",
+    p_email: "lookup-probe@pdsb.net",
+  });
+
+  if (!error) {
+    return { available: true, warning: null };
+  }
+
+  if (isMissingRpcError(error)) {
+    return {
+      available: false,
+      warning:
+        "Student lookup is not available until the secure email-search function (find_student_by_email) is installed.",
+      rpcName: STUDENT_LOOKUP_RPC,
+    };
+  }
+
+  // Function exists; auth/club validation errors are expected for the probe.
+  return { available: true, warning: null };
+}
+
+export async function addClubMembership({ clubId, userId, role, addedBy }) {
+  if (!clubId || !userId || !addedBy) {
+    throw new Error("Missing membership details.");
+  }
+
+  if (role !== "MEMBER" && role !== "EXEC") {
+    throw new Error(
+      "Only Member and Executive roles can be assigned here.",
     );
   }
 
@@ -177,9 +334,76 @@ export async function addClubMembership({ clubId, userId, role, addedBy }) {
 
   if (error) {
     logServiceError("addClubMembership", error);
+
+    const duplicate = membershipDuplicateMessage(error);
+    if (duplicate) {
+      throw new Error(duplicate);
+    }
+
+    const message = error.message?.toLowerCase?.() || "";
+    if (
+      error.code === "42501" ||
+      message.includes("permission") ||
+      message.includes("row-level security") ||
+      message.includes("violates row-level security")
+    ) {
+      throw new Error(
+        "You do not have permission to assign this club role.",
+      );
+    }
+
     throw new Error(
-      membershipDuplicateMessage(error) ||
-        getErrorMessage(error, "Could not add this club member."),
+      getErrorMessage(error, "Could not add this club member."),
+    );
+  }
+
+  return data;
+}
+
+export async function reactivateClubMembership({
+  clubId,
+  userId,
+  role,
+}) {
+  if (role !== "MEMBER" && role !== "EXEC") {
+    throw new Error(
+      "Only Member and Executive roles can be assigned here.",
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("club_memberships")
+    .update({
+      role,
+      status: "ACTIVE",
+    })
+    .eq("club_id", clubId)
+    .eq("user_id", userId)
+    .select(MEMBERSHIP_FIELDS)
+    .maybeSingle();
+
+  if (error) {
+    logServiceError("reactivateClubMembership", error);
+
+    const message = error.message?.toLowerCase?.() || "";
+    if (
+      error.code === "42501" ||
+      message.includes("row-level security") ||
+      message.includes("permission")
+    ) {
+      throw new Error(
+        "You do not have permission to reactivate this club membership.",
+      );
+    }
+
+    throw new Error(
+      getErrorMessage(error, "Could not reactivate this club membership."),
+    );
+  }
+
+  if (!data) {
+    throw new Error(
+      "You do not have permission to reactivate this club membership.",
     );
   }
 
@@ -234,15 +458,25 @@ export async function removeClubMembership({ clubId, userId }) {
 
   if (error) {
     logServiceError("removeClubMembership", error);
+
+    const message = error.message?.toLowerCase?.() || "";
+    if (
+      error.code === "42501" ||
+      message.includes("row-level security") ||
+      message.includes("permission")
+    ) {
+      throw new Error(
+        "You do not have permission to remove this club membership.",
+      );
+    }
+
     throw new Error(
       getErrorMessage(error, "Could not remove this club membership."),
     );
   }
 
   if (!data) {
-    throw new Error(
-      "You do not have permission to remove this club membership.",
-    );
+    throw new Error("This membership has already been removed.");
   }
 
   return data;
@@ -250,85 +484,4 @@ export async function removeClubMembership({ clubId, userId }) {
 
 export async function leaveClub({ clubId, userId }) {
   return removeClubMembership({ clubId, userId });
-}
-
-/**
- * Attempts a profile search for adding members.
- * Current migrations only allow users to read their own profile, and there is
- * no student-search RPC. This function reports that limitation clearly.
- */
-export async function searchEligibleStudents(searchTerm) {
-  const term = String(searchTerm ?? "").trim();
-
-  if (term.length < 2) {
-    return {
-      results: [],
-      searchAvailable: false,
-      warning:
-        "Enter at least 2 characters to search. Student profile search is currently limited by profiles RLS.",
-    };
-  }
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, full_name, is_active")
-    .or(`full_name.ilike.%${term}%,email.ilike.%${term}%`)
-    .limit(20);
-
-  if (error) {
-    logServiceError("searchEligibleStudents", error);
-    return {
-      results: [],
-      searchAvailable: false,
-      warning:
-        "Student profile search is blocked by the current profiles RLS policy (users may only read their own profile). No safe student-search RPC exists yet.",
-    };
-  }
-
-  const results = (data ?? []).filter((profile) => profile.is_active !== false);
-
-  // Own-profile-only RLS usually returns 0–1 rows (the signed-in user).
-  if (results.length <= 1) {
-    return {
-      results,
-      searchAvailable: false,
-      warning:
-        "Student profile search is not available. Current profiles RLS only allows users to read their own profile, and no student-search RPC exists yet.",
-    };
-  }
-
-  return {
-    results,
-    searchAvailable: true,
-    warning: null,
-  };
-}
-
-export async function probeProfileSearchAvailability() {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id")
-    .limit(5);
-
-  if (error) {
-    logServiceError("probeProfileSearchAvailability", error);
-    return {
-      searchAvailable: false,
-      warning:
-        "Student profile search is blocked by the current profiles RLS policy. No safe student-search RPC exists yet.",
-    };
-  }
-
-  if ((data ?? []).length <= 1) {
-    return {
-      searchAvailable: false,
-      warning:
-        "Student profile search is not available yet. Profiles RLS currently allows users to read only their own profile, and there is no student-search RPC.",
-    };
-  }
-
-  return {
-    searchAvailable: true,
-    warning: null,
-  };
 }

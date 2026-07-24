@@ -10,7 +10,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { getDashboardSummary } from "../services/clubRequests";
 import { getClubById } from "../services/clubs";
 import { getMyClubMemberships } from "../services/memberships";
-import { getClubRoleLabel } from "../utils/clubPermissions";
+import { formatClubScopedRole } from "../utils/clubPermissions";
 import { displayName, formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
@@ -19,7 +19,7 @@ export function DashboardPage() {
     user,
     profile,
     systemRoles,
-    isAdmin,
+    canAccessExecDashboard,
     authError,
     refreshRoles,
     refreshProfile,
@@ -157,8 +157,8 @@ export function DashboardPage() {
 
         <div className="role-section">
           <h3>System roles</h3>
-          {systemRoles.length === 0 ? (
-            <p className="muted">No system roles assigned.</p>
+          {systemRoles.length === 0 && memberships.length === 0 ? (
+            <p className="muted">No system or club roles assigned.</p>
           ) : (
             <ul className="role-list">
               {systemRoles.map((role) => (
@@ -172,6 +172,26 @@ export function DashboardPage() {
                   </div>
                 </li>
               ))}
+              {memberships.map((membership) => {
+                const club = membership.clubs;
+                const label = formatClubScopedRole(club?.name, membership.role);
+                return (
+                  <li key={`club-role-${membership.club_id}`}>
+                    <div className="role-list__item">
+                      <ClubRoleBadge role={membership.role} />
+                      <div>
+                        <strong>{label}</strong>
+                        <p>
+                          Club-scoped role
+                          {membership.status !== "ACTIVE"
+                            ? ` · ${membership.status}`
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -197,7 +217,7 @@ export function DashboardPage() {
                       <div>
                         <strong>{club?.name || "Unknown club"}</strong>
                         <p>
-                          Role: {getClubRoleLabel(membership.role)}
+                          {formatClubScopedRole(club?.name, membership.role)}
                           {membership.status !== "ACTIVE"
                             ? ` · ${membership.status}`
                             : ""}
@@ -274,15 +294,15 @@ export function DashboardPage() {
       <section className="panel">
         <h2>Quick actions</h2>
         <div className="button-row">
-          <Link to="/register-club" className="button button--primary">
-            Register a club
+          <Link to="/clubs/apply" className="button button--primary">
+            Apply for a club
           </Link>
-          <Link to="/my-clubs" className="button button--secondary">
+          <Link to="/clubs/my-clubs" className="button button--secondary">
             My clubs
           </Link>
-          {isAdmin ? (
-            <Link to="/admin/club-requests" className="button button--secondary">
-              Review club requests
+          {canAccessExecDashboard ? (
+            <Link to="/exec-dashboard" className="button button--secondary">
+              Exec Dashboard
             </Link>
           ) : null}
         </div>

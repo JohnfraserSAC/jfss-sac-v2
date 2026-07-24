@@ -34,8 +34,8 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
     return "Club approval is unavailable. The approval function is missing on the server.";
   }
 
-  if (
-    lower.includes("only sac or site administrators") ||
+  if (lower.includes("only sac or site administrators") ||
+    lower.includes("only sac administrators") ||
     lower.includes("only a club owner") ||
     lower.includes("permission denied") ||
     lower.includes("42501") ||

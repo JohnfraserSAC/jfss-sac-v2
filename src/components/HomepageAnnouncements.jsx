@@ -7,7 +7,7 @@ import { Spinner } from "./Spinner";
 import { getHomepageAnnouncements } from "../services/announcements";
 import { getErrorMessage } from "../utils/errors";
 
-export function HomepageAnnouncements({ limit = 5 }) {
+export function HomepageAnnouncements({ limit = 8 }) {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -40,11 +40,15 @@ export function HomepageAnnouncements({ limit = 5 }) {
   }, [limit]);
 
   return (
-    <section className="panel homepage-announcements">
+    <section className="panel homepage-announcements" aria-labelledby="home-announcements-heading">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">News</p>
-          <h2>Latest announcements</h2>
+          <p className="eyebrow">Announcements</p>
+          <h2 id="home-announcements-heading">Published announcements</h2>
+          <p className="muted">
+            Only published, non-expired announcements visible under current
+            policies are shown.
+          </p>
         </div>
         <Link className="text-link" to="/announcements">
           View all announcements

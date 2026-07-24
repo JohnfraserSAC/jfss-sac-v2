@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { RequestCard } from "../components/RequestCard";
+import { StatusBadge } from "../components/StatusBadge";
 import { Spinner } from "../components/Spinner";
 import {
   deleteDraftClubRequest,
@@ -11,12 +13,17 @@ import {
   resubmitClubRequest,
   withdrawClubRequest,
 } from "../services/clubRequests";
+import { getMyClubReapplications } from "../services/clubReapplications";
+import { getMyClubEventRequests } from "../services/clubEventRequests";
 import { getClubById } from "../services/clubs";
+import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
 export function MyRequestsPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
+  const [reapplications, setReapplications] = useState([]);
+  const [eventRequests, setEventRequests] = useState([]);
   const [clubSlugs, setClubSlugs] = useState({});
   const [missingClubs, setMissingClubs] = useState({});
   const [loading, setLoading] = useState(true);
@@ -29,19 +36,21 @@ export function MyRequestsPage() {
     setError("");
 
     try {
-      const data = await getMyClubRequests(user.id);
+      const [data, reapps, events] = await Promise.all([
+        getMyClubRequests(user.id),
+        getMyClubReapplications(user.id).catch(() => []),
+        getMyClubEventRequests(user.id).catch(() => []),
+      ]);
       setRequests(data);
+      setReapplications(reapps);
+      setEventRequests(events);
 
       const approved = data.filter((request) => request.created_club_id);
       const slugEntries = await Promise.all(
         approved.map(async (request) => {
           try {
             const club = await getClubById(request.created_club_id);
-            return [
-              request.created_club_id,
-              club?.slug ?? null,
-              !club,
-            ];
+            return [request.created_club_id, club?.slug ?? null, !club];
           } catch {
             return [request.created_club_id, null, true];
           }
@@ -84,27 +93,45 @@ export function MyRequestsPage() {
     return <LoadingScreen message="Loading your requests…" />;
   }
 
+  const hasAny =
+    requests.length > 0 ||
+    reapplications.length > 0 ||
+    eventRequests.length > 0;
+
   return (
     <div className="page">
       <header className="page-header">
         <div>
           <p className="eyebrow">Your applications</p>
-          <h1>My club requests</h1>
+          <h1>My requests</h1>
           <p className="lede">
-            Track the status of clubs you have asked SAC to create.
+            Track new club applications, re-applications, and event proposals
+            you have submitted.
           </p>
+        </div>
+        <div className="button-row">
+          <Link className="button button--secondary" to="/clubs/apply">
+            Apply for a new club
+          </Link>
+          <Link className="button button--secondary" to="/clubs/reapply">
+            Re-apply an existing club
+          </Link>
         </div>
       </header>
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       {actionError ? <ErrorMessage>{actionError}</ErrorMessage> : null}
 
-      {!error && requests.length === 0 ? (
+      {!error && !hasAny ? (
         <EmptyState title="No requests yet">
-          When you submit a club registration, it will appear here.
+          Submitted club applications, re-applications, and event requests will
+          appear here.
         </EmptyState>
-      ) : (
-        <div className="stack">
+      ) : null}
+
+      {requests.length > 0 ? (
+        <section className="stack">
+          <h2>New club applications</h2>
           {requests.map((request) => {
             const canMutate =
               request.status === "DRAFT" ||
@@ -123,8 +150,7 @@ export function MyRequestsPage() {
                 actions={
                   canMutate ? (
                     <div className="button-row">
-                      {(request.status === "DRAFT" ||
-                        request.status === "CHANGES_REQUESTED") && (
+                      {request.status === "CHANGES_REQUESTED" ? (
                         <button
                           type="button"
                           className="button button--primary"
@@ -135,13 +161,12 @@ export function MyRequestsPage() {
                             )
                           }
                         >
-                          {isBusy ? <Spinner size="sm" label="Working" /> : null}
-                          {request.status === "DRAFT"
-                            ? "Submit"
-                            : "Resubmit"}
+                          {isBusy ? (
+                            <Spinner size="sm" label="Working" />
+                          ) : null}
+                          Resubmit
                         </button>
-                      )}
-
+                      ) : null}
                       <button
                         type="button"
                         className="button button--secondary"
@@ -154,7 +179,6 @@ export function MyRequestsPage() {
                       >
                         Withdraw
                       </button>
-
                       {request.status === "DRAFT" ? (
                         <button
                           type="button"
@@ -175,8 +199,68 @@ export function MyRequestsPage() {
               />
             );
           })}
-        </div>
-      )}
+        </section>
+      ) : null}
+
+      {reapplications.length > 0 ? (
+        <section className="stack">
+          <h2>Club re-applications</h2>
+          {reapplications.map((request) => (
+            <article key={request.id} className="panel">
+              <div className="section-heading">
+                <div>
+                  <span className="submission-type">Re-application</span>
+                  <h3>{request.submitted_club_name}</h3>
+                  <StatusBadge status={request.status} />
+                </div>
+              </div>
+              <p className="muted">
+                Submitted {formatDate(request.submitted_at)} ·{" "}
+                {request.respondent_email}
+              </p>
+              {request.review_notes ? (
+                <p>
+                  <strong>Review notes:</strong> {request.review_notes}
+                </p>
+              ) : null}
+            </article>
+          ))}
+        </section>
+      ) : null}
+
+      {eventRequests.length > 0 ? (
+        <section className="stack">
+          <h2>Event requests</h2>
+          {eventRequests.map((request) => (
+            <article key={request.id} className="panel">
+              <div className="section-heading">
+                <div>
+                  <span className="submission-type">Event</span>
+                  <h3>{request.event_name}</h3>
+                  <StatusBadge status={request.status} />
+                </div>
+                {request.clubs?.slug ? (
+                  <Link
+                    className="text-link"
+                    to={`/clubs/${request.clubs.slug}`}
+                  >
+                    {request.clubs.name}
+                  </Link>
+                ) : null}
+              </div>
+              <p className="muted">
+                Submitted {formatDate(request.submitted_at)} ·{" "}
+                {request.respondent_email}
+              </p>
+              {request.review_notes ? (
+                <p>
+                  <strong>Review notes:</strong> {request.review_notes}
+                </p>
+              ) : null}
+            </article>
+          ))}
+        </section>
+      ) : null}
     </div>
   );
 }

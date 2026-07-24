@@ -19,8 +19,7 @@ export function ClubMemberRow({
   membership,
   currentUserId,
   currentUserRole,
-  isSacAdmin,
-  isSiteAdmin,
+  isSacAdmin = false,
   onChangeRole,
   onRemove,
 }) {
@@ -30,14 +29,12 @@ export function ClubMemberRow({
     targetCurrentRole: membership.role,
     targetNewRole: membership.role === "EXEC" ? "MEMBER" : "EXEC",
     isSacAdmin,
-    isSiteAdmin,
   });
   const canRemove = canRemoveMember({
     currentUserRole,
     targetRole: membership.role,
     isSelf,
     isSacAdmin,
-    isSiteAdmin,
   });
 
   const addedByLabel =
