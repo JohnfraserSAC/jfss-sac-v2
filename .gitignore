@@ -26,3 +26,7 @@ dist-ssr
 # Environment files
 .env.local
 .env.*.local
+
+# Local-only inputs (may contain personal data; never commit raw CSVs)
+local-input/*
+!local-input/README.md

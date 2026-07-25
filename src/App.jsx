@@ -22,6 +22,7 @@ import { MyRequestsPage } from "./pages/MyRequestsPage";
 import { MyClubsPage } from "./pages/MyClubsPage";
 import { AdminClubRequestsPage } from "./pages/AdminClubRequestsPage";
 import { AdminClubReapplicationsPage } from "./pages/AdminClubReapplicationsPage";
+import { AdminAnnualClubsPage } from "./pages/AdminAnnualClubsPage";
 import { AdminClubEventsPage } from "./pages/AdminClubEventsPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
@@ -167,6 +168,30 @@ export default function App() {
               <Route
                 path="clubs"
                 element={<AdminClubRequestsPage embedded />}
+              />
+              <Route
+                path="inactive-clubs"
+                element={
+                  <AdminAnnualClubsPage
+                    embedded
+                    annualStatus="INACTIVE"
+                  />
+                }
+              />
+              <Route
+                path="pending-clubs"
+                element={
+                  <AdminAnnualClubsPage
+                    embedded
+                    annualStatus="PENDING_SUPERVISOR"
+                  />
+                }
+              />
+              <Route
+                path="active-clubs"
+                element={
+                  <AdminAnnualClubsPage embedded annualStatus="ACTIVE" />
+                }
               />
               <Route
                 path="reapplications"

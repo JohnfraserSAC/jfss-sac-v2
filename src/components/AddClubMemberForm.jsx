@@ -177,9 +177,22 @@ export function AddClubMemberForm({
   lookupWarning = null,
   onSuccess,
 }) {
+  const activeOwnerCount = useMemo(
+    () =>
+      (existingMemberships || []).filter(
+        (row) => row.role === "OWNER" && row.status === "ACTIVE",
+      ).length,
+    [existingMemberships],
+  );
+
   const addableRoles = useMemo(
-    () => getAddableRoles({ currentUserRole, isSacAdmin }),
-    [currentUserRole, isSacAdmin],
+    () =>
+      getAddableRoles({
+        currentUserRole,
+        isSacAdmin,
+        activeOwnerCount,
+      }),
+    [currentUserRole, isSacAdmin, activeOwnerCount],
   );
 
   const [student, setStudent] = useState(null);
@@ -232,8 +245,8 @@ export function AddClubMemberForm({
       return;
     }
 
-    if (selectedRole !== "MEMBER" && selectedRole !== "EXEC") {
-      setError("Only Member and Executive roles can be assigned here.");
+    if (!["OWNER", "EXEC", "MEMBER"].includes(selectedRole)) {
+      setError("Choose a valid club role.");
       return;
     }
 
@@ -242,6 +255,7 @@ export function AddClubMemberForm({
         currentUserRole,
         newRole: selectedRole,
         isSacAdmin,
+        activeOwnerCount,
       })
     ) {
       setError("You do not have permission to assign that role.");
@@ -249,7 +263,7 @@ export function AddClubMemberForm({
     }
 
     if (existingRole === "OWNER" && existingStatus === "ACTIVE") {
-      setError("The club owner cannot be replaced through this workflow.");
+      setError(alreadyActiveMessage("OWNER"));
       return;
     }
 
@@ -279,9 +293,7 @@ export function AddClubMemberForm({
           addedBy: currentUserId,
         });
         setSuccess(
-          selectedRole === "EXEC"
-            ? "Student added as Executive."
-            : "Student added as Member.",
+          `Student added as ${getClubRoleLabel(selectedRole)}.`,
         );
       }
 

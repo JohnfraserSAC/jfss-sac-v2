@@ -20,6 +20,8 @@ export const CLUB_LIAISONS = [
 ];
 
 export const CLUB_APPLICATION_DOCUMENTS_BUCKET = "club-application-documents";
+export const CLUB_SUPERVISOR_DOCUMENTS_BUCKET = "club-supervisor-documents";
+export const CLUB_LOGOS_BUCKET = "club-logos";
 
 export const SIGNED_FORM_MAX_BYTES = 10 * 1024 * 1024;
 
@@ -27,4 +29,36 @@ export const SIGNED_FORM_ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
+];
+
+export const REAPP_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
+export const REAPP_ATTACHMENT_ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+];
+
+export const REAPP_LOGO_MAX_BYTES = 5 * 1024 * 1024;
+export const REAPP_LOGO_ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
+export const MEETING_FREQUENCIES = [
+  "Weekly",
+  "Biweekly",
+  "Monthly",
+  "Event-Based",
+  "Irregular",
+  "Other",
+];
+
+export const MEETING_DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
 ];

@@ -23,7 +23,8 @@ function membershipDuplicateMessage(error) {
   if (
     message.includes("duplicate key") ||
     message.includes("unique constraint") ||
-    message.includes("club_memberships_pkey")
+    message.includes("club_memberships_pkey") ||
+    message.includes("already has that active role")
   ) {
     return "This student is already a member of this club.";
   }
@@ -268,8 +269,6 @@ export async function findStudentByExactEmail({ clubId, email }) {
     throw new Error("Student lookup returned an unexpected result.");
   }
 
-  // RPC returns zero rows for unknown or unregistered emails.
-  // It does not distinguish those cases, so use one safe message.
   if (rows.length === 0) {
     return null;
   }
@@ -305,32 +304,23 @@ export async function probeStudentLookupAvailability() {
     };
   }
 
-  // Function exists; auth/club validation errors are expected for the probe.
   return { available: true, warning: null };
 }
 
 export async function addClubMembership({ clubId, userId, role, addedBy }) {
-  if (!clubId || !userId || !addedBy) {
+  if (!clubId || !userId) {
     throw new Error("Missing membership details.");
   }
 
-  if (role !== "MEMBER" && role !== "EXEC") {
-    throw new Error(
-      "Only Member and Executive roles can be assigned here.",
-    );
+  if (!["OWNER", "EXEC", "MEMBER"].includes(role)) {
+    throw new Error("Invalid club membership role.");
   }
 
-  const { data, error } = await supabase
-    .from("club_memberships")
-    .insert({
-      club_id: clubId,
-      user_id: userId,
-      role,
-      status: "ACTIVE",
-      added_by: addedBy,
-    })
-    .select(MEMBERSHIP_FIELDS)
-    .single();
+  const { error } = await supabase.rpc("add_club_membership", {
+    p_club_id: clubId,
+    p_target_user_id: userId,
+    p_role: role,
+  });
 
   if (error) {
     logServiceError("addClubMembership", error);
@@ -357,64 +347,54 @@ export async function addClubMembership({ clubId, userId, role, addedBy }) {
     );
   }
 
+  const { data, error: fetchError } = await supabase
+    .from("club_memberships")
+    .select(MEMBERSHIP_FIELDS)
+    .eq("club_id", clubId)
+    .eq("user_id", userId)
+    .single();
+
+  if (fetchError) {
+    return {
+      club_id: clubId,
+      user_id: userId,
+      role,
+      status: "ACTIVE",
+      added_by: addedBy ?? null,
+    };
+  }
+
   return data;
 }
 
-export async function reactivateClubMembership({
-  clubId,
-  userId,
-  role,
-}) {
-  if (role !== "MEMBER" && role !== "EXEC") {
-    throw new Error(
-      "Only Member and Executive roles can be assigned here.",
-    );
-  }
-
-  const { data, error } = await supabase
-    .from("club_memberships")
-    .update({
-      role,
-      status: "ACTIVE",
-    })
-    .eq("club_id", clubId)
-    .eq("user_id", userId)
-    .select(MEMBERSHIP_FIELDS)
-    .maybeSingle();
-
+export async function leaveClubAsOwner(clubId) {
+  const { error } = await supabase.rpc("leave_club_as_owner", {
+    p_club_id: clubId,
+  });
   if (error) {
-    logServiceError("reactivateClubMembership", error);
-
-    const message = error.message?.toLowerCase?.() || "";
-    if (
-      error.code === "42501" ||
-      message.includes("row-level security") ||
-      message.includes("permission")
-    ) {
-      throw new Error(
-        "You do not have permission to reactivate this club membership.",
-      );
-    }
-
-    throw new Error(
-      getErrorMessage(error, "Could not reactivate this club membership."),
-    );
+    logServiceError("leaveClubAsOwner", error);
+    throw new Error(getErrorMessage(error, "Could not leave as OWNER."));
   }
+}
 
-  if (!data) {
-    throw new Error(
-      "You do not have permission to reactivate this club membership.",
-    );
+export async function adminRemoveClubOwner(clubId, targetUserId) {
+  const { error } = await supabase.rpc("admin_remove_club_owner", {
+    p_club_id: clubId,
+    p_target_user_id: targetUserId,
+  });
+  if (error) {
+    logServiceError("adminRemoveClubOwner", error);
+    throw new Error(getErrorMessage(error, "Could not remove this OWNER."));
   }
+}
 
-  return data;
+export async function reactivateClubMembership({ clubId, userId, role }) {
+  return addClubMembership({ clubId, userId, role });
 }
 
 export async function updateClubMembershipRole({ clubId, userId, role }) {
   if (role === "OWNER") {
-    throw new Error(
-      "Ownership transfer is not available through this workflow.",
-    );
+    return addClubMembership({ clubId, userId, role });
   }
 
   const { data, error } = await supabase

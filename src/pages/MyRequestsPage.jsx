@@ -210,17 +210,38 @@ export function MyRequestsPage() {
               <div className="section-heading">
                 <div>
                   <span className="submission-type">Re-application</span>
-                  <h3>{request.submitted_club_name}</h3>
+                  <h3>{request.clubs?.name || "Past club"}</h3>
                   <StatusBadge status={request.status} />
                 </div>
+                {request.clubs?.slug && request.status === "APPROVED" ? (
+                  <Link
+                    className="text-link"
+                    to={`/clubs/${request.clubs.slug}/manage`}
+                  >
+                    Manage club
+                  </Link>
+                ) : null}
               </div>
               <p className="muted">
-                Submitted {formatDate(request.submitted_at)} ·{" "}
-                {request.respondent_email}
+                {request.school_year} · Submitted{" "}
+                {formatDate(request.submitted_at)} · {request.applicant_email}
               </p>
               {request.review_notes ? (
                 <p>
                   <strong>Review notes:</strong> {request.review_notes}
+                </p>
+              ) : null}
+              {request.status === "CHANGES_REQUESTED" ? (
+                <p>
+                  <Link to={`/clubs/reapply?edit=${request.id}`}>
+                    Edit and resubmit
+                  </Link>
+                </p>
+              ) : null}
+              {request.status === "REJECTED" ? (
+                <p>
+                  <Link to="/clubs/reapply">Create a new re-application</Link>{" "}
+                  (subject to one application per Toronto calendar day).
                 </p>
               ) : null}
             </article>

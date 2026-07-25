@@ -6,8 +6,14 @@ const BASE_SECTIONS = [
   { to: "/exec-dashboard/clubs", label: "New Club Applications" },
 ];
 
-const SAC_ADMIN_SECTIONS = [
-  { to: "/exec-dashboard/reapplications", label: "Club Re-Applications" },
+const CLUB_STATE_SECTIONS = [
+  { to: "/exec-dashboard/inactive-clubs", label: "Inactive Clubs" },
+  { to: "/exec-dashboard/pending-clubs", label: "Pending Clubs" },
+  { to: "/exec-dashboard/active-clubs", label: "Active Clubs" },
+  { to: "/exec-dashboard/reapplications", label: "Re-Application Review" },
+];
+
+const SAC_ADMIN_ONLY_SECTIONS = [
   { to: "/exec-dashboard/events", label: "Event Approvals" },
   { to: "/exec-dashboard/funding", label: "Club Funding Requests" },
 ];
@@ -16,7 +22,8 @@ export function ExecDashboardLayout() {
   const { canMutateReviews, isSacExec, isSacAdmin } = useAuth();
   const sections = [
     ...BASE_SECTIONS,
-    ...(isSacAdmin ? SAC_ADMIN_SECTIONS : []),
+    ...((isSacAdmin || isSacExec) ? CLUB_STATE_SECTIONS : []),
+    ...(isSacAdmin ? SAC_ADMIN_ONLY_SECTIONS : []),
   ];
 
   return (
@@ -26,8 +33,8 @@ export function ExecDashboardLayout() {
           <p className="eyebrow">Executive</p>
           <h1>Exec Dashboard</h1>
           <p className="lede">
-            Review announcements, club applications, re-applications, and event
-            proposals.
+            Review announcements, club applications, annual club state, and
+            re-applications.
           </p>
         </div>
         {!canMutateReviews ? (
@@ -41,9 +48,9 @@ export function ExecDashboardLayout() {
         <div className="alert alert--warning" role="status">
           <strong>Read-only access</strong>
           <p>
-            As a SAC Executive you can view announcement and club-application
-            queues, but you cannot approve or reject them. Re-application and
-            event review are limited to SAC administrators.
+            As a SAC Executive you can view queues and re-application details,
+            but you cannot approve, reject, or change request state. Mutation
+            actions are limited to SAC administrators.
           </p>
         </div>
       ) : null}

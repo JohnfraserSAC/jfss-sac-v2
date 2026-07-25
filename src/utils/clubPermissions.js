@@ -63,9 +63,17 @@ export function canSearchStudents({ clubRole, isSacAdmin = false }) {
   return isSacAdmin || isClubOwner(clubRole) || isClubExec(clubRole);
 }
 
-export function getAddableRoles({ currentUserRole, isSacAdmin = false }) {
+export function getAddableRoles({
+  currentUserRole,
+  isSacAdmin = false,
+  activeOwnerCount = 0,
+}) {
   if (isSacAdmin || isClubOwner(currentUserRole)) {
-    return ["EXEC", "MEMBER"];
+    const roles = ["EXEC", "MEMBER"];
+    if (activeOwnerCount < 3) {
+      roles.unshift("OWNER");
+    }
+    return roles;
   }
 
   if (isClubExec(currentUserRole)) {
@@ -79,11 +87,13 @@ export function canAddRole({
   currentUserRole,
   targetRole,
   isSacAdmin = false,
+  activeOwnerCount = 0,
 }) {
   return canAddClubRole({
     currentUserRole,
     newRole: targetRole,
     isSacAdmin,
+    activeOwnerCount,
   });
 }
 
@@ -91,14 +101,12 @@ export function canAddClubRole({
   currentUserRole,
   newRole,
   isSacAdmin = false,
+  activeOwnerCount = 0,
 }) {
-  if (newRole === "OWNER") {
-    return false;
-  }
-
   return getAddableRoles({
     currentUserRole,
     isSacAdmin,
+    activeOwnerCount,
   }).includes(newRole);
 }
 
@@ -162,8 +170,15 @@ export function canRemoveClubMember({
   targetRole,
   isSelf = false,
   isSacAdmin = false,
+  activeOwnerCount = 1,
 }) {
   if (targetRole === "OWNER") {
+    if (isSacAdmin && activeOwnerCount > 1) {
+      return true;
+    }
+    if (isSelf && isClubOwner(currentUserRole) && activeOwnerCount > 1) {
+      return true;
+    }
     return false;
   }
 

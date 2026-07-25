@@ -12,7 +12,7 @@ import { PermissionNotice } from "../components/PermissionNotice";
 import { ClubDangerZone } from "../components/ClubDangerZone";
 import { RemoveMemberDialog } from "../components/RemoveMemberDialog";
 import { Select, TextInput } from "../components/FormField";
-import { getClubBySlug } from "../services/clubs";
+import { getClubAnnualState, getClubBySlug } from "../services/clubs";
 import {
   getClubMemberships,
   getCurrentUserClubMembership,
@@ -26,6 +26,16 @@ import {
   isClubLeader,
 } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
+import { formatDate } from "../utils/format";
+
+function annualStatusLabel(status, overdue) {
+  if (status === "PENDING_SUPERVISOR" && overdue) return "Supervisor Overdue";
+  if (status === "PENDING_SUPERVISOR") return "Pending Supervisor";
+  if (status === "ACTIVE") return "Active";
+  if (status === "SUSPENDED") return "Suspended";
+  if (status === "INACTIVE") return "Inactive";
+  return status || "Unknown";
+}
 
 export function ClubManagePage() {
   const { slug } = useParams();
@@ -33,6 +43,7 @@ export function ClubManagePage() {
   const { user, isSacAdmin, isAdmin } = useAuth();
 
   const [club, setClub] = useState(null);
+  const [annual, setAnnual] = useState(null);
   const [membership, setMembership] = useState(null);
   const [memberships, setMemberships] = useState([]);
   const [profilesWarning, setProfilesWarning] = useState(null);
@@ -59,16 +70,18 @@ export function ClubManagePage() {
         setClub(null);
         setMembership(null);
         setMemberships([]);
+        setAnnual(null);
         return;
       }
 
       setClub(nextClub);
 
-      const currentMembership = await getCurrentUserClubMembership(
-        nextClub.id,
-        user.id,
-      );
+      const [currentMembership, annualState] = await Promise.all([
+        getCurrentUserClubMembership(nextClub.id, user.id),
+        getClubAnnualState(nextClub.id).catch(() => null),
+      ]);
       setMembership(currentMembership);
+      setAnnual(annualState);
 
       const allowed = canManageClubMembers({
         clubRole: currentMembership?.role,
@@ -123,9 +136,18 @@ export function ClubManagePage() {
     });
   }, [memberships, roleFilter, search]);
 
+  const activeOwnerCount = useMemo(
+    () =>
+      memberships.filter(
+        (row) => row.role === "OWNER" && row.status === "ACTIVE",
+      ).length,
+    [memberships],
+  );
+
   const addableRoles = getAddableRoles({
     currentUserRole: membership?.role,
     isSacAdmin,
+    activeOwnerCount,
   });
 
   const canSearch = canSearchStudents({
@@ -133,6 +155,12 @@ export function ClubManagePage() {
     isSacAdmin,
   });
 
+  const isPendingSupervisor = annual?.status === "PENDING_SUPERVISOR";
+  const isOverdue =
+    isPendingSupervisor &&
+    annual?.supervisor_due_at &&
+    new Date(annual.supervisor_due_at).getTime() < Date.now();
+  const operationsAllowed = annual?.status === "ACTIVE";
   if (loading) {
     return <LoadingScreen message="Loading club management…" />;
   }
@@ -172,14 +200,43 @@ export function ClubManagePage() {
           <p className="eyebrow">Club management</p>
           <h1>{club.name}</h1>
           <p className="lede">
-            Manage club-scoped memberships for this club. Roles stay in{" "}
-            <code>club_memberships</code>, not global system roles.
+            Manage club profile and memberships. A club may have at most three
+            active OWNERs.
+          </p>
+          <p>
+            Annual status:{" "}
+            <strong>
+              {annualStatusLabel(annual?.status, isOverdue)}
+            </strong>
+            {isPendingSupervisor && annual?.supervisor_due_at ? (
+              <>
+                {" "}
+                · Supervisor due {formatDate(annual.supervisor_due_at)}
+              </>
+            ) : null}
+          </p>
+          <p>
+            {activeOwnerCount} of 3 Owners
           </p>
         </div>
         <Link className="text-link" to={`/clubs/${club.slug}`}>
           View club page
         </Link>
       </header>
+
+      {isPendingSupervisor ? (
+        <div className="alert alert--warning" role="status">
+          <strong>
+            {isOverdue ? "Supervisor requirement overdue" : "Pending supervisor"}
+          </strong>
+          <p>
+            This club is not public in Explore. Announcements, event approvals,
+            and funding requests stay blocked until SAC approves at least one
+            teacher supervisor. Owners may still manage members and submit
+            supervisor information.
+          </p>
+        </div>
+      ) : null}
 
       <section className="panel">
         <h2>Your permissions</h2>
@@ -209,24 +266,32 @@ export function ClubManagePage() {
               : "No add permissions"}
           </li>
           <li>
-            OWNER memberships are protected from normal role changes and
-            removal.
+            Owners: {activeOwnerCount} of 3. An OWNER may leave only when another
+            OWNER remains. Only SAC_ADMIN may forcibly remove an OWNER.
           </li>
         </ul>
         {membership?.status === "ACTIVE" && isClubLeader(membership.role) ? (
           <div className="button-row" style={{ marginTop: "1rem" }}>
-            <Link
-              className="button button--primary"
-              to={`/clubs/${club.slug}/manage/event-requests/new`}
-            >
-              Submit Event for Approval
-            </Link>
-            <Link
-              className="button button--secondary"
-              to={`/clubs/${club.slug}/manage/funding`}
-            >
-              Club Funding Request
-            </Link>
+            {operationsAllowed ? (
+              <>
+                <Link
+                  className="button button--primary"
+                  to={`/clubs/${club.slug}/manage/event-requests/new`}
+                >
+                  Submit Event for Approval
+                </Link>
+                <Link
+                  className="button button--secondary"
+                  to={`/clubs/${club.slug}/manage/funding`}
+                >
+                  Club Funding Request
+                </Link>
+              </>
+            ) : (
+              <p className="muted">
+                Event and funding requests unlock after the club is ACTIVE.
+              </p>
+            )}
           </div>
         ) : null}
       </section>
