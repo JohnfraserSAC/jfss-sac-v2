@@ -75,12 +75,14 @@ export async function getMyClubMemberships(userId) {
         short_description,
         logo_url,
         status,
+        deleted_at,
         meeting_location,
         meeting_schedule
       )
     `,
     )
     .eq("user_id", userId)
+    .eq("status", "ACTIVE")
     .order("joined_at", { ascending: false });
 
   if (error) {
@@ -90,7 +92,12 @@ export async function getMyClubMemberships(userId) {
     );
   }
 
-  return data ?? [];
+  // Archived / inactive / terminally deleted clubs should not surface roles.
+  return (data ?? []).filter(
+    (row) =>
+      row.clubs?.status !== "ARCHIVED" &&
+      !row.clubs?.deleted_at,
+  );
 }
 
 export async function getMyMembershipForClub(userId, clubId) {
@@ -99,6 +106,7 @@ export async function getMyMembershipForClub(userId, clubId) {
     .select("club_id, user_id, role, status, joined_at")
     .eq("user_id", userId)
     .eq("club_id", clubId)
+    .eq("status", "ACTIVE")
     .maybeSingle();
 
   if (error) {
@@ -147,7 +155,8 @@ export async function getClubMemberships(clubId) {
       )
     `,
     )
-    .eq("club_id", clubId);
+    .eq("club_id", clubId)
+    .eq("status", "ACTIVE");
 
   if (error) {
     logServiceError("getClubMemberships.withProfiles", error);
@@ -155,7 +164,8 @@ export async function getClubMemberships(clubId) {
     const { data: fallbackData, error: fallbackError } = await supabase
       .from("club_memberships")
       .select(MEMBERSHIP_FIELDS)
-      .eq("club_id", clubId);
+      .eq("club_id", clubId)
+      .eq("status", "ACTIVE");
 
     if (fallbackError) {
       logServiceError("getClubMemberships.fallback", fallbackError);
@@ -332,6 +342,13 @@ export async function addClubMembership({ clubId, userId, role, addedBy }) {
 
     const message = error.message?.toLowerCase?.() || "";
     if (
+      message.includes("at most three active owners") ||
+      message.includes("at most three active owner")
+    ) {
+      throw new Error("A club may have at most three active owners.");
+    }
+
+    if (
       error.code === "42501" ||
       message.includes("permission") ||
       message.includes("row-level security") ||
@@ -340,6 +357,10 @@ export async function addClubMembership({ clubId, userId, role, addedBy }) {
       throw new Error(
         "You do not have permission to assign this club role.",
       );
+    }
+
+    if (message.includes("already has that active role")) {
+      throw new Error("This student already has that active role in this club.");
     }
 
     throw new Error(

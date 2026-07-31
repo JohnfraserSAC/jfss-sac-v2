@@ -149,8 +149,12 @@ export function ClubDetailPage() {
         <h2>Details</h2>
         <dl className="meta-list">
           <div>
-            <dt>Contact email</dt>
+            <dt>Club contact</dt>
             <dd>{club.contact_email || "Not provided"}</dd>
+          </div>
+          <div>
+            <dt>Leader contact</dt>
+            <dd>{club.leader_contact_information || "Not provided"}</dd>
           </div>
           <div>
             <dt>Meeting schedule</dt>

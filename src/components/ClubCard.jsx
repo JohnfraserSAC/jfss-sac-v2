@@ -9,7 +9,10 @@ export function ClubCard({ club }) {
         {club.logo_url ? (
           <img src={club.logo_url} alt="" className="club-card__logo" />
         ) : (
-          <div className="club-card__logo club-card__logo--fallback" aria-hidden="true">
+          <div
+            className="club-card__logo club-card__logo--fallback"
+            aria-hidden="true"
+          >
             {initial}
           </div>
         )}
@@ -23,7 +26,9 @@ export function ClubCard({ club }) {
         {club.short_description ? (
           <p className="club-card__summary">{club.short_description}</p>
         ) : (
-          <p className="club-card__summary muted">No short description provided.</p>
+          <p className="club-card__summary muted">
+            No short description provided.
+          </p>
         )}
 
         <dl className="meta-list">
@@ -37,6 +42,24 @@ export function ClubCard({ club }) {
             <div>
               <dt>Location</dt>
               <dd>{club.meeting_location}</dd>
+            </div>
+          ) : null}
+          {club.instagram_handle ? (
+            <div>
+              <dt>Instagram</dt>
+              <dd>@{String(club.instagram_handle).replace(/^@/, "")}</dd>
+            </div>
+          ) : null}
+          {club.contact_email ? (
+            <div>
+              <dt>Email</dt>
+              <dd>{club.contact_email}</dd>
+            </div>
+          ) : null}
+          {club.leader_contact_information ? (
+            <div>
+              <dt>Leader</dt>
+              <dd>{club.leader_contact_information}</dd>
             </div>
           ) : null}
         </dl>

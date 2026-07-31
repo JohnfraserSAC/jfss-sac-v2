@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ClubInvitationsPanel } from "../components/ClubInvitationsPanel";
 import { ClubRoleBadge } from "../components/ClubRoleBadge";
 import { ClubsSubnav } from "../components/ClubsSubnav";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { StatusBadge } from "../components/StatusBadge";
+import { getMyPendingClubInvitations } from "../services/clubInvitations";
 import { getMyClubMemberships } from "../services/memberships";
 import {
   canManageClubMembers,
@@ -17,35 +19,35 @@ import { getErrorMessage } from "../utils/errors";
 
 export function MyClubsPage() {
   const { user, isSacAdmin } = useAuth();
+  const location = useLocation();
   const [memberships, setMemberships] = useState([]);
+  const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const notice = location.state?.notice || "";
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const [membershipData, invitationData] = await Promise.all([
+        getMyClubMemberships(user.id),
+        getMyPendingClubInvitations(user.id),
+      ]);
+      setMemberships(membershipData);
+      setInvitations(invitationData);
+    } catch (loadError) {
+      setError(getErrorMessage(loadError, "Could not load your clubs."));
+    } finally {
+      setLoading(false);
+    }
+  }, [user.id]);
 
   useEffect(() => {
-    let active = true;
-
-    async function load() {
-      setLoading(true);
-      setError("");
-
-      try {
-        const data = await getMyClubMemberships(user.id);
-        if (!active) return;
-        setMemberships(data);
-      } catch (loadError) {
-        if (!active) return;
-        setError(getErrorMessage(loadError, "Could not load your clubs."));
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional async page fetch
     load();
-
-    return () => {
-      active = false;
-    };
-  }, [user.id]);
+  }, [load]);
 
   if (loading) {
     return <LoadingScreen message="Loading your clubs…" />;
@@ -58,20 +60,32 @@ export function MyClubsPage() {
           <p className="eyebrow">Clubs</p>
           <h1>My Clubs</h1>
           <p className="lede">
-            Clubs where you are an owner, executive, or member. Each row is one
-            club-scoped membership.
+            Clubs where you are an active owner, executive, or member, plus any
+            pending membership invitations. Archived clubs no longer appear
+            here.
           </p>
         </div>
       </header>
 
       <ClubsSubnav />
 
+      {notice ? (
+        <div className="alert alert--success" role="status">
+          <strong>Success</strong>
+          <p>{notice}</p>
+        </div>
+      ) : null}
+
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+
+      <ClubInvitationsPanel invitations={invitations} onChanged={load} />
+
+      <h2>Your memberships</h2>
 
       {!error && memberships.length === 0 ? (
         <EmptyState title="No club memberships yet">
           Approved club ownership or membership will appear here after a club
-          request is approved or you are added to a club.
+          request is approved or you accept an invitation.
         </EmptyState>
       ) : (
         <div className="stack">

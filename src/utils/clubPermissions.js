@@ -39,6 +39,21 @@ export function isClubOwner(role) {
   return role === "OWNER";
 }
 
+/** Active OWNER may archive a club (never permanently delete). */
+export function canArchiveOwnedClub({
+  clubRole,
+  membershipStatus,
+  annualStatus,
+}) {
+  if (!isClubOwner(clubRole) || membershipStatus !== "ACTIVE") {
+    return false;
+  }
+
+  return (
+    annualStatus === "ACTIVE" || annualStatus === "PENDING_SUPERVISOR"
+  );
+}
+
 export function isClubExec(role) {
   return role === "EXEC";
 }
@@ -60,27 +75,31 @@ export function canManageClubMembers({ clubRole, isSacAdmin = false }) {
 }
 
 export function canSearchStudents({ clubRole, isSacAdmin = false }) {
-  return isSacAdmin || isClubOwner(clubRole) || isClubExec(clubRole);
+  return isSacAdmin || isClubOwner(clubRole);
 }
 
 export function getAddableRoles({
   currentUserRole,
   isSacAdmin = false,
   activeOwnerCount = 0,
+  pendingOwnerInvitationCount = 0,
 }) {
-  if (isSacAdmin || isClubOwner(currentUserRole)) {
-    const roles = ["EXEC", "MEMBER"];
-    if (activeOwnerCount < 3) {
-      roles.unshift("OWNER");
-    }
-    return roles;
+  // Invitations are owner-only. EXECs keep other manage capabilities.
+  if (!(isSacAdmin || isClubOwner(currentUserRole))) {
+    return [];
   }
 
-  if (isClubExec(currentUserRole)) {
-    return ["MEMBER"];
+  const roles = ["MEMBER", "EXEC"];
+  const reservedOwners =
+    Number(activeOwnerCount || 0) + Number(pendingOwnerInvitationCount || 0);
+  if (reservedOwners < 3) {
+    roles.push("OWNER");
   }
+  return roles;
+}
 
-  return [];
+export function getInvitableRoles(options) {
+  return getAddableRoles(options);
 }
 
 export function canAddRole({
@@ -88,12 +107,14 @@ export function canAddRole({
   targetRole,
   isSacAdmin = false,
   activeOwnerCount = 0,
+  pendingOwnerInvitationCount = 0,
 }) {
   return canAddClubRole({
     currentUserRole,
     newRole: targetRole,
     isSacAdmin,
     activeOwnerCount,
+    pendingOwnerInvitationCount,
   });
 }
 
@@ -102,11 +123,13 @@ export function canAddClubRole({
   newRole,
   isSacAdmin = false,
   activeOwnerCount = 0,
+  pendingOwnerInvitationCount = 0,
 }) {
   return getAddableRoles({
     currentUserRole,
     isSacAdmin,
     activeOwnerCount,
+    pendingOwnerInvitationCount,
   }).includes(newRole);
 }
 

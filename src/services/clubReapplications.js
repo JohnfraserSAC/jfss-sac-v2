@@ -223,10 +223,14 @@ export async function reviewClubReapplication({
 export async function approveClubReapplication({
   requestId,
   reviewNotes = null,
+  hasTeacherSupervisor = null,
+  supervisorDueAt = null,
 }) {
   const { data, error } = await supabase.rpc("approve_club_reapplication", {
     p_request_id: requestId,
     p_review_notes: reviewNotes,
+    p_has_teacher_supervisor: hasTeacherSupervisor,
+    p_supervisor_due_at: supervisorDueAt,
   });
 
   if (error) {
@@ -237,6 +241,60 @@ export async function approveClubReapplication({
   }
 
   return data;
+}
+
+export async function withdrawClubReapplication(requestId) {
+  const { data, error } = await supabase.rpc("withdraw_club_reapplication", {
+    p_request_id: requestId,
+  });
+
+  if (error) {
+    logServiceError("withdrawClubReapplication", error);
+    throw new Error(
+      getErrorMessage(error, "Could not withdraw this re-application."),
+    );
+  }
+
+  return data;
+}
+
+export async function getApprovedReapplicationForClub(clubId) {
+  const schoolYear = await getCurrentClubSchoolYearSafe();
+  const { data, error } = await supabase
+    .from("club_reapplication_requests")
+    .select("id, club_id, school_year, status, requested_by, reviewed_at")
+    .eq("club_id", clubId)
+    .eq("school_year", schoolYear)
+    .eq("status", "APPROVED")
+    .order("reviewed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    logServiceError("getApprovedReapplicationForClub", error);
+    throw new Error(
+      getErrorMessage(error, "Could not load the approved re-application."),
+    );
+  }
+
+  return data;
+}
+
+async function getCurrentClubSchoolYearSafe() {
+  const { data, error } = await supabase.rpc("get_current_club_school_year");
+  if (error) return "2026-2027";
+  return data || "2026-2027";
+}
+
+/** Applicant-facing label: never show bare "Approved" while pending supervisor. */
+export function getReapplicationDisplayStatus(request, annualStatus = null) {
+  if (
+    request?.status === "APPROVED" &&
+    annualStatus === "PENDING_SUPERVISOR"
+  ) {
+    return "PENDING_TEACHER_SUPERVISOR";
+  }
+  return request?.status || "UNKNOWN";
 }
 
 export function validateSupervisorEntries(entries, { required = true } = {}) {

@@ -1,8 +1,10 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { LocalFilePreview } from "../components/AttachmentPreview";
 import { ClubsSubnav } from "../components/ClubsSubnav";
 import { ErrorMessage } from "../components/ErrorMessage";
+import { FilePicker } from "../components/FilePicker";
 import { Select, TextArea, TextInput } from "../components/FormField";
 import { Spinner } from "../components/Spinner";
 import {
@@ -166,15 +168,13 @@ export function ClubReapplyPage() {
     );
   }
 
-  function onLogoChange(event) {
-    const file = event.target.files?.[0] || null;
-    setLogoFile(file);
+  function onLogoChange(file) {
+    setLogoFile(file || null);
   }
 
-  function onAttachmentsChange(event) {
-    const files = Array.from(event.target.files || []);
-    setAttachments((current) => [...current, ...files]);
-    event.target.value = "";
+  function onAttachmentsChange(files) {
+    const next = Array.isArray(files) ? files : files ? [files] : [];
+    setAttachments((current) => [...current, ...next]);
   }
 
   function removeAttachment(index) {
@@ -607,21 +607,30 @@ export function ClubReapplyPage() {
             JPEG, PNG, or WebP · max 5 MB. If you leave this blank, any existing
             club logo is preserved.
           </p>
-          <input
+          <FilePicker
             id="logo"
-            type="file"
+            label="Club logo"
             accept="image/jpeg,image/png,image/webp"
+            files={logoFile}
+            buttonLabel="Choose logo"
+            emptyLabel="No logo chosen"
+            error={fieldErrors.logo}
             onChange={onLogoChange}
           />
-          {fieldErrors.logo ? (
-            <p className="field-error">{fieldErrors.logo}</p>
-          ) : null}
           {logoPreview ? (
-            <img
-              src={logoPreview}
-              alt="Logo preview"
-              className="logo-preview"
-            />
+            <a
+              href={logoPreview}
+              target="_blank"
+              rel="noreferrer"
+              className="logo-preview-link"
+              title="Open logo in a new tab"
+            >
+              <img
+                src={logoPreview}
+                alt="Logo preview"
+                className="logo-preview"
+              />
+            </a>
           ) : null}
         </section>
 
@@ -690,30 +699,30 @@ export function ClubReapplyPage() {
           <p className="muted">
             JPEG, PNG, WebP, or PDF · max 10 MB each. Not required for approval.
           </p>
-          <input
-            type="file"
+          <FilePicker
+            id="reapp-attachments"
+            label="Attachments"
             multiple
             accept="image/jpeg,image/png,image/webp,application/pdf"
+            files={attachments}
+            buttonLabel="Choose files"
+            emptyLabel="No attachments chosen"
+            error={fieldErrors.attachments}
             onChange={onAttachmentsChange}
           />
           {attachments.length > 0 ? (
-            <ul>
+            <ul className="stack">
               {attachments.map((file, index) => (
                 <li key={`${file.name}-${index}`}>
-                  {file.name} ({Math.round(file.size / 1024)} KB){" "}
-                  <button
-                    type="button"
-                    className="button button--ghost"
-                    onClick={() => removeAttachment(index)}
-                  >
-                    Remove
-                  </button>
+                  <LocalFilePreview
+                    file={file}
+                    alt={file.name || "Attachment preview"}
+                    removeLabel="Remove"
+                    onRemove={() => removeAttachment(index)}
+                  />
                 </li>
               ))}
             </ul>
-          ) : null}
-          {fieldErrors.attachments ? (
-            <p className="field-error">{fieldErrors.attachments}</p>
           ) : null}
         </section>
 

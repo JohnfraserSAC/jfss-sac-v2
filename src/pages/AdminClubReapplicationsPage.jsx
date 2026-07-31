@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { AttachmentPreview } from "../components/AttachmentPreview";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
@@ -14,6 +15,10 @@ import {
   getAdminClubReapplicationQueue,
   reviewClubReapplication,
 } from "../services/clubReapplications";
+import {
+  defaultSupervisorDeadlineLocalValue,
+  localDateTimeValueToIso,
+} from "../services/clubSupervisors";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
@@ -30,8 +35,11 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
   const [success, setSuccess] = useState("");
   const [busyId, setBusyId] = useState(null);
   const [notesById, setNotesById] = useState({});
-  const [previewUrls, setPreviewUrls] = useState({});
   const [confirmAction, setConfirmAction] = useState(null);
+  const [hasSupervisor, setHasSupervisor] = useState("YES");
+  const [supervisorDueLocal, setSupervisorDueLocal] = useState(
+    defaultSupervisorDeadlineLocalValue(),
+  );
 
   const loadQueue = useCallback(async () => {
     setLoading(true);
@@ -63,13 +71,13 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
     );
   }
 
-  async function openAttachment(path, key) {
-    try {
-      const url = await createSignedClubDocumentUrl(path);
-      setPreviewUrls((current) => ({ ...current, [key]: url }));
-    } catch (previewError) {
-      setError(getErrorMessage(previewError, "Could not open attachment."));
-    }
+  function openApproveConfirm(request) {
+    const listed =
+      (request.club_reapplication_supervisors || []).length > 0 &&
+      !request.is_seeking_teacher_supervisor;
+    setHasSupervisor(listed ? "YES" : "NO");
+    setSupervisorDueLocal(defaultSupervisorDeadlineLocalValue());
+    setConfirmAction({ request, action: "APPROVED" });
   }
 
   async function runAction(request, action, requireNotes) {
@@ -83,9 +91,20 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
     setSuccess("");
     try {
       if (action === "APPROVED") {
+        const withSupervisor = hasSupervisor === "YES";
+        const dueIso = withSupervisor
+          ? null
+          : localDateTimeValueToIso(supervisorDueLocal);
+        if (!withSupervisor && !dueIso) {
+          setError("Choose a valid supervisor deadline.");
+          setBusyId(null);
+          return;
+        }
         await approveClubReapplication({
           requestId: request.id,
           reviewNotes: notes || null,
+          hasTeacherSupervisor: withSupervisor,
+          supervisorDueAt: dueIso,
         });
       } else {
         await reviewClubReapplication({
@@ -95,7 +114,15 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
         });
       }
       const clubName = request.clubs?.name || "Club";
-      setSuccess(`Updated ${clubName} to ${action}.`);
+      if (action === "APPROVED") {
+        setSuccess(
+          hasSupervisor === "YES"
+            ? `${clubName} was approved and is now public on Explore.`
+            : `${clubName} was approved as Pending Teacher Supervisor.`,
+        );
+      } else {
+        setSuccess(`Updated ${clubName} to ${action}.`);
+      }
       setConfirmAction(null);
       await loadQueue();
     } catch (actionError) {
@@ -117,7 +144,7 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
         </header>
       ) : (
         <div className="section-heading-row">
-          <h2>Re-Application Review</h2>
+          <h2>Pending Reapplications</h2>
           {!canMutate ? (
             <span className="badge badge--role badge--role-sac-exec">
               Read only
@@ -126,7 +153,7 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
         </div>
       )}
 
-      {error ? <ErrorMessage message={error} /> : null}
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       {success ? (
         <div className="alert alert--success" role="status">
           {success}
@@ -146,6 +173,7 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
           <option value="CHANGES_REQUESTED">Changes requested</option>
           <option value="APPROVED">Approved</option>
           <option value="REJECTED">Rejected</option>
+          <option value="WITHDRAWN">Withdrawn</option>
         </Select>
         <TextInput
           id="reapp-search"
@@ -216,7 +244,9 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
                   </div>
                   <div>
                     <dt>Seeking supervisor</dt>
-                    <dd>{request.is_seeking_teacher_supervisor ? "Yes" : "No"}</dd>
+                    <dd>
+                      {request.is_seeking_teacher_supervisor ? "Yes" : "No"}
+                    </dd>
                   </div>
                   <div>
                     <dt>Supervisors</dt>
@@ -241,32 +271,23 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
                 </dl>
 
                 {(request.club_reapplication_attachments || []).map((att) => (
-                  <p key={att.id}>
-                    <button
-                      type="button"
-                      className="button button--ghost"
-                      onClick={() =>
-                        openAttachment(att.storage_path, att.id)
-                      }
-                    >
-                      Open {att.original_filename}
-                    </button>
-                    {previewUrls[att.id] ? (
-                      <a href={previewUrls[att.id]} target="_blank" rel="noreferrer">
-                        {" "}
-                        Signed link
-                      </a>
-                    ) : null}
-                  </p>
+                  <AttachmentPreview
+                    key={att.id}
+                    path={att.storage_path}
+                    getSignedUrl={createSignedClubDocumentUrl}
+                    mimeType={att.mime_type}
+                    filename={att.original_filename}
+                    alt={
+                      att.original_filename ||
+                      "Re-application attachment"
+                    }
+                  />
                 ))}
 
-                {request.proposed_logo_storage_path ? (
-                  <p className="muted">
-                    Proposed logo path: {request.proposed_logo_storage_path}
-                  </p>
-                ) : null}
-
-                {canMutate ? (
+                {canMutate &&
+                ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(
+                  request.status,
+                ) ? (
                   <>
                     <TextArea
                       id={`notes-${request.id}`}
@@ -282,29 +303,9 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
                     <div className="button-row">
                       <button
                         type="button"
-                        className="button button--ghost"
-                        disabled={busyId === request.id}
-                        onClick={() => runAction(request, "UNDER_REVIEW", false)}
-                      >
-                        Mark under review
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--ghost"
-                        disabled={busyId === request.id}
-                        onClick={() =>
-                          runAction(request, "CHANGES_REQUESTED", true)
-                        }
-                      >
-                        Request changes
-                      </button>
-                      <button
-                        type="button"
                         className="button"
                         disabled={busyId === request.id}
-                        onClick={() =>
-                          setConfirmAction({ request, action: "APPROVED" })
-                        }
+                        onClick={() => openApproveConfirm(request)}
                       >
                         Approve
                       </button>
@@ -340,6 +341,7 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
             confirmAction.action === "APPROVED" ? "Approve" : "Reject"
           }
           destructive={confirmAction.action === "REJECTED"}
+          busy={busyId === confirmAction.request.id}
           onCancel={() => setConfirmAction(null)}
           onConfirm={() =>
             runAction(
@@ -349,12 +351,42 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
             )
           }
         >
-          <p>
-            This will{" "}
-            {confirmAction.action === "APPROVED"
-              ? "replace the club profile, clear prior memberships, and assign the applicant as OWNER."
-              : "reject this request. The club can be re-selected later subject to the daily quota."}
-          </p>
+          {confirmAction.action === "APPROVED" ? (
+            <>
+              <p>
+                Approving replaces the club profile, clears prior memberships,
+                and assigns the applicant as OWNER.
+              </p>
+              <Select
+                id="has-teacher-supervisor"
+                label="Does this club currently have a teacher supervisor?"
+                value={hasSupervisor}
+                onChange={(event) => setHasSupervisor(event.target.value)}
+              >
+                <option value="YES">YES — approve as ACTIVE / public</option>
+                <option value="NO">
+                  NO — approve as Pending Teacher Supervisor
+                </option>
+              </Select>
+              {hasSupervisor === "NO" ? (
+                <TextInput
+                  id="supervisor-due-at"
+                  label="Supervisor deadline (defaults to 7 days)"
+                  type="datetime-local"
+                  value={supervisorDueLocal}
+                  onChange={(event) =>
+                    setSupervisorDueLocal(event.target.value)
+                  }
+                  required
+                />
+              ) : null}
+            </>
+          ) : (
+            <p>
+              This will reject the request. The club can be re-selected later
+              subject to the daily quota.
+            </p>
+          )}
         </ConfirmDialog>
       ) : null}
     </div>

@@ -1,5 +1,14 @@
 import { supabase } from "../lib/supabase";
+import { resolveClubLogoUrl } from "../utils/clubMedia";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+
+function withResolvedLogo(club) {
+  if (!club) return club;
+  return {
+    ...club,
+    logo_url: resolveClubLogoUrl(club.logo_url),
+  };
+}
 
 const CLUB_FIELDS = `
   id,
@@ -10,6 +19,7 @@ const CLUB_FIELDS = `
   logo_url,
   banner_url,
   contact_email,
+  leader_contact_information,
   instagram_handle,
   meeting_location,
   meeting_schedule,
@@ -17,6 +27,10 @@ const CLUB_FIELDS = `
   meeting_days,
   meeting_time_details,
   status,
+  creation_origin,
+  deleted_at,
+  eligible_for_reapplication,
+  is_imported_seed,
   created_by,
   approved_by,
   approved_at,
@@ -28,12 +42,30 @@ function mapClubMutationError(error, fallback) {
   const message = error?.message?.toLowerCase?.() || "";
 
   if (
+    message.includes("cannot be permanently deleted") ||
+    message.includes("cannot be reactivated directly")
+  ) {
+    return error?.message || fallback;
+  }
+
+  if (
     message.includes("permission denied") ||
     message.includes("row-level security") ||
     message.includes("rls") ||
-    message.includes("42501")
+    message.includes("42501") ||
+    message.includes("only an active club owner")
   ) {
-    return "You do not have permission to delete this club.";
+    return (
+      error?.message ||
+      "You do not have permission to perform this club action."
+    );
+  }
+
+  if (
+    message.includes("already archived") ||
+    message.includes("already inactive")
+  ) {
+    return error?.message || "This club is already archived.";
   }
 
   if (
@@ -41,7 +73,7 @@ function mapClubMutationError(error, fallback) {
     message.includes("violates foreign key") ||
     message.includes("still referenced")
   ) {
-    return "This club cannot be deleted because other records still depend on it.";
+    return "This club still has related records and cannot be changed that way.";
   }
 
   return getErrorMessage(error, fallback);
@@ -61,6 +93,7 @@ export async function getApprovedClubs() {
       logo_url,
       banner_url,
       contact_email,
+      leader_contact_information,
       instagram_handle,
       meeting_location,
       meeting_schedule,
@@ -82,10 +115,12 @@ export async function getApprovedClubs() {
     throw new Error(getErrorMessage(error, "Could not load approved clubs."));
   }
 
-  return (data ?? []).map((row) => ({
-    ...row,
-    status: row.club_record_status || "APPROVED",
-  }));
+  return (data ?? []).map((row) =>
+    withResolvedLogo({
+      ...row,
+      status: row.club_record_status || "APPROVED",
+    }),
+  );
 }
 
 export async function getClubAnnualState(clubId) {
@@ -145,7 +180,7 @@ export async function getClubBySlug(slug) {
     throw new Error(getErrorMessage(error, "Could not load this club."));
   }
 
-  return data;
+  return withResolvedLogo(data);
 }
 
 export async function getClubById(clubId) {
@@ -160,68 +195,84 @@ export async function getClubById(clubId) {
     throw new Error(getErrorMessage(error, "Could not load this club."));
   }
 
-  return data;
+  return withResolvedLogo(data);
 }
 
-export async function archiveClub(clubId) {
-  const { data, error } = await supabase
-    .from("clubs")
-    .update({ status: "ARCHIVED" })
-    .eq("id", clubId)
-    .select(CLUB_FIELDS)
-    .maybeSingle();
+/**
+ * Owner (or SAC_ADMIN) profile update. Preserves club UUID and slug.
+ */
+export async function updateOwnedClubProfile(clubId, values) {
+  const name = String(values?.name ?? "").trim();
+  const description = String(values?.description ?? "").trim();
+  const contactEmail = String(values?.contactEmail ?? "").trim() || null;
+  const leaderContactInformation =
+    String(values?.leaderContactInformation ?? "").trim() || null;
+  const shortDescription =
+    String(values?.shortDescription ?? "").trim() || null;
+
+  if (name.length < 2 || name.length > 100) {
+    throw new Error("Club name must be between 2 and 100 characters.");
+  }
+
+  if (description.length < 10 || description.length > 10000) {
+    throw new Error("Description must be between 10 and 10,000 characters.");
+  }
+
+  const { data, error } = await supabase.rpc("update_owned_club_profile", {
+    p_club_id: clubId,
+    p_name: name,
+    p_description: description,
+    p_contact_email: contactEmail,
+    p_leader_contact_information: leaderContactInformation,
+    p_short_description: shortDescription,
+  });
 
   if (error) {
-    logServiceError("archiveClub", error);
+    logServiceError("updateOwnedClubProfile", error);
+    throw new Error(
+      mapClubMutationError(error, "Could not save club details."),
+    );
+  }
+
+  return withResolvedLogo(data);
+}
+
+/** Soft-archive via owner RPC. Clubs can never be permanently deleted. */
+export async function archiveClub(clubId) {
+  await archiveOwnedClub(clubId);
+  return getClubById(clubId);
+}
+
+/**
+ * Owner archive via secure RPC.
+ * NEW_APPLICATION clubs become terminal (deleted_at); historical clubs soft-archive.
+ */
+export async function archiveOwnedClub(clubId) {
+  const { data, error } = await supabase.rpc("archive_owned_club", {
+    p_club_id: clubId,
+  });
+
+  if (error) {
+    logServiceError("archiveOwnedClub", error);
     throw new Error(
       mapClubMutationError(error, "Could not archive this club."),
     );
   }
 
-  if (!data) {
-    throw new Error("This club has already been removed.");
-  }
-
   return data;
 }
 
-export async function restoreClub(clubId) {
-  const { data, error } = await supabase
-    .from("clubs")
-    .update({ status: "APPROVED" })
-    .eq("id", clubId)
-    .select(CLUB_FIELDS)
-    .maybeSingle();
+export async function listArchivedClubs(search = "") {
+  const { data, error } = await supabase.rpc("list_archived_clubs", {
+    p_search: search.trim() || null,
+  });
 
   if (error) {
-    logServiceError("restoreClub", error);
+    logServiceError("listArchivedClubs", error);
     throw new Error(
-      mapClubMutationError(error, "Could not restore this club."),
+      getErrorMessage(error, "Could not load archived clubs."),
     );
   }
 
-  if (!data) {
-    throw new Error("This club has already been removed.");
-  }
-
-  return data;
-}
-
-export async function permanentlyDeleteClub(clubId) {
-  const { data, error } = await supabase
-    .from("clubs")
-    .delete()
-    .eq("id", clubId)
-    .select("id");
-
-  if (error) {
-    logServiceError("permanentlyDeleteClub", error);
-    throw new Error(
-      mapClubMutationError(error, "Could not permanently delete this club."),
-    );
-  }
-
-  if (!data || data.length === 0) {
-    throw new Error("This club has already been removed.");
-  }
+  return data ?? [];
 }

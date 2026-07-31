@@ -14,8 +14,9 @@ import { getErrorMessage } from "../utils/errors";
 
 const TITLES = {
   INACTIVE: "Inactive Clubs",
-  PENDING_SUPERVISOR: "Pending Clubs",
+  PENDING_SUPERVISOR: "Pending Supervisor",
   ACTIVE: "Active Clubs",
+  OVERDUE: "Overdue Supervisor",
 };
 
 export function AdminAnnualClubsPage({
@@ -37,7 +38,9 @@ export function AdminAnnualClubsPage({
       const status =
         annualStatus === "PENDING_SUPERVISOR"
           ? "PENDING_SUPERVISOR"
-          : annualStatus;
+          : annualStatus === "OVERDUE"
+            ? "OVERDUE"
+            : annualStatus;
       const data = await listClubsByAnnualStatus(status);
       setRows(data);
 
@@ -91,7 +94,7 @@ export function AdminAnnualClubsPage({
         <h2>{TITLES[annualStatus] || "Clubs"}</h2>
       )}
 
-      {error ? <ErrorMessage message={error} /> : null}
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <div className="toolbar">
         <TextInput

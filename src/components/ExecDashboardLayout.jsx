@@ -7,10 +7,12 @@ const BASE_SECTIONS = [
 ];
 
 const CLUB_STATE_SECTIONS = [
-  { to: "/exec-dashboard/inactive-clubs", label: "Inactive Clubs" },
-  { to: "/exec-dashboard/pending-clubs", label: "Pending Clubs" },
   { to: "/exec-dashboard/active-clubs", label: "Active Clubs" },
-  { to: "/exec-dashboard/reapplications", label: "Re-Application Review" },
+  { to: "/exec-dashboard/reapplications", label: "Pending Reapplications" },
+  { to: "/exec-dashboard/pending-clubs", label: "Pending Supervisor" },
+  { to: "/exec-dashboard/overdue-supervisor", label: "Overdue Supervisor" },
+  { to: "/exec-dashboard/supervisor-requests", label: "Supervisor Requests" },
+  { to: "/exec-dashboard/archived-clubs", label: "Archived Clubs" },
 ];
 
 const SAC_ADMIN_ONLY_SECTIONS = [

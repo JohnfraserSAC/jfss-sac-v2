@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { AttachmentPreview } from "../components/AttachmentPreview";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
@@ -8,7 +9,6 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { PermissionNotice } from "../components/PermissionNotice";
 import { Select, TextArea, TextInput } from "../components/FormField";
 import { StatusBadge } from "../components/StatusBadge";
-import { Spinner } from "../components/Spinner";
 import {
   approveClubRequest,
   getAdminClubRequestQueue,
@@ -34,12 +34,12 @@ export function AdminClubRequestsPage({ embedded = false }) {
   const [busyId, setBusyId] = useState(null);
   const [notesById, setNotesById] = useState({});
   const [approveTarget, setApproveTarget] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
   const [approveSlug, setApproveSlug] = useState("");
   const [approveNotes, setApproveNotes] = useState("");
   const [approveSlugError, setApproveSlugError] = useState("");
   const [approving, setApproving] = useState(false);
   const [createdClubLink, setCreatedClubLink] = useState(null);
-  const [previewUrls, setPreviewUrls] = useState({});
 
   const loadQueue = useCallback(async () => {
     setLoading(true);
@@ -71,13 +71,13 @@ export function AdminClubRequestsPage({ embedded = false }) {
   }
 
   async function runReviewAction(request, status, requireNotes) {
-    if (readOnly) return;
+    if (readOnly) return false;
 
     const notes = (notesById[request.id] || "").trim();
 
     if (requireNotes && !notes) {
       setActionError("Review notes are required for this action.");
-      return;
+      return false;
     }
 
     setBusyId(request.id);
@@ -93,10 +93,12 @@ export function AdminClubRequestsPage({ embedded = false }) {
       });
       setActionSuccess(`Updated ${request.proposed_name} to ${status}.`);
       await loadQueue();
+      return true;
     } catch (actionErr) {
       setActionError(
         getErrorMessage(actionErr, "Could not update the request."),
       );
+      return false;
     } finally {
       setBusyId(null);
     }
@@ -155,7 +157,7 @@ export function AdminClubRequestsPage({ embedded = false }) {
         name: approveTarget.proposed_name,
       });
       setActionSuccess(
-        `${approveTarget.proposed_name} was approved and created successfully.`,
+        `${approveTarget.proposed_name} was approved and is now public on Explore.`,
       );
       setApproveTarget(null);
       await loadQueue();
@@ -365,38 +367,12 @@ export function AdminClubRequestsPage({ embedded = false }) {
                 </div>
 
                 {isSacAdmin && request.teacher_supervisor_form_storage_path ? (
-                  <div className="button-row">
-                    <button
-                      type="button"
-                      className="button button--secondary"
-                      onClick={async () => {
-                        try {
-                          const url = await createSignedClubDocumentUrl(
-                            request.teacher_supervisor_form_storage_path,
-                          );
-                          setPreviewUrls((current) => ({
-                            ...current,
-                            [request.id]: url,
-                          }));
-                        } catch (previewError) {
-                          setActionError(
-                            getErrorMessage(
-                              previewError,
-                              "Could not open signed form.",
-                            ),
-                          );
-                        }
-                      }}
-                    >
-                      View signed form
-                    </button>
-                  </div>
-                ) : null}
-                {previewUrls[request.id] ? (
-                  <img
-                    src={previewUrls[request.id]}
+                  <AttachmentPreview
+                    path={request.teacher_supervisor_form_storage_path}
+                    getSignedUrl={createSignedClubDocumentUrl}
+                    mimeType="image/jpeg"
+                    filename="signed-teacher-supervisor-form"
                     alt="Signed teacher supervisor form"
-                    className="signed-form-preview__image"
                   />
                 ) : null}
 
@@ -410,39 +386,16 @@ export function AdminClubRequestsPage({ embedded = false }) {
                         setNotes(request.id, event.target.value)
                       }
                       rows={3}
-                      hint="Required when requesting changes or rejecting."
+                      hint="Required when rejecting."
                     />
 
                     <div className="button-row">
                       <button
                         type="button"
-                        className="button button--secondary"
-                        disabled={isBusy || request.status === "UNDER_REVIEW"}
-                        onClick={() =>
-                          runReviewAction(request, "UNDER_REVIEW", false)
-                        }
-                      >
-                        {isBusy ? <Spinner size="sm" label="Working" /> : null}
-                        Mark under review
-                      </button>
-
-                      <button
-                        type="button"
-                        className="button button--secondary"
-                        disabled={isBusy}
-                        onClick={() =>
-                          runReviewAction(request, "CHANGES_REQUESTED", true)
-                        }
-                      >
-                        Request changes
-                      </button>
-
-                      <button
-                        type="button"
                         className="button button--danger"
                         disabled={isBusy}
                         onClick={() =>
-                          runReviewAction(request, "REJECTED", true)
+                          setRejectTarget(request)
                         }
                       >
                         Reject
@@ -501,6 +454,28 @@ export function AdminClubRequestsPage({ embedded = false }) {
           rows={3}
           hint="Optional"
         />
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={Boolean(rejectTarget)}
+        title="Reject club request?"
+        confirmLabel="Reject"
+        destructive
+        busy={busyId === rejectTarget?.id}
+        onCancel={() => {
+          if (busyId) return;
+          setRejectTarget(null);
+        }}
+        onConfirm={async () => {
+          if (!rejectTarget) return;
+          const ok = await runReviewAction(rejectTarget, "REJECTED", true);
+          if (ok) setRejectTarget(null);
+        }}
+      >
+        <p>
+          Reject <strong>{rejectTarget?.proposed_name}</strong>? Review notes
+          are required.
+        </p>
       </ConfirmDialog>
     </div>
   );

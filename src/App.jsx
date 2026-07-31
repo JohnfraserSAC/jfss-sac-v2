@@ -23,6 +23,9 @@ import { MyClubsPage } from "./pages/MyClubsPage";
 import { AdminClubRequestsPage } from "./pages/AdminClubRequestsPage";
 import { AdminClubReapplicationsPage } from "./pages/AdminClubReapplicationsPage";
 import { AdminAnnualClubsPage } from "./pages/AdminAnnualClubsPage";
+import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
+import { AdminSupervisorWatchPage } from "./pages/AdminSupervisorWatchPage";
+import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage";
 import { AdminClubEventsPage } from "./pages/AdminClubEventsPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
@@ -170,24 +173,6 @@ export default function App() {
                 element={<AdminClubRequestsPage embedded />}
               />
               <Route
-                path="inactive-clubs"
-                element={
-                  <AdminAnnualClubsPage
-                    embedded
-                    annualStatus="INACTIVE"
-                  />
-                }
-              />
-              <Route
-                path="pending-clubs"
-                element={
-                  <AdminAnnualClubsPage
-                    embedded
-                    annualStatus="PENDING_SUPERVISOR"
-                  />
-                }
-              />
-              <Route
                 path="active-clubs"
                 element={
                   <AdminAnnualClubsPage embedded annualStatus="ACTIVE" />
@@ -196,6 +181,32 @@ export default function App() {
               <Route
                 path="reapplications"
                 element={<AdminClubReapplicationsPage embedded />}
+              />
+              <Route
+                path="pending-clubs"
+                element={
+                  <AdminSupervisorWatchPage embedded mode="PENDING" />
+                }
+              />
+              <Route
+                path="overdue-supervisor"
+                element={
+                  <AdminSupervisorWatchPage embedded mode="OVERDUE" />
+                }
+              />
+              <Route
+                path="supervisor-requests"
+                element={<AdminSupervisorRequestsPage embedded />}
+              />
+              <Route
+                path="archived-clubs"
+                element={<AdminArchivedClubsPage embedded />}
+              />
+              <Route
+                path="inactive-clubs"
+                element={
+                  <Navigate to="/exec-dashboard/archived-clubs" replace />
+                }
               />
               <Route
                 path="events"

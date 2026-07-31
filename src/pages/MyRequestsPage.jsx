@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -13,23 +14,38 @@ import {
   resubmitClubRequest,
   withdrawClubRequest,
 } from "../services/clubRequests";
-import { getMyClubReapplications } from "../services/clubReapplications";
+import {
+  getMyClubReapplications,
+  getReapplicationDisplayStatus,
+  withdrawClubReapplication,
+} from "../services/clubReapplications";
 import { getMyClubEventRequests } from "../services/clubEventRequests";
-import { getClubById } from "../services/clubs";
+import { getClubAnnualState, getClubById } from "../services/clubs";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
+
+function canWithdrawReapplication(request, annualStatus) {
+  if (["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(request.status)) {
+    return true;
+  }
+  return (
+    request.status === "APPROVED" && annualStatus === "PENDING_SUPERVISOR"
+  );
+}
 
 export function MyRequestsPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [reapplications, setReapplications] = useState([]);
   const [eventRequests, setEventRequests] = useState([]);
+  const [annualByClubId, setAnnualByClubId] = useState({});
   const [clubSlugs, setClubSlugs] = useState({});
   const [missingClubs, setMissingClubs] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [withdrawTarget, setWithdrawTarget] = useState(null);
 
   const loadRequests = useCallback(async () => {
     setLoading(true);
@@ -44,6 +60,20 @@ export function MyRequestsPage() {
       setRequests(data);
       setReapplications(reapps);
       setEventRequests(events);
+
+      const annualEntries = await Promise.all(
+        reapps
+          .filter((row) => row.club_id && row.status === "APPROVED")
+          .map(async (row) => {
+            try {
+              const annual = await getClubAnnualState(row.club_id);
+              return [row.club_id, annual?.status ?? null];
+            } catch {
+              return [row.club_id, null];
+            }
+          }),
+      );
+      setAnnualByClubId(Object.fromEntries(annualEntries));
 
       const approved = data.filter((request) => request.created_club_id);
       const slugEntries = await Promise.all(
@@ -205,47 +235,75 @@ export function MyRequestsPage() {
       {reapplications.length > 0 ? (
         <section className="stack">
           <h2>Club re-applications</h2>
-          {reapplications.map((request) => (
-            <article key={request.id} className="panel">
-              <div className="section-heading">
-                <div>
-                  <span className="submission-type">Re-application</span>
-                  <h3>{request.clubs?.name || "Past club"}</h3>
-                  <StatusBadge status={request.status} />
+          {reapplications.map((request) => {
+            const annualStatus = annualByClubId[request.club_id] || null;
+            const displayStatus = getReapplicationDisplayStatus(
+              request,
+              annualStatus,
+            );
+            const canWithdraw = canWithdrawReapplication(request, annualStatus);
+            const isBusy = busyId === request.id;
+            const showManage =
+              request.clubs?.slug &&
+              request.status === "APPROVED" &&
+              (annualStatus === "PENDING_SUPERVISOR" ||
+                annualStatus === "ACTIVE");
+
+            return (
+              <article key={request.id} className="panel">
+                <div className="section-heading">
+                  <div>
+                    <span className="submission-type">Re-application</span>
+                    <h3>{request.clubs?.name || "Past club"}</h3>
+                    <StatusBadge status={displayStatus} />
+                  </div>
+                  {showManage ? (
+                    <Link
+                      className="text-link"
+                      to={`/clubs/${request.clubs.slug}/manage`}
+                    >
+                      Manage club
+                    </Link>
+                  ) : null}
                 </div>
-                {request.clubs?.slug && request.status === "APPROVED" ? (
-                  <Link
-                    className="text-link"
-                    to={`/clubs/${request.clubs.slug}/manage`}
-                  >
-                    Manage club
-                  </Link>
+                <p className="muted">
+                  {request.school_year} · Submitted{" "}
+                  {formatDate(request.submitted_at)} · {request.applicant_email}
+                </p>
+                {request.review_notes ? (
+                  <p>
+                    <strong>Review notes:</strong> {request.review_notes}
+                  </p>
                 ) : null}
-              </div>
-              <p className="muted">
-                {request.school_year} · Submitted{" "}
-                {formatDate(request.submitted_at)} · {request.applicant_email}
-              </p>
-              {request.review_notes ? (
-                <p>
-                  <strong>Review notes:</strong> {request.review_notes}
-                </p>
-              ) : null}
-              {request.status === "CHANGES_REQUESTED" ? (
-                <p>
-                  <Link to={`/clubs/reapply?edit=${request.id}`}>
-                    Edit and resubmit
-                  </Link>
-                </p>
-              ) : null}
-              {request.status === "REJECTED" ? (
-                <p>
-                  <Link to="/clubs/reapply">Create a new re-application</Link>{" "}
-                  (subject to one application per Toronto calendar day).
-                </p>
-              ) : null}
-            </article>
-          ))}
+                {request.status === "CHANGES_REQUESTED" ? (
+                  <p>
+                    <Link to={`/clubs/reapply?edit=${request.id}`}>
+                      Edit and resubmit
+                    </Link>
+                  </p>
+                ) : null}
+                {request.status === "REJECTED" || request.status === "WITHDRAWN" ? (
+                  <p>
+                    <Link to="/clubs/reapply">Create a new re-application</Link>{" "}
+                    (subject to one application per Toronto calendar day).
+                  </p>
+                ) : null}
+                {canWithdraw ? (
+                  <div className="button-row">
+                    <button
+                      type="button"
+                      className="button button--secondary"
+                      disabled={isBusy}
+                      onClick={() => setWithdrawTarget(request)}
+                    >
+                      {isBusy ? <Spinner size="sm" label="Working" /> : null}
+                      Withdraw
+                    </button>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
         </section>
       ) : null}
 
@@ -282,6 +340,27 @@ export function MyRequestsPage() {
           ))}
         </section>
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(withdrawTarget)}
+        title="Withdraw re-application?"
+        confirmLabel="Withdraw"
+        destructive
+        busy={busyId === withdrawTarget?.id}
+        onCancel={() => setWithdrawTarget(null)}
+        onConfirm={() => {
+          const target = withdrawTarget;
+          if (!target) return;
+          setWithdrawTarget(null);
+          runAction(target.id, () => withdrawClubReapplication(target.id));
+        }}
+      >
+        <p>
+          This will cancel this club application and return the club to inactive
+          status. The club history will remain and students may apply again in
+          the future.
+        </p>
+      </ConfirmDialog>
     </div>
   );
 }

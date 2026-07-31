@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -25,6 +26,7 @@ export function AdminClubEventsPage({ embedded = false }) {
   const [success, setSuccess] = useState("");
   const [busyId, setBusyId] = useState(null);
   const [notesById, setNotesById] = useState({});
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const loadQueue = useCallback(async () => {
     setLoading(true);
@@ -57,7 +59,7 @@ export function AdminClubEventsPage({ embedded = false }) {
     const notes = (notesById[request.id] || "").trim();
     if (requireNotes && !notes) {
       setError("Review notes are required for this action.");
-      return;
+      return false;
     }
     setBusyId(request.id);
     setError("");
@@ -69,9 +71,12 @@ export function AdminClubEventsPage({ embedded = false }) {
         reviewNotes: notes || null,
       });
       setSuccess(`Updated “${request.event_name}” to ${action}.`);
+      setConfirmAction(null);
       await loadQueue();
+      return true;
     } catch (actionError) {
       setError(getErrorMessage(actionError, "Could not update the request."));
+      return false;
     } finally {
       setBusyId(null);
     }
@@ -182,28 +187,11 @@ export function AdminClubEventsPage({ embedded = false }) {
                 <div className="button-row">
                   <button
                     type="button"
-                    className="button button--secondary"
-                    disabled={isBusy || request.status === "UNDER_REVIEW"}
-                    onClick={() => runAction(request, "UNDER_REVIEW", false)}
-                  >
-                    {isBusy ? <Spinner size="sm" label="Working" /> : null}
-                    Mark under review
-                  </button>
-                  <button
-                    type="button"
-                    className="button button--secondary"
-                    disabled={isBusy}
-                    onClick={() =>
-                      runAction(request, "CHANGES_REQUESTED", true)
-                    }
-                  >
-                    Request changes
-                  </button>
-                  <button
-                    type="button"
                     className="button button--danger"
                     disabled={isBusy}
-                    onClick={() => runAction(request, "REJECTED", true)}
+                    onClick={() =>
+                      setConfirmAction({ request, action: "REJECTED" })
+                    }
                   >
                     Reject
                   </button>
@@ -211,16 +199,51 @@ export function AdminClubEventsPage({ embedded = false }) {
                     type="button"
                     className="button button--primary"
                     disabled={isBusy}
-                    onClick={() => runAction(request, "APPROVED", false)}
+                    onClick={() =>
+                      setConfirmAction({ request, action: "APPROVED" })
+                    }
                   >
                     Approve
                   </button>
+                  {isBusy ? <Spinner size="sm" label="Working" /> : null}
                 </div>
               </article>
             );
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        title={
+          confirmAction?.action === "APPROVED"
+            ? "Approve event request?"
+            : "Reject event request?"
+        }
+        confirmLabel={
+          confirmAction?.action === "APPROVED" ? "Approve" : "Reject"
+        }
+        destructive={confirmAction?.action === "REJECTED"}
+        busy={busyId === confirmAction?.request?.id}
+        onCancel={() => {
+          if (busyId) return;
+          setConfirmAction(null);
+        }}
+        onConfirm={() => {
+          if (!confirmAction) return;
+          void runAction(
+            confirmAction.request,
+            confirmAction.action,
+            confirmAction.action === "REJECTED",
+          );
+        }}
+      >
+        <p>
+          {confirmAction?.action === "APPROVED"
+            ? `Approve “${confirmAction.request.event_name}”?`
+            : `Reject “${confirmAction?.request?.event_name}”? Review notes are required.`}
+        </p>
+      </ConfirmDialog>
     </div>
   );
 }

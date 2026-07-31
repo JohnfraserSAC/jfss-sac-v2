@@ -2,31 +2,41 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AddClubMemberForm } from "../components/AddClubMemberForm";
+import { ArchiveClubDialog } from "../components/ArchiveClubDialog";
 import { ChangeRoleDialog } from "../components/ChangeRoleDialog";
-import { ClubMemberList } from "../components/ClubMemberList";
-import { ClubRoleBadge } from "../components/ClubRoleBadge";
+import { ClubDetailsPanel } from "../components/ClubDetailsPanel";
+import { ClubManageTabs } from "../components/ClubManageTabs";
+import { ClubPeoplePanel } from "../components/ClubPeoplePanel";
+import { ClubRequestsPanel } from "../components/ClubRequestsPanel";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
-import { PermissionNotice } from "../components/PermissionNotice";
-import { ClubDangerZone } from "../components/ClubDangerZone";
 import { RemoveMemberDialog } from "../components/RemoveMemberDialog";
-import { Select, TextInput } from "../components/FormField";
 import { getClubAnnualState, getClubBySlug } from "../services/clubs";
+import {
+  getApprovedReapplicationForClub,
+  withdrawClubReapplication,
+} from "../services/clubReapplications";
 import {
   getClubMemberships,
   getCurrentUserClubMembership,
   probeStudentLookupAvailability,
 } from "../services/memberships";
 import {
+  cancelClubMembershipInvitation,
+  getClubPendingInvitations,
+} from "../services/clubInvitations";
+import {
+  canArchiveOwnedClub,
   canManageClubMembers,
   canSearchStudents,
   getAddableRoles,
-  getClubRoleLabel,
-  isClubLeader,
+  isClubOwner,
 } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
 import { formatDate } from "../utils/format";
+import { archiveSuccessNotice } from "../utils/clubOrigin";
 
 function annualStatusLabel(status, overdue) {
   if (status === "PENDING_SUPERVISOR" && overdue) return "Supervisor Overdue";
@@ -40,24 +50,30 @@ function annualStatusLabel(status, overdue) {
 export function ClubManagePage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user, isSacAdmin, isAdmin } = useAuth();
+  const { user, isSacAdmin, isAdmin, isFacultyAdvisor } = useAuth();
 
+  const [activeTab, setActiveTab] = useState("details");
   const [club, setClub] = useState(null);
   const [annual, setAnnual] = useState(null);
   const [membership, setMembership] = useState(null);
   const [memberships, setMemberships] = useState([]);
+  const [invitations, setInvitations] = useState([]);
   const [profilesWarning, setProfilesWarning] = useState(null);
   const [lookupAvailable, setLookupAvailable] = useState(false);
   const [lookupWarning, setLookupWarning] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [roleFilter, setRoleFilter] = useState("ALL");
-  const [search, setSearch] = useState("");
   const [unauthorized, setUnauthorized] = useState(false);
+  const [cancellingInvitationId, setCancellingInvitationId] = useState(null);
 
   const [changeTarget, setChangeTarget] = useState(null);
   const [removeTarget, setRemoveTarget] = useState(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawBusy, setWithdrawBusy] = useState(false);
+  const [approvedReappId, setApprovedReappId] = useState(null);
+  const [nowMs] = useState(() => Date.now());
 
   const loadPage = useCallback(async () => {
     setLoading(true);
@@ -70,6 +86,7 @@ export function ClubManagePage() {
         setClub(null);
         setMembership(null);
         setMemberships([]);
+        setInvitations([]);
         setAnnual(null);
         return;
       }
@@ -83,6 +100,17 @@ export function ClubManagePage() {
       setMembership(currentMembership);
       setAnnual(annualState);
 
+      if (annualState?.status === "PENDING_SUPERVISOR") {
+        try {
+          const match = await getApprovedReapplicationForClub(nextClub.id);
+          setApprovedReappId(match?.id || null);
+        } catch {
+          setApprovedReappId(null);
+        }
+      } else {
+        setApprovedReappId(null);
+      }
+
       const allowed = canManageClubMembers({
         clubRole: currentMembership?.role,
         isSacAdmin,
@@ -93,15 +121,18 @@ export function ClubManagePage() {
         return;
       }
 
-      const [membershipResult, lookupProbe] = await Promise.all([
-        getClubMemberships(nextClub.id),
-        probeStudentLookupAvailability(),
-      ]);
+      const [membershipResult, lookupProbe, pendingInvites] =
+        await Promise.all([
+          getClubMemberships(nextClub.id),
+          probeStudentLookupAvailability(),
+          getClubPendingInvitations(nextClub.id).catch(() => []),
+        ]);
 
       setMemberships(membershipResult.memberships);
       setProfilesWarning(membershipResult.profilesWarning);
       setLookupAvailable(lookupProbe.available);
       setLookupWarning(lookupProbe.warning);
+      setInvitations(pendingInvites);
     } catch (loadError) {
       setError(getErrorMessage(loadError, "Could not load club management."));
     } finally {
@@ -110,31 +141,10 @@ export function ClubManagePage() {
   }, [slug, user.id, isSacAdmin]);
 
   useEffect(() => {
+    // Initial and dependency-driven page load for club management.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional async page fetch
     loadPage();
   }, [loadPage]);
-
-  const filteredMemberships = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return memberships.filter((row) => {
-      if (roleFilter !== "ALL" && row.role !== roleFilter) {
-        return false;
-      }
-
-      if (!query) return true;
-
-      const haystack = [
-        row.profile?.full_name,
-        row.profile?.email,
-        row.user_id,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(query);
-    });
-  }, [memberships, roleFilter, search]);
 
   const activeOwnerCount = useMemo(
     () =>
@@ -144,23 +154,45 @@ export function ClubManagePage() {
     [memberships],
   );
 
+  const pendingOwnerInvitationCount = useMemo(
+    () =>
+      invitations.filter(
+        (row) => row.offered_role === "OWNER" && row.status === "PENDING",
+      ).length,
+    [invitations],
+  );
+
   const addableRoles = getAddableRoles({
     currentUserRole: membership?.role,
     isSacAdmin,
     activeOwnerCount,
+    pendingOwnerInvitationCount,
   });
 
-  const canSearch = canSearchStudents({
+  const canInvite = canSearchStudents({
     clubRole: membership?.role,
     isSacAdmin,
   });
 
   const isPendingSupervisor = annual?.status === "PENDING_SUPERVISOR";
+  const supervisorDueAtMs = annual?.supervisor_due_at
+    ? new Date(annual.supervisor_due_at).getTime()
+    : null;
   const isOverdue =
     isPendingSupervisor &&
-    annual?.supervisor_due_at &&
-    new Date(annual.supervisor_due_at).getTime() < Date.now();
-  const operationsAllowed = annual?.status === "ACTIVE";
+    supervisorDueAtMs != null &&
+    supervisorDueAtMs < nowMs;
+  const canOwnerArchive = canArchiveOwnedClub({
+    clubRole: membership?.role,
+    membershipStatus: membership?.status,
+    annualStatus: annual?.status,
+  });
+  const canOwnerWithdrawPending =
+    isPendingSupervisor &&
+    isClubOwner(membership?.role) &&
+    membership?.status === "ACTIVE" &&
+    Boolean(approvedReappId);
+
   if (loading) {
     return <LoadingScreen message="Loading club management…" />;
   }
@@ -182,7 +214,7 @@ export function ClubManagePage() {
     );
   }
 
-  if (error && memberships.length === 0) {
+  if (error && memberships.length === 0 && !membership) {
     return (
       <div className="page">
         <ErrorMessage>{error}</ErrorMessage>
@@ -200,19 +232,14 @@ export function ClubManagePage() {
           <p className="eyebrow">Club management</p>
           <h1>{club.name}</h1>
           <p className="lede">
-            Manage club profile and memberships. A club may have at most three
-            active OWNERs.
+            Update club details, people, and requests. A club may have at most
+            three active owners.
           </p>
           <p>
             Annual status:{" "}
-            <strong>
-              {annualStatusLabel(annual?.status, isOverdue)}
-            </strong>
+            <strong>{annualStatusLabel(annual?.status, isOverdue)}</strong>
             {isPendingSupervisor && annual?.supervisor_due_at ? (
-              <>
-                {" "}
-                · Supervisor due {formatDate(annual.supervisor_due_at)}
-              </>
+              <> · Supervisor due {formatDate(annual.supervisor_due_at)}</>
             ) : null}
           </p>
           <p>
@@ -227,7 +254,9 @@ export function ClubManagePage() {
       {isPendingSupervisor ? (
         <div className="alert alert--warning" role="status">
           <strong>
-            {isOverdue ? "Supervisor requirement overdue" : "Pending supervisor"}
+            {isOverdue
+              ? "Supervisor requirement overdue"
+              : "Pending Teacher Supervisor"}
           </strong>
           <p>
             This club is not public in Explore. Announcements, event approvals,
@@ -236,70 +265,6 @@ export function ClubManagePage() {
             supervisor information.
           </p>
         </div>
-      ) : null}
-
-      <section className="panel">
-        <h2>Your permissions</h2>
-        <div className="badge-row">
-          {membership?.role ? (
-            <ClubRoleBadge role={membership.role} />
-          ) : (
-            <span className="muted">No club membership</span>
-          )}
-          {isAdmin ? (
-            <span className="badge badge--role badge--role-sac-admin">
-              SAC Admin
-            </span>
-          ) : null}
-        </div>
-        <ul className="dialog-list">
-          <li>
-            Your club role:{" "}
-            {membership?.role
-              ? getClubRoleLabel(membership.role)
-              : "None (admin override)"}
-          </li>
-          <li>
-            You can add:{" "}
-            {addableRoles.length
-              ? addableRoles.map(getClubRoleLabel).join(", ")
-              : "No add permissions"}
-          </li>
-          <li>
-            Owners: {activeOwnerCount} of 3. An OWNER may leave only when another
-            OWNER remains. Only SAC_ADMIN may forcibly remove an OWNER.
-          </li>
-        </ul>
-        {membership?.status === "ACTIVE" && isClubLeader(membership.role) ? (
-          <div className="button-row" style={{ marginTop: "1rem" }}>
-            {operationsAllowed ? (
-              <>
-                <Link
-                  className="button button--primary"
-                  to={`/clubs/${club.slug}/manage/event-requests/new`}
-                >
-                  Submit Event for Approval
-                </Link>
-                <Link
-                  className="button button--secondary"
-                  to={`/clubs/${club.slug}/manage/funding`}
-                >
-                  Club Funding Request
-                </Link>
-              </>
-            ) : (
-              <p className="muted">
-                Event and funding requests unlock after the club is ACTIVE.
-              </p>
-            )}
-          </div>
-        ) : null}
-      </section>
-
-      {profilesWarning ? (
-        <PermissionNotice title="Profile visibility limited">
-          {profilesWarning}
-        </PermissionNotice>
       ) : null}
 
       {success ? (
@@ -311,93 +276,144 @@ export function ClubManagePage() {
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
-      {canSearch && addableRoles.length > 0 ? (
-        <AddClubMemberForm
+      <ClubManageTabs activeTab={activeTab} onChange={setActiveTab} />
+
+      {activeTab === "details" ? (
+        <ClubDetailsPanel
           club={club}
-          currentUserId={user.id}
-          currentUserRole={membership?.role}
+          annual={annual}
+          membership={membership}
           isSacAdmin={isSacAdmin}
-          existingMemberships={memberships}
-          lookupAvailable={lookupAvailable}
-          lookupWarning={lookupWarning}
-          onSuccess={({ role }) => {
-            setSuccess(
-              role === "EXEC"
-                ? "Student added as Executive."
-                : "Student added as Member.",
-            );
+          canArchive={canOwnerArchive}
+          canWithdrawPending={canOwnerWithdrawPending}
+          onOpenArchive={() => setArchiveOpen(true)}
+          onOpenWithdraw={() => setWithdrawOpen(true)}
+          onClubUpdated={(updated) => {
+            setClub(updated);
+            if (updated?.slug && updated.slug !== slug) {
+              navigate(`/clubs/${updated.slug}/manage`, { replace: true });
+            }
+          }}
+          onSupervisorSubmitted={() => {
+            setSuccess("Supervisor package submitted for SAC review.");
             loadPage();
           }}
         />
       ) : null}
 
-      <section className="panel">
-        <div className="section-heading">
-          <h2>Members</h2>
-        </div>
-
-        <div className="toolbar toolbar--split">
-          <Select
-            id="membership-role-filter"
-            label="Filter by role"
-            value={roleFilter}
-            onChange={(event) => setRoleFilter(event.target.value)}
-          >
-            <option value="ALL">All roles</option>
-            <option value="OWNER">Owner</option>
-            <option value="EXEC">Executive</option>
-            <option value="MEMBER">Member</option>
-          </Select>
-
-          <TextInput
-            id="membership-search"
-            label="Search members"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name, email, or user ID"
-          />
-        </div>
-
-        <ClubMemberList
-          memberships={filteredMemberships}
+      {activeTab === "people" ? (
+        <ClubPeoplePanel
+          memberships={memberships}
+          invitations={invitations}
           currentUserId={user.id}
           currentUserRole={membership?.role}
           isSacAdmin={isSacAdmin}
+          profilesWarning={profilesWarning}
+          cancellingInvitationId={cancellingInvitationId}
+          onCancelInvitation={async (invitation) => {
+            if (cancellingInvitationId) return;
+            setCancellingInvitationId(invitation.id);
+            setError("");
+            try {
+              await cancelClubMembershipInvitation(invitation.id);
+              setSuccess("Invitation cancelled.");
+              await loadPage();
+            } catch (cancelError) {
+              setError(
+                getErrorMessage(cancelError, "Could not cancel invitation."),
+              );
+            } finally {
+              setCancellingInvitationId(null);
+            }
+          }}
           onChangeRole={setChangeTarget}
           onRemove={setRemoveTarget}
-        />
-      </section>
-
-      {isAdmin ? (
-        <ClubDangerZone
-          club={club}
-          membershipCount={memberships.length}
-          onArchived={(updated) => {
-            setClub(updated);
-            setSuccess(
-              `${updated.name} was archived. It is hidden from the public clubs list, but memberships remain.`,
-            );
-          }}
-          onRestored={(updated) => {
-            setClub(updated);
-            setSuccess(
-              `${updated.name} was restored to APPROVED and is visible in the public clubs list again.`,
-            );
-          }}
-          onDeleted={({ clubName }) => {
-            setClub(null);
-            setMembership(null);
-            setMemberships([]);
-            setSuccess(`${clubName} was permanently deleted.`);
-            navigate("/clubs", {
-              replace: true,
-              state: {
-                notice: `${clubName} was permanently deleted. Related club memberships were removed by cascade.`,
-              },
-            });
-          }}
+          addForm={
+            canInvite && addableRoles.length > 0 ? (
+              <AddClubMemberForm
+                club={club}
+                currentUserId={user.id}
+                currentUserRole={membership?.role}
+                isSacAdmin={isSacAdmin}
+                existingMemberships={memberships}
+                pendingOwnerInvitationCount={pendingOwnerInvitationCount}
+                lookupAvailable={lookupAvailable}
+                lookupWarning={lookupWarning}
+                onSuccess={({ role }) => {
+                  setSuccess(
+                    `Invitation sent for ${role === "OWNER" ? "Owner" : role === "EXEC" ? "Executive" : "Member"}.`,
+                  );
+                  loadPage();
+                }}
+              />
+            ) : null
+          }
         />
       ) : null}
+
+      {activeTab === "requests" ? (
+        <ClubRequestsPanel
+          club={club}
+          membership={membership}
+          annual={annual}
+          isSacAdmin={isSacAdmin}
+          isFacultyAdvisor={isFacultyAdvisor}
+        />
+      ) : null}
+
+      <ArchiveClubDialog
+        open={archiveOpen}
+        club={club}
+        onClose={() => setArchiveOpen(false)}
+        onSuccess={({ clubName, outcome }) => {
+          navigate("/clubs/my-clubs", {
+            replace: true,
+            state: {
+              notice: archiveSuccessNotice(clubName, outcome),
+            },
+          });
+        }}
+      />
+
+      <ConfirmDialog
+        open={withdrawOpen}
+        title="Withdraw re-application?"
+        confirmLabel="Withdraw"
+        destructive
+        busy={withdrawBusy}
+        onCancel={() => setWithdrawOpen(false)}
+        onConfirm={async () => {
+          if (!approvedReappId || withdrawBusy) return;
+          setWithdrawBusy(true);
+          setError("");
+          try {
+            await withdrawClubReapplication(approvedReappId);
+            navigate("/clubs/my-clubs", {
+              replace: true,
+              state: {
+                notice:
+                  "Re-application withdrawn. The club is inactive again and available for future re-application.",
+              },
+            });
+          } catch (withdrawError) {
+            setError(
+              getErrorMessage(
+                withdrawError,
+                "Could not withdraw this re-application.",
+              ),
+            );
+            setWithdrawOpen(false);
+          } finally {
+            setWithdrawBusy(false);
+          }
+        }}
+      >
+        <p>
+          This will cancel this club application and return the club to inactive
+          status. The club history will remain and students may apply again in
+          the future.
+        </p>
+      </ConfirmDialog>
 
       <ChangeRoleDialog
         open={Boolean(changeTarget)}

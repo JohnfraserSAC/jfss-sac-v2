@@ -9,7 +9,6 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { PermissionNotice } from "../components/PermissionNotice";
 import { Select, TextInput } from "../components/FormField";
-import { Spinner } from "../components/Spinner";
 import {
   getAnnouncementReviewQueue,
   reviewAnnouncement,
@@ -51,25 +50,6 @@ export function AdminAnnouncementsPage({ embedded = false }) {
     }, 250);
     return () => window.clearTimeout(handle);
   }, [loadQueue]);
-
-  async function runQuickAction(announcement, action) {
-    if (readOnly) return;
-    setBusyId(announcement.id);
-    setError("");
-    setSuccess("");
-
-    try {
-      await reviewAnnouncement(announcement.id, action, null);
-      setSuccess(`Updated “${announcement.title}” to ${action}.`);
-      await loadQueue();
-    } catch (actionError) {
-      setError(
-        getErrorMessage(actionError, "Could not update the announcement."),
-      );
-    } finally {
-      setBusyId(null);
-    }
-  }
 
   async function confirmReview(notes) {
     if (!reviewDialog || readOnly) return;
@@ -229,40 +209,6 @@ export function AdminAnnouncementsPage({ embedded = false }) {
 
                 {!readOnly ? (
                   <div className="button-row">
-                    <button
-                      type="button"
-                      className="button button--secondary"
-                      disabled={isBusy || announcement.status !== "SUBMITTED"}
-                      onClick={() =>
-                        runQuickAction(announcement, "UNDER_REVIEW")
-                      }
-                    >
-                      {isBusy ? <Spinner size="sm" label="Working" /> : null}
-                      Mark under review
-                    </button>
-
-                    <button
-                      type="button"
-                      className="button button--secondary"
-                      disabled={
-                        isBusy ||
-                        !["SUBMITTED", "UNDER_REVIEW"].includes(
-                          announcement.status,
-                        )
-                      }
-                      onClick={() =>
-                        setReviewDialog({
-                          announcement,
-                          action: "CHANGES_REQUESTED",
-                          title: "Request changes",
-                          confirmLabel: "Request changes",
-                          requireNotes: true,
-                        })
-                      }
-                    >
-                      Request changes
-                    </button>
-
                     <button
                       type="button"
                       className="button button--danger"

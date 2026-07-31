@@ -7,10 +7,13 @@ const STATUS_LABELS = {
   PUBLISHED: "Published",
   REJECTED: "Rejected",
   WITHDRAWN: "Withdrawn",
+  CANCELLED: "Cancelled",
   ACTIVE: "Active",
   INACTIVE: "Inactive",
   SUSPENDED: "Suspended",
   ARCHIVED: "Archived",
+  PENDING_SUPERVISOR: "Pending supervisor",
+  PENDING_TEACHER_SUPERVISOR: "Pending Teacher Supervisor",
 };
 
 export function StatusBadge({ status }) {

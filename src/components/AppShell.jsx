@@ -103,6 +103,17 @@ export function AppShell() {
                 <>
                   <li>
                     <NavLink
+                      to="/my-requests"
+                      className={({ isActive }) =>
+                        isActive ? "nav-link nav-link--active" : "nav-link"
+                      }
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      My Requests
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
                       to="/dashboard"
                       className={({ isActive }) =>
                         isActive

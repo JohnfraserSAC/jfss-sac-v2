@@ -1,0 +1,271 @@
+import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { AttachmentPreview, LocalFilePreview } from "./AttachmentPreview";
+import { FilePicker } from "./FilePicker";
+import { TextInput } from "./FormField";
+import { ErrorMessage } from "./ErrorMessage";
+import { StatusBadge } from "./StatusBadge";
+import { Spinner } from "./Spinner";
+import {
+  getClubSupervisorRequests,
+  submitClubSupervisorRequest,
+  uploadSupervisorDocument,
+  validateSupervisorAttachmentFile,
+  createSignedSupervisorDocumentUrl,
+} from "../services/clubSupervisors";
+import {
+  isValidPdsbEmail,
+  normalizePdsbEmail,
+} from "../utils/clubPermissions";
+import { formatDate } from "../utils/format";
+import { getErrorMessage } from "../utils/errors";
+
+function statusLabel(status) {
+  if (status === "SUBMITTED" || status === "UNDER_REVIEW") return "Pending";
+  if (status === "CHANGES_REQUESTED") return "Pending";
+  if (status === "APPROVED") return "Approved";
+  if (status === "REJECTED") return "Rejected";
+  if (status === "CANCELLED") return "Cancelled";
+  return status;
+}
+
+export function ClubSupervisorSubmitForm({
+  club,
+  canSubmit = true,
+  onSubmitted,
+}) {
+  const { user } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [signatureFile, setSignatureFile] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  async function loadHistory() {
+    if (!club?.id) return;
+    setLoadingHistory(true);
+    try {
+      const rows = await getClubSupervisorRequests(club.id);
+      setHistory(rows);
+    } catch {
+      setHistory([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional async history fetch
+    void loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when club changes
+  }, [club?.id]);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (busy || !canSubmit) return;
+
+    setError("");
+    setSuccess("");
+
+    const trimmedName = String(name ?? "").trim();
+    const normalizedEmail = normalizePdsbEmail(email);
+
+    if (trimmedName.length < 2) {
+      setError("Enter the teacher’s full name.");
+      return;
+    }
+
+    if (!normalizedEmail || !isValidPdsbEmail(normalizedEmail)) {
+      setError("Enter an exact @pdsb.net teacher email address.");
+      return;
+    }
+
+    if (!signatureFile) {
+      setError("Attach the teacher signature document (JPEG, PNG, WebP, or PDF).");
+      return;
+    }
+
+    const fileError = validateSupervisorAttachmentFile(signatureFile);
+    if (fileError) {
+      setError(fileError);
+      return;
+    }
+
+    if (!user?.id) {
+      setError("You must be signed in to submit a supervisor request.");
+      return;
+    }
+
+    setBusy(true);
+    const requestId = crypto.randomUUID();
+
+    try {
+      const attachment = await uploadSupervisorDocument({
+        userId: user.id,
+        requestId,
+        file: signatureFile,
+      });
+
+      await submitClubSupervisorRequest({
+        requestId,
+        clubId: club.id,
+        supervisors: [{ name: trimmedName, email: normalizedEmail }],
+        attachments: [attachment],
+      });
+
+      setSuccess(
+        "Teacher supervisor request submitted for SAC admin review. It is not approved yet.",
+      );
+      setName("");
+      setEmail("");
+      setSignatureFile(null);
+      await loadHistory();
+      onSubmitted?.();
+    } catch (submitError) {
+      setError(
+        getErrorMessage(submitError, "Could not submit supervisor request."),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="panel" aria-labelledby="supervisor-info-title">
+      <h2 id="supervisor-info-title">Teacher supervisor request</h2>
+      <p className="lede">
+        Submit the teacher’s name, @pdsb.net email, and signature attachment for
+        SAC approval. Teachers do not need a portal account.
+      </p>
+
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+      {success ? (
+        <div className="alert alert--success" role="status">
+          <strong>Success</strong>
+          <p>{success}</p>
+        </div>
+      ) : null}
+
+      {canSubmit ? (
+        <form className="stack" onSubmit={handleSubmit} noValidate>
+          <TextInput
+            id="teacher-full-name"
+            label="Teacher full name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+            disabled={busy}
+            autoComplete="name"
+          />
+          <TextInput
+            id="teacher-email"
+            label="Teacher email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            disabled={busy}
+            placeholder="firstname.lastname@pdsb.net"
+            hint="Must be an exact @pdsb.net address."
+            autoComplete="off"
+          />
+
+          <FilePicker
+            id="teacher-signature"
+            label="Teacher signature attachment"
+            accept="image/jpeg,image/png,image/webp,application/pdf"
+            required
+            disabled={busy}
+            files={signatureFile}
+            buttonLabel="Choose attachment"
+            emptyLabel="No attachment chosen"
+            hint="Required. Upload a JPEG, PNG, WebP, or PDF of the teacher signature (max 10 MB)."
+            onChange={(next) => setSignatureFile(next)}
+          />
+          {signatureFile ? (
+            <LocalFilePreview
+              file={signatureFile}
+              disabled={busy}
+              alt="Selected teacher signature"
+              removeLabel="Remove attachment"
+              onRemove={() => setSignatureFile(null)}
+            />
+          ) : null}
+
+          <div className="button-row">
+            <button
+              type="submit"
+              className="button button--primary"
+              disabled={busy}
+            >
+              {busy ? <Spinner size="sm" label="Submitting" /> : null}
+              {busy ? "Submitting…" : "Submit supervisor request"}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <p className="muted">
+          Only active club owners can submit teacher supervisor requests.
+        </p>
+      )}
+
+      <div className="stack" style={{ marginTop: "1.5rem" }}>
+        <h3>Request status</h3>
+        {loadingHistory ? (
+          <p className="muted">Loading supervisor requests…</p>
+        ) : history.length === 0 ? (
+          <p className="muted">No supervisor requests yet.</p>
+        ) : (
+          <ul className="stack card-list">
+            {history.map((row) => (
+              <li key={row.id} className="card">
+                <div className="card__header">
+                  <strong>Submitted {formatDate(row.submitted_at)}</strong>
+                  <StatusBadge status={row.status} />
+                </div>
+                <p className="muted">{statusLabel(row.status)}</p>
+                <p>
+                  {(row.club_supervisor_request_supervisors || [])
+                    .map(
+                      (supervisor) =>
+                        `${supervisor.supervisor_name} <${supervisor.supervisor_email}>`,
+                    )
+                    .join("; ")}
+                </p>
+                {(row.club_supervisor_request_attachments || []).length > 0 ? (
+                  <div className="stack">
+                    {(row.club_supervisor_request_attachments || []).map(
+                      (att) => (
+                        <AttachmentPreview
+                          key={att.id}
+                          path={att.storage_path}
+                          getSignedUrl={createSignedSupervisorDocumentUrl}
+                          mimeType={att.mime_type}
+                          filename={att.original_filename}
+                          alt={
+                            att.original_filename ||
+                            "Teacher signature attachment"
+                          }
+                        />
+                      ),
+                    )}
+                  </div>
+                ) : (
+                  <p className="muted">No signature attachment on file.</p>
+                )}
+                {row.review_notes ? (
+                  <p>
+                    <strong>Notes:</strong> {row.review_notes}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
