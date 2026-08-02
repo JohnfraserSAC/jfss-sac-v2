@@ -258,6 +258,11 @@ summary:focus-visible {
   background: var(--bg-elevated);
 }
 
+.subtabs--nested {
+  border-style: dashed;
+  background: transparent;
+}
+
 .subtab {
   display: inline-flex;
   align-items: center;
@@ -294,6 +299,60 @@ summary:focus-visible {
 .exec-section__title {
   margin: 0;
   font-size: 1.15rem;
+}
+
+.supervisor-split {
+  display: grid;
+  gap: 0.75rem 1.25rem;
+  align-items: start;
+  grid-template-areas:
+    "req-intro"
+    "req-body"
+    "pend-intro"
+    "pend-body";
+}
+
+.supervisor-split__intro {
+  display: grid;
+  gap: 0.35rem;
+  align-content: start;
+}
+
+.supervisor-split__intro h3 {
+  margin: 0;
+}
+
+.supervisor-split__intro p {
+  margin: 0;
+}
+
+.supervisor-split__intro--requests {
+  grid-area: req-intro;
+}
+
+.supervisor-split__intro--pending {
+  grid-area: pend-intro;
+}
+
+.supervisor-split__body {
+  min-width: 0;
+}
+
+.supervisor-split__body--requests {
+  grid-area: req-body;
+}
+
+.supervisor-split__body--pending {
+  grid-area: pend-body;
+}
+
+@media (min-width: 900px) {
+  .supervisor-split {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "req-intro pend-intro"
+      "req-body pend-body";
+  }
 }
 
 .hero-panel--compact {

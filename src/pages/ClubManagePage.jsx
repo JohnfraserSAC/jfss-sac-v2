@@ -113,7 +113,6 @@ export function ClubManagePage() {
 
       const allowed = canManageClubMembers({
         clubRole: currentMembership?.role,
-        isSacAdmin,
       });
 
       if (!allowed) {
@@ -138,7 +137,7 @@ export function ClubManagePage() {
     } finally {
       setLoading(false);
     }
-  }, [slug, user.id, isSacAdmin]);
+  }, [slug, user.id]);
 
   useEffect(() => {
     // Initial and dependency-driven page load for club management.
@@ -259,10 +258,10 @@ export function ClubManagePage() {
               : "Pending Teacher Supervisor"}
           </strong>
           <p>
-            This club is not public in Explore. Announcements, event approvals,
-            and funding requests stay blocked until SAC approves at least one
-            teacher supervisor. Owners may still manage members and submit
-            supervisor information.
+            This club is not public in Explore. Announcements and funding
+            requests stay blocked until SAC approves at least one teacher
+            supervisor. Owners may still manage members and submit supervisor
+            information.
           </p>
         </div>
       ) : null}

@@ -119,32 +119,10 @@ export function ClubRequestsPanel({
       className="stack"
     >
       <section className="panel">
-        <h2>Events</h2>
-        <p>
-          Submit club events for SAC approval. Event requests stay on their
-          existing review path.
-        </p>
-        {isLeader && operationsAllowed ? (
-          <Link
-            className="button button--primary"
-            to={`/clubs/${club.slug}/manage/event-requests/new`}
-          >
-            Submit Event for Approval
-          </Link>
-        ) : (
-          <p className="muted">
-            {isLeader
-              ? "Event requests unlock after the club is ACTIVE."
-              : "Only club owners and executives can submit event requests."}
-          </p>
-        )}
-      </section>
-
-      <section className="panel">
         <h2>Announcement request</h2>
         <p className="muted">
-          Drafts and submissions follow the existing review flow. Club owners
-          cannot publish directly.
+          Use announcements for club news and events. Drafts and submissions
+          follow the existing review flow. Club owners cannot publish directly.
         </p>
 
         {!operationsAllowed && !isStaff ? (
@@ -185,10 +163,6 @@ export function ClubRequestsPanel({
       <section className="panel">
         <h2>Funding request</h2>
         <p>Club funding requests are coming soon.</p>
-        <p className="muted">
-          An event must be approved before a related Club Funding Request can be
-          submitted.
-        </p>
         {isLeader ? (
           <Link
             className="button button--secondary"

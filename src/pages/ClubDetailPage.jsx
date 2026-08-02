@@ -16,7 +16,7 @@ import { getErrorMessage } from "../utils/errors";
 
 export function ClubDetailPage() {
   const { slug } = useParams();
-  const { user, isAuthenticated, isAdmin, isSacAdmin } = useAuth();
+  const { user, isAuthenticated, isAdmin } = useAuth();
   const [club, setClub] = useState(null);
   const [membership, setMembership] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -102,7 +102,6 @@ export function ClubDetailPage() {
   const showStatus = isAdmin || club.status !== "APPROVED";
   const canManage = canManageClubMembers({
     clubRole: membership?.role,
-    isSacAdmin,
   });
 
   return (

@@ -18,7 +18,7 @@ import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
 export function MyClubsPage() {
-  const { user, isSacAdmin } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const [memberships, setMemberships] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -93,7 +93,6 @@ export function MyClubsPage() {
             const club = membership.clubs;
             const canManage = canManageClubMembers({
               clubRole: membership.role,
-              isSacAdmin,
             });
 
             return (

@@ -1,32 +1,43 @@
-import { NavLink, Navigate, Outlet } from "react-router-dom";
+import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const BASE_SECTIONS = [
-  { to: "/exec-dashboard/announcements", label: "Announcement Review" },
-  { to: "/exec-dashboard/clubs", label: "New Club Applications" },
+const PRIMARY_TABS = [
+  {
+    id: "applications",
+    to: "/exec-dashboard/applications/new",
+    label: "Applications",
+    matchPrefix: "/exec-dashboard/applications",
+    visible: ({ isSacAdmin, isSacExec, isFacultyAdvisor }) =>
+      isSacAdmin || isSacExec || isFacultyAdvisor,
+  },
+  {
+    id: "requests",
+    to: "/exec-dashboard/requests/announcements",
+    label: "Requests",
+    matchPrefix: "/exec-dashboard/requests",
+    visible: ({ isSacAdmin, isSacExec, isFacultyAdvisor }) =>
+      isSacAdmin || isSacExec || isFacultyAdvisor,
+  },
+  {
+    id: "archived",
+    to: "/exec-dashboard/archived",
+    label: "Archived",
+    matchPrefix: "/exec-dashboard/archived",
+    visible: ({ isSacAdmin, isSacExec }) => isSacAdmin || isSacExec,
+  },
 ];
 
-const CLUB_STATE_SECTIONS = [
-  { to: "/exec-dashboard/active-clubs", label: "Active Clubs" },
-  { to: "/exec-dashboard/reapplications", label: "Pending Reapplications" },
-  { to: "/exec-dashboard/pending-clubs", label: "Pending Supervisor" },
-  { to: "/exec-dashboard/overdue-supervisor", label: "Overdue Supervisor" },
-  { to: "/exec-dashboard/supervisor-requests", label: "Supervisor Requests" },
-  { to: "/exec-dashboard/archived-clubs", label: "Archived Clubs" },
-];
-
-const SAC_ADMIN_ONLY_SECTIONS = [
-  { to: "/exec-dashboard/events", label: "Event Approvals" },
-  { to: "/exec-dashboard/funding", label: "Club Funding Requests" },
-];
+function isPathActive(pathname, prefix) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
 
 export function ExecDashboardLayout() {
-  const { canMutateReviews, isSacExec, isSacAdmin } = useAuth();
-  const sections = [
-    ...BASE_SECTIONS,
-    ...((isSacAdmin || isSacExec) ? CLUB_STATE_SECTIONS : []),
-    ...(isSacAdmin ? SAC_ADMIN_ONLY_SECTIONS : []),
-  ];
+  const { canMutateReviews, isSacExec, isSacAdmin, isFacultyAdvisor } =
+    useAuth();
+  const { pathname } = useLocation();
+
+  const roleFlags = { isSacAdmin, isSacExec, isFacultyAdvisor };
+  const primaryTabs = PRIMARY_TABS.filter((tab) => tab.visible(roleFlags));
 
   return (
     <div className="page">
@@ -35,8 +46,7 @@ export function ExecDashboardLayout() {
           <p className="eyebrow">Executive</p>
           <h1>Exec Dashboard</h1>
           <p className="lede">
-            Review announcements, club applications, annual club state, and
-            re-applications.
+            Review club applications, request queues, and archived clubs.
           </p>
         </div>
         {!canMutateReviews ? (
@@ -58,17 +68,18 @@ export function ExecDashboardLayout() {
       ) : null}
 
       <nav className="subtabs" aria-label="Exec Dashboard sections">
-        {sections.map((section) => (
-          <NavLink
-            key={section.to}
-            to={section.to}
-            className={({ isActive }) =>
-              isActive ? "subtab subtab--active" : "subtab"
-            }
-          >
-            {section.label}
-          </NavLink>
-        ))}
+        {primaryTabs.map((tab) => {
+          const active = isPathActive(pathname, tab.matchPrefix);
+          return (
+            <NavLink
+              key={tab.id}
+              to={tab.to}
+              className={active ? "subtab subtab--active" : "subtab"}
+            >
+              {tab.label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <Outlet />
@@ -76,6 +87,119 @@ export function ExecDashboardLayout() {
   );
 }
 
+export function ExecApplicationsLayout() {
+  const { isSacAdmin, isSacExec, isFacultyAdvisor } = useAuth();
+  const canViewApps = isSacAdmin || isSacExec || isFacultyAdvisor;
+  const canViewReapps = isSacAdmin || isSacExec;
+
+  if (!canViewApps) {
+    return <Navigate to="/exec-dashboard/requests/announcements" replace />;
+  }
+
+  const subtabs = [
+    { to: "/exec-dashboard/applications/new", label: "New Club Applications" },
+    ...(canViewReapps
+      ? [
+          {
+            to: "/exec-dashboard/applications/reapplications",
+            label: "Reapplications",
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <div className="exec-section">
+      <nav className="subtabs subtabs--nested" aria-label="Applications">
+        {subtabs.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            end
+            className={({ isActive }) =>
+              isActive ? "subtab subtab--active" : "subtab"
+            }
+          >
+            {tab.label}
+          </NavLink>
+        ))}
+      </nav>
+      <Outlet />
+    </div>
+  );
+}
+
+export function ExecRequestsLayout() {
+  const { isSacAdmin, isSacExec, isFacultyAdvisor } = useAuth();
+  const canView = isSacAdmin || isSacExec || isFacultyAdvisor;
+
+  if (!canView) {
+    return <Navigate to="/" replace />;
+  }
+
+  const subtabs = [
+    ...(isSacAdmin
+      ? [
+          {
+            to: "/exec-dashboard/requests/funding",
+            label: "Club Funding",
+          },
+        ]
+      : []),
+    {
+      to: "/exec-dashboard/requests/announcements",
+      label: "Announcements",
+    },
+    ...(isSacAdmin || isSacExec
+      ? [
+          {
+            to: "/exec-dashboard/requests/supervisor",
+            label: "Supervisor Requests",
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <div className="exec-section">
+      <nav className="subtabs subtabs--nested" aria-label="Requests">
+        {subtabs.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            end
+            className={({ isActive }) =>
+              isActive ? "subtab subtab--active" : "subtab"
+            }
+          >
+            {tab.label}
+          </NavLink>
+        ))}
+      </nav>
+      <Outlet />
+    </div>
+  );
+}
+
 export function ExecDashboardIndexRedirect() {
-  return <Navigate to="/exec-dashboard/announcements" replace />;
+  const { isSacAdmin, isSacExec, isFacultyAdvisor } = useAuth();
+  if (isSacAdmin || isSacExec) {
+    return <Navigate to="/exec-dashboard/applications/new" replace />;
+  }
+  if (isFacultyAdvisor) {
+    return <Navigate to="/exec-dashboard/requests/announcements" replace />;
+  }
+  return <Navigate to="/" replace />;
+}
+
+export function ExecApplicationsIndexRedirect() {
+  return <Navigate to="/exec-dashboard/applications/new" replace />;
+}
+
+export function ExecRequestsIndexRedirect() {
+  const { isSacAdmin } = useAuth();
+  if (isSacAdmin) {
+    return <Navigate to="/exec-dashboard/requests/funding" replace />;
+  }
+  return <Navigate to="/exec-dashboard/requests/announcements" replace />;
 }

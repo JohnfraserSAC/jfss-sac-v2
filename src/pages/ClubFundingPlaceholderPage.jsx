@@ -77,13 +77,7 @@ export function ClubFundingPlaceholderPage() {
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <section className="panel">
-        <p>
-          Club funding requests are coming soon.
-        </p>
-        <p className="muted">
-          An event must be approved before a related Club Funding Request can be
-          submitted.
-        </p>
+        <p>Club funding requests are coming soon.</p>
       </section>
     </div>
   );

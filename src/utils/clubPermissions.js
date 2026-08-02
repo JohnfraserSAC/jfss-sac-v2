@@ -70,8 +70,9 @@ export function isClubLeader(role) {
   return isClubOwner(role) || isClubExec(role);
 }
 
-export function canManageClubMembers({ clubRole, isSacAdmin = false }) {
-  return isSacAdmin || isClubOwner(clubRole) || isClubExec(clubRole);
+export function canManageClubMembers({ clubRole }) {
+  // Manage Club is for club OWNER/EXEC membership only — not SAC admin bypass.
+  return isClubOwner(clubRole) || isClubExec(clubRole);
 }
 
 export function canSearchStudents({ clubRole, isSacAdmin = false }) {

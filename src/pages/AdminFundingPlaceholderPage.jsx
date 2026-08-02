@@ -11,8 +11,7 @@ export function AdminFundingPlaceholderPage({ embedded = false }) {
       <section className="panel">
         <p>Coming soon.</p>
         <p className="muted">
-          Club funding submissions and review are not available yet. An event
-          must be approved before a related funding request can be submitted.
+          Club funding submissions and review are not available yet.
         </p>
       </section>
     </div>

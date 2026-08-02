@@ -4,8 +4,12 @@ import { AppShell } from "./components/AppShell";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleRoute } from "./components/RoleRoute";
 import {
+  ExecApplicationsIndexRedirect,
+  ExecApplicationsLayout,
   ExecDashboardIndexRedirect,
   ExecDashboardLayout,
+  ExecRequestsIndexRedirect,
+  ExecRequestsLayout,
 } from "./components/ExecDashboardLayout";
 import { EXEC_DASHBOARD_ROLES } from "./utils/execPermissions";
 import { HomePage } from "./pages/HomePage";
@@ -16,17 +20,13 @@ import { ClubDetailPage } from "./pages/ClubDetailPage";
 import { ClubManagePage } from "./pages/ClubManagePage";
 import { ClubApplyPage } from "./pages/ClubApplyPage";
 import { ClubReapplyPage } from "./pages/ClubReapplyPage";
-import { ClubEventRequestPage } from "./pages/ClubEventRequestPage";
 import { ClubFundingPlaceholderPage } from "./pages/ClubFundingPlaceholderPage";
 import { MyRequestsPage } from "./pages/MyRequestsPage";
 import { MyClubsPage } from "./pages/MyClubsPage";
 import { AdminClubRequestsPage } from "./pages/AdminClubRequestsPage";
 import { AdminClubReapplicationsPage } from "./pages/AdminClubReapplicationsPage";
-import { AdminAnnualClubsPage } from "./pages/AdminAnnualClubsPage";
 import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
-import { AdminSupervisorWatchPage } from "./pages/AdminSupervisorWatchPage";
 import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage";
-import { AdminClubEventsPage } from "./pages/AdminClubEventsPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { AnnouncementDetailPage } from "./pages/AnnouncementDetailPage";
@@ -83,14 +83,6 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <ClubManagePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="clubs/:slug/manage/event-requests/new"
-              element={
-                <ProtectedRoute>
-                  <ClubEventRequestPage />
                 </ProtectedRoute>
               }
             />
@@ -164,57 +156,111 @@ export default function App() {
               }
             >
               <Route index element={<ExecDashboardIndexRedirect />} />
+
+              <Route path="applications" element={<ExecApplicationsLayout />}>
+                <Route index element={<ExecApplicationsIndexRedirect />} />
+                <Route
+                  path="new"
+                  element={<AdminClubRequestsPage embedded />}
+                />
+                <Route
+                  path="reapplications"
+                  element={<AdminClubReapplicationsPage embedded />}
+                />
+              </Route>
+
+              <Route path="requests" element={<ExecRequestsLayout />}>
+                <Route index element={<ExecRequestsIndexRedirect />} />
+                <Route
+                  path="funding"
+                  element={<AdminFundingPlaceholderPage embedded />}
+                />
+                <Route
+                  path="announcements"
+                  element={<AdminAnnouncementsPage embedded />}
+                />
+                <Route
+                  path="supervisor"
+                  element={<AdminSupervisorRequestsPage embedded />}
+                />
+              </Route>
+
+              <Route
+                path="archived"
+                element={<AdminArchivedClubsPage embedded />}
+              />
+
+              {/* Legacy redirects — preserve old bookmarks */}
               <Route
                 path="announcements"
-                element={<AdminAnnouncementsPage embedded />}
+                element={
+                  <Navigate
+                    to="/exec-dashboard/requests/announcements"
+                    replace
+                  />
+                }
               />
               <Route
                 path="clubs"
-                element={<AdminClubRequestsPage embedded />}
-              />
-              <Route
-                path="active-clubs"
                 element={
-                  <AdminAnnualClubsPage embedded annualStatus="ACTIVE" />
+                  <Navigate to="/exec-dashboard/applications/new" replace />
                 }
               />
               <Route
                 path="reapplications"
-                element={<AdminClubReapplicationsPage embedded />}
+                element={
+                  <Navigate
+                    to="/exec-dashboard/applications/reapplications"
+                    replace
+                  />
+                }
+              />
+              <Route
+                path="funding"
+                element={
+                  <Navigate to="/exec-dashboard/requests/funding" replace />
+                }
+              />
+              <Route
+                path="supervisor-requests"
+                element={
+                  <Navigate to="/exec-dashboard/requests/supervisor" replace />
+                }
               />
               <Route
                 path="pending-clubs"
                 element={
-                  <AdminSupervisorWatchPage embedded mode="PENDING" />
+                  <Navigate to="/exec-dashboard/requests/supervisor" replace />
                 }
               />
               <Route
                 path="overdue-supervisor"
                 element={
-                  <AdminSupervisorWatchPage embedded mode="OVERDUE" />
+                  <Navigate to="/exec-dashboard/requests/supervisor" replace />
                 }
               />
               <Route
-                path="supervisor-requests"
-                element={<AdminSupervisorRequestsPage embedded />}
-              />
-              <Route
                 path="archived-clubs"
-                element={<AdminArchivedClubsPage embedded />}
+                element={<Navigate to="/exec-dashboard/archived" replace />}
               />
               <Route
                 path="inactive-clubs"
+                element={<Navigate to="/exec-dashboard/archived" replace />}
+              />
+              <Route
+                path="active-clubs"
                 element={
-                  <Navigate to="/exec-dashboard/archived-clubs" replace />
+                  <Navigate to="/exec-dashboard/applications/new" replace />
                 }
               />
               <Route
                 path="events"
-                element={<AdminClubEventsPage embedded />}
-              />
-              <Route
-                path="funding"
-                element={<AdminFundingPlaceholderPage embedded />}
+                element={
+                  <Navigate
+                    to="/exec-dashboard/requests/announcements"
+                    replace
+                  />
+                }
               />
             </Route>
 
@@ -228,11 +274,18 @@ export default function App() {
             />
             <Route
               path="admin/club-requests"
-              element={<Navigate to="/exec-dashboard/clubs" replace />}
+              element={
+                <Navigate to="/exec-dashboard/applications/new" replace />
+              }
             />
             <Route
               path="admin/announcements"
-              element={<Navigate to="/exec-dashboard/announcements" replace />}
+              element={
+                <Navigate
+                  to="/exec-dashboard/requests/announcements"
+                  replace
+                />
+              }
             />
 
             <Route path="home" element={<Navigate to="/" replace />} />

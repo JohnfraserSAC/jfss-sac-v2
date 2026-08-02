@@ -19,7 +19,6 @@ import {
   getReapplicationDisplayStatus,
   withdrawClubReapplication,
 } from "../services/clubReapplications";
-import { getMyClubEventRequests } from "../services/clubEventRequests";
 import { getClubAnnualState, getClubById } from "../services/clubs";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
@@ -37,7 +36,6 @@ export function MyRequestsPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [reapplications, setReapplications] = useState([]);
-  const [eventRequests, setEventRequests] = useState([]);
   const [annualByClubId, setAnnualByClubId] = useState({});
   const [clubSlugs, setClubSlugs] = useState({});
   const [missingClubs, setMissingClubs] = useState({});
@@ -52,14 +50,12 @@ export function MyRequestsPage() {
     setError("");
 
     try {
-      const [data, reapps, events] = await Promise.all([
+      const [data, reapps] = await Promise.all([
         getMyClubRequests(user.id),
         getMyClubReapplications(user.id).catch(() => []),
-        getMyClubEventRequests(user.id).catch(() => []),
       ]);
       setRequests(data);
       setReapplications(reapps);
-      setEventRequests(events);
 
       const annualEntries = await Promise.all(
         reapps
@@ -123,10 +119,7 @@ export function MyRequestsPage() {
     return <LoadingScreen message="Loading your requests…" />;
   }
 
-  const hasAny =
-    requests.length > 0 ||
-    reapplications.length > 0 ||
-    eventRequests.length > 0;
+  const hasAny = requests.length > 0 || reapplications.length > 0;
 
   return (
     <div className="page">
@@ -135,8 +128,7 @@ export function MyRequestsPage() {
           <p className="eyebrow">Your applications</p>
           <h1>My requests</h1>
           <p className="lede">
-            Track new club applications, re-applications, and event proposals
-            you have submitted.
+            Track new club applications and re-applications you have submitted.
           </p>
         </div>
         <div className="button-row">
@@ -154,8 +146,7 @@ export function MyRequestsPage() {
 
       {!error && !hasAny ? (
         <EmptyState title="No requests yet">
-          Submitted club applications, re-applications, and event requests will
-          appear here.
+          Submitted club applications and re-applications will appear here.
         </EmptyState>
       ) : null}
 
@@ -304,40 +295,6 @@ export function MyRequestsPage() {
               </article>
             );
           })}
-        </section>
-      ) : null}
-
-      {eventRequests.length > 0 ? (
-        <section className="stack">
-          <h2>Event requests</h2>
-          {eventRequests.map((request) => (
-            <article key={request.id} className="panel">
-              <div className="section-heading">
-                <div>
-                  <span className="submission-type">Event</span>
-                  <h3>{request.event_name}</h3>
-                  <StatusBadge status={request.status} />
-                </div>
-                {request.clubs?.slug ? (
-                  <Link
-                    className="text-link"
-                    to={`/clubs/${request.clubs.slug}`}
-                  >
-                    {request.clubs.name}
-                  </Link>
-                ) : null}
-              </div>
-              <p className="muted">
-                Submitted {formatDate(request.submitted_at)} ·{" "}
-                {request.respondent_email}
-              </p>
-              {request.review_notes ? (
-                <p>
-                  <strong>Review notes:</strong> {request.review_notes}
-                </p>
-              ) : null}
-            </article>
-          ))}
         </section>
       ) : null}
 
