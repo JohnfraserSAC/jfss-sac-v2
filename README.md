@@ -1,20 +1,52 @@
-# React + Vite
+# JFSS SAC Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The John Fraser Secondary School SAC Portal is a centralized platform for managing student clubs and Student Activity Council workflows. It allows students to discover clubs, submit applications, manage memberships, request teacher supervision, and send announcements or funding requests for review.
 
-Currently, two official plugins are available:
+## Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Google authentication for PDSB users
+- Public directory of active school clubs
+- New club applications and club reapplications
+- Club membership invitations and role management
+- Owner, executive, member, faculty, and SAC administrator permissions
+- Teacher-supervisor request and approval workflow
+- Club announcement and event-request review
+- Club archiving and historical record preservation
+- Responsive design for desktop and mobile devices
 
-## React Compiler
+## Technology
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- Vite
+- JavaScript and JSX
+- React Router
+- Supabase Authentication
+- Supabase PostgreSQL, Storage, RPC functions, and Row Level Security
 
-## Expanding the ESLint configuration
+## Local Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Install the project dependencies:
 
-# jfss-sac-v2
+```bash
+npm install
+```
 
-jfss sac new site
+Configure the required Supabase environment variables, then start the development server:
+
+```bash
+npm run dev
+```
+
+Create a production build with:
+
+```bash
+npm run build
+```
+
+## Security
+
+Authentication, authorization, club-role limits, and administrative workflows are enforced through Supabase Row Level Security and server-side database functions. Sensitive administrative actions are not trusted to frontend validation alone.
+
+## Project Status
+
+The JFSS SAC Portal is under active development for use by John Fraser Secondary School students, club leaders, faculty advisors, and SAC administrators.
