@@ -156,7 +156,7 @@ export function AddClubMemberForm({
           label="Email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="firstname.lastname@pdsb.net"
+          placeholder=" p#######@pdsb.net"
           required
           disabled={busy}
           autoComplete="off"

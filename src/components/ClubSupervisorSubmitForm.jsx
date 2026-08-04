@@ -13,10 +13,7 @@ import {
   validateSupervisorAttachmentFile,
   createSignedSupervisorDocumentUrl,
 } from "../services/clubSupervisors";
-import {
-  isValidPdsbEmail,
-  normalizePdsbEmail,
-} from "../utils/clubPermissions";
+import { isValidPdsbEmail, normalizePdsbEmail } from "../utils/clubPermissions";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
@@ -84,7 +81,9 @@ export function ClubSupervisorSubmitForm({
     }
 
     if (!signatureFile) {
-      setError("Attach the teacher signature document (JPEG, PNG, WebP, or PDF).");
+      setError(
+        "Attach the teacher signature document (JPEG, PNG, WebP, or PDF).",
+      );
       return;
     }
 
@@ -168,7 +167,7 @@ export function ClubSupervisorSubmitForm({
             onChange={(event) => setEmail(event.target.value)}
             required
             disabled={busy}
-            placeholder="firstname.lastname@pdsb.net"
+            placeholder=" p#######@pdsb.net"
             hint="Must be an exact @pdsb.net address."
             autoComplete="off"
           />
