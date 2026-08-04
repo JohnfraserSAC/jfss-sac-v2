@@ -167,7 +167,7 @@ export function ClubSupervisorSubmitForm({
             onChange={(event) => setEmail(event.target.value)}
             required
             disabled={busy}
-            placeholder=" p#######@pdsb.net"
+            placeholder="p#######@pdsb.net"
             hint="Must be an exact @pdsb.net address."
             autoComplete="off"
           />
