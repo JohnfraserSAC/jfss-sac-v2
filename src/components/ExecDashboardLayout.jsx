@@ -20,7 +20,7 @@ const PRIMARY_TABS = [
   },
   {
     id: "archived",
-    to: "/exec-dashboard/archived",
+    to: "/exec-dashboard/archived/clubs",
     label: "Archived",
     matchPrefix: "/exec-dashboard/archived",
     visible: ({ isSacAdmin, isSacExec }) => isSacAdmin || isSacExec,
@@ -46,7 +46,7 @@ export function ExecDashboardLayout() {
           <p className="eyebrow">Executive</p>
           <h1>Exec Dashboard</h1>
           <p className="lede">
-            Review club applications, request queues, and archived clubs.
+            Review club applications, request queues, and archived records.
           </p>
         </div>
         {!canMutateReviews ? (
@@ -202,4 +202,45 @@ export function ExecRequestsIndexRedirect() {
     return <Navigate to="/exec-dashboard/requests/funding" replace />;
   }
   return <Navigate to="/exec-dashboard/requests/announcements" replace />;
+}
+
+export function ExecArchivedLayout() {
+  const { isSacAdmin, isSacExec } = useAuth();
+  const canView = isSacAdmin || isSacExec;
+
+  if (!canView) {
+    return <Navigate to="/exec-dashboard/requests/announcements" replace />;
+  }
+
+  const subtabs = [
+    { to: "/exec-dashboard/archived/clubs", label: "Archived Clubs" },
+    {
+      to: "/exec-dashboard/archived/announcements",
+      label: "Archived Announcements",
+    },
+  ];
+
+  return (
+    <div className="exec-section">
+      <nav className="subtabs subtabs--nested" aria-label="Archived">
+        {subtabs.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            end
+            className={({ isActive }) =>
+              isActive ? "subtab subtab--active" : "subtab"
+            }
+          >
+            {tab.label}
+          </NavLink>
+        ))}
+      </nav>
+      <Outlet />
+    </div>
+  );
+}
+
+export function ExecArchivedIndexRedirect() {
+  return <Navigate to="/exec-dashboard/archived/clubs" replace />;
 }

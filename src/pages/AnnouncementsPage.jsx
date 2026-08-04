@@ -8,7 +8,7 @@ import { Select, TextInput } from "../components/FormField";
 import { getPublishedAnnouncements } from "../services/announcements";
 import { getErrorMessage } from "../utils/errors";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 5;
 
 export function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
@@ -132,7 +132,7 @@ export function AnnouncementsPage() {
             onClick={loadMore}
             disabled={loadingMore}
           >
-            {loadingMore ? "Loading…" : "Load more"}
+            {loadingMore ? "Loading…" : "See more"}
           </button>
         </div>
       ) : null}

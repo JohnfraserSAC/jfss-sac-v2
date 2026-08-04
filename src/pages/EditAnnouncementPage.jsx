@@ -11,7 +11,7 @@ import {
 import {
   canEditAnnouncement,
   getAllowedEditActions,
-  toDateTimeLocalValue,
+  toDateOnlyValue,
   validateAnnouncementForm,
 } from "../utils/announcementPermissions";
 import { getErrorMessage } from "../utils/errors";
@@ -22,7 +22,6 @@ const UUID_PATTERN =
 const ACTION_LABELS = {
   SAVE: "Save",
   SUBMIT: "Submit for Review",
-  PUBLISH: "Publish",
 };
 
 export function EditAnnouncementPage() {
@@ -86,7 +85,7 @@ export function EditAnnouncementPage() {
           imageUrl: data.image_url || "",
           clubId: data.club_id || "",
           clubName: data.clubs?.name || "",
-          expiresAt: toDateTimeLocalValue(data.expires_at),
+          scheduledPostingDate: toDateOnlyValue(data.scheduled_posting_date),
           status: data.status,
         });
       } catch (loadError) {
@@ -163,7 +162,9 @@ export function EditAnnouncementPage() {
   async function handleSubmitAction(action) {
     if (submittingAction) return;
 
-    const validation = validateAnnouncementForm(values);
+    const validation = validateAnnouncementForm(values, {
+      requirePostingDate: action === "SUBMIT",
+    });
     setFieldErrors(validation.errors);
     setError("");
 
@@ -176,14 +177,6 @@ export function EditAnnouncementPage() {
 
     try {
       await editAnnouncement(id, validation.data, action);
-
-      if (action === "PUBLISH") {
-        navigate(`/announcements/${id}`, {
-          replace: true,
-          state: { notice: "Announcement published." },
-        });
-        return;
-      }
 
       navigate("/my-announcements", {
         replace: true,
@@ -213,7 +206,8 @@ export function EditAnnouncementPage() {
           <p className="eyebrow">Edit</p>
           <h1>Edit announcement</h1>
           <p className="lede">
-            Club association cannot be changed after creation.
+            Club association cannot be changed after creation. Approved posts
+            go live on the scheduled Toronto posting date.
           </p>
         </div>
       </header>

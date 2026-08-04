@@ -101,6 +101,7 @@ export function MyAnnouncementsPage() {
           <option value="CHANGES_REQUESTED">Changes requested</option>
           <option value="PUBLISHED">Published</option>
           <option value="REJECTED">Rejected</option>
+          <option value="CANCELLED">Cancelled</option>
           <option value="ARCHIVED">Archived</option>
         </Select>
       </div>

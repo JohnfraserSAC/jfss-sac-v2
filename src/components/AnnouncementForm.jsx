@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FormField, Select, TextArea, TextInput } from "./FormField";
 import { Spinner } from "./Spinner";
 import { AnnouncementStatusBadge } from "./AnnouncementStatusBadge";
+import { getTorontoTomorrowYmd } from "../utils/torontoDate";
 
 export function AnnouncementForm({
   mode = "create",
@@ -17,6 +18,7 @@ export function AnnouncementForm({
   onSubmitAction,
   error = "",
 }) {
+  const minPostingDate = getTorontoTomorrowYmd();
   const [announcementType, setAnnouncementType] = useState(
     values.clubId ? "CLUB" : "GENERAL",
   );
@@ -154,14 +156,15 @@ export function AnnouncementForm({
       />
 
       <TextInput
-        id="expiresAt"
-        name="expiresAt"
-        type="datetime-local"
-        label="Expiry date"
-        value={values.expiresAt}
+        id="scheduledPostingDate"
+        name="scheduledPostingDate"
+        type="date"
+        label="Announcement posting date"
+        value={values.scheduledPostingDate || ""}
         onChange={updateField}
-        error={fieldErrors.expiresAt}
-        hint="Optional. Leave blank for no expiry."
+        error={fieldErrors.scheduledPostingDate}
+        min={minPostingDate}
+        hint="Required to submit. America/Toronto calendar date. Earliest selectable date is tomorrow."
       />
 
       {error ? (

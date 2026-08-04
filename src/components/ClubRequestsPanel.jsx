@@ -16,7 +16,7 @@ const EMPTY_ANNOUNCEMENT = {
   body: "",
   imageUrl: "",
   clubId: "",
-  expiresAt: "",
+  scheduledPostingDate: "",
 };
 
 export function ClubRequestsPanel({
@@ -44,18 +44,13 @@ export function ClubRequestsPanel({
   const [success, setSuccess] = useState("");
   const [submittingAction, setSubmittingAction] = useState(null);
 
-  const actions = useMemo(() => {
-    if (isStaff) {
-      return [
-        { value: "DRAFT", label: "Save Draft" },
-        { value: "PUBLISH", label: "Publish Now", primary: true },
-      ];
-    }
-    return [
+  const actions = useMemo(
+    () => [
       { value: "DRAFT", label: "Save Draft" },
       { value: "SUBMIT", label: "Submit for Review", primary: true },
-    ];
-  }, [isStaff]);
+    ],
+    [],
+  );
 
   async function handleSubmitAction(action) {
     if (submittingAction) return;
@@ -67,8 +62,8 @@ export function ClubRequestsPanel({
     }
 
     const validation = validateAnnouncementForm(
-      { ...values, clubId: club.id, requireClub: true },
-      { requireClub: true },
+      { ...values, clubId: club.id },
+      { requireClub: true, requirePostingDate: action === "SUBMIT" },
     );
 
     if (!validation.isValid) {
@@ -84,7 +79,7 @@ export function ClubRequestsPanel({
 
     try {
       await createAnnouncement(
-        { ...values, clubId: club.id, requireClub: true },
+        { ...validation.data, clubId: club.id, requireClub: true },
         action,
       );
       setValues({
@@ -93,11 +88,9 @@ export function ClubRequestsPanel({
         clubName: club.name,
       });
       setSuccess(
-        action === "PUBLISH"
-          ? "Announcement published."
-          : action === "SUBMIT"
-            ? "Announcement submitted for review. It is not published yet."
-            : "Announcement draft saved.",
+        action === "SUBMIT"
+          ? "Announcement submitted for review. It will post on the scheduled Toronto date once approved."
+          : "Announcement draft saved.",
       );
     } catch (submitError) {
       if (submitError.fieldErrors) {
@@ -121,8 +114,9 @@ export function ClubRequestsPanel({
       <section className="panel">
         <h2>Announcement request</h2>
         <p className="muted">
-          Use announcements for club news and events. Drafts and submissions
-          follow the existing review flow. Club owners cannot publish directly.
+          Use announcements for club news and events. Every request needs a
+          Toronto posting date. Approval schedules the post for that date — it
+          does not go live immediately.
         </p>
 
         {!operationsAllowed && !isStaff ? (

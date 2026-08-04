@@ -20,7 +20,7 @@ const EMPTY_VALUES = {
   body: "",
   imageUrl: "",
   clubId: "",
-  expiresAt: "",
+  scheduledPostingDate: "",
 };
 
 export function CreateAnnouncementPage() {
@@ -74,23 +74,16 @@ export function CreateAnnouncementPage() {
 
   const clubs = isStaff ? staffClubs : ownedClubs;
 
-  const actions = useMemo(() => {
-    if (isStaff) {
-      return [
-        { value: "DRAFT", label: "Save Draft" },
-        { value: "PUBLISH", label: "Publish Now", primary: true },
-      ];
-    }
-    return [
+  const actions = useMemo(
+    () => [
       { value: "DRAFT", label: "Save Draft" },
       { value: "SUBMIT", label: "Submit for Review", primary: true },
-    ];
-  }, [isStaff]);
+    ],
+    [],
+  );
 
   if (!canCreateAnnouncements && !loading) {
-    return (
-      <Navigate to="/announcements" replace />
-    );
+    return <Navigate to="/announcements" replace />;
   }
 
   if (loading) {
@@ -119,6 +112,7 @@ export function CreateAnnouncementPage() {
 
     const validation = validateAnnouncementForm(values, {
       requireClub: ownerCreating || staffCreatingClub,
+      requirePostingDate: action === "SUBMIT",
     });
 
     setFieldErrors(validation.errors);
@@ -137,21 +131,13 @@ export function CreateAnnouncementPage() {
     setSubmittingAction(action);
 
     try {
-      const id = await createAnnouncement(
+      await createAnnouncement(
         {
           ...validation.data,
           requireClub: ownerCreating,
         },
         action,
       );
-
-      if (action === "PUBLISH") {
-        navigate(`/announcements/${id}`, {
-          replace: true,
-          state: { notice: "Announcement published." },
-        });
-        return;
-      }
 
       navigate("/my-announcements", {
         replace: true,
@@ -182,8 +168,8 @@ export function CreateAnnouncementPage() {
           <h1>New announcement</h1>
           <p className="lede">
             {isStaff
-              ? "Publish a general or club announcement, or save a draft."
-              : "Create a club announcement as a draft or submit it for SAC review."}
+              ? "Create a general or club announcement draft, or submit it for review with a Toronto posting date."
+              : "Create a club announcement as a draft or submit it for SAC review with a Toronto posting date."}
           </p>
         </div>
       </header>

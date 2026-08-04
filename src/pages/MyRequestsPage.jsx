@@ -23,6 +23,8 @@ import { getClubAnnualState, getClubById } from "../services/clubs";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
+const SECTION_PAGE_SIZE = 3;
+
 function canWithdrawReapplication(request, annualStatus) {
   if (["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(request.status)) {
     return true;
@@ -44,6 +46,8 @@ export function MyRequestsPage() {
   const [actionError, setActionError] = useState("");
   const [busyId, setBusyId] = useState(null);
   const [withdrawTarget, setWithdrawTarget] = useState(null);
+  const [visibleApps, setVisibleApps] = useState(SECTION_PAGE_SIZE);
+  const [visibleReapps, setVisibleReapps] = useState(SECTION_PAGE_SIZE);
 
   const loadRequests = useCallback(async () => {
     setLoading(true);
@@ -56,6 +60,8 @@ export function MyRequestsPage() {
       ]);
       setRequests(data);
       setReapplications(reapps);
+      setVisibleApps(SECTION_PAGE_SIZE);
+      setVisibleReapps(SECTION_PAGE_SIZE);
 
       const annualEntries = await Promise.all(
         reapps
@@ -98,6 +104,7 @@ export function MyRequestsPage() {
   }, [user.id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional async page fetch
     loadRequests();
   }, [loadRequests]);
 
@@ -120,6 +127,10 @@ export function MyRequestsPage() {
   }
 
   const hasAny = requests.length > 0 || reapplications.length > 0;
+  const visibleRequests = requests.slice(0, visibleApps);
+  const visibleReapplications = reapplications.slice(0, visibleReapps);
+  const hasMoreApps = visibleApps < requests.length;
+  const hasMoreReapps = visibleReapps < reapplications.length;
 
   return (
     <div className="page">
@@ -153,7 +164,7 @@ export function MyRequestsPage() {
       {requests.length > 0 ? (
         <section className="stack">
           <h2>New club applications</h2>
-          {requests.map((request) => {
+          {visibleRequests.map((request) => {
             const canMutate =
               request.status === "DRAFT" ||
               request.status === "CHANGES_REQUESTED";
@@ -220,13 +231,26 @@ export function MyRequestsPage() {
               />
             );
           })}
+          {hasMoreApps ? (
+            <div className="button-row">
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={() =>
+                  setVisibleApps((current) => current + SECTION_PAGE_SIZE)
+                }
+              >
+                View more
+              </button>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
       {reapplications.length > 0 ? (
         <section className="stack">
           <h2>Club re-applications</h2>
-          {reapplications.map((request) => {
+          {visibleReapplications.map((request) => {
             const annualStatus = annualByClubId[request.club_id] || null;
             const displayStatus = getReapplicationDisplayStatus(
               request,
@@ -295,6 +319,19 @@ export function MyRequestsPage() {
               </article>
             );
           })}
+          {hasMoreReapps ? (
+            <div className="button-row">
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={() =>
+                  setVisibleReapps((current) => current + SECTION_PAGE_SIZE)
+                }
+              >
+                View more
+              </button>
+            </div>
+          ) : null}
         </section>
       ) : null}
 

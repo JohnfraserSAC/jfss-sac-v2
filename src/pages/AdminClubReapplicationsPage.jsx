@@ -299,6 +299,7 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
                           [request.id]: event.target.value,
                         }))
                       }
+                      hint="Required when rejecting. Optional when approving."
                     />
                     <div className="button-row">
                       <button
@@ -313,9 +314,15 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
                         type="button"
                         className="button button--danger"
                         disabled={busyId === request.id}
-                        onClick={() =>
-                          setConfirmAction({ request, action: "REJECTED" })
-                        }
+                        onClick={() => {
+                          if (!(notesById[request.id] || "").trim()) {
+                            setError(
+                              "Review notes are required when rejecting.",
+                            );
+                            return;
+                          }
+                          setConfirmAction({ request, action: "REJECTED" });
+                        }}
                       >
                         Reject
                       </button>

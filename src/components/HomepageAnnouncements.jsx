@@ -7,7 +7,7 @@ import { Spinner } from "./Spinner";
 import { getHomepageAnnouncements } from "../services/announcements";
 import { getErrorMessage } from "../utils/errors";
 
-export function HomepageAnnouncements({ limit = 8 }) {
+export function HomepageAnnouncements({ limit = 5 }) {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -51,7 +51,7 @@ export function HomepageAnnouncements({ limit = 8 }) {
           </p>
         </div>
         <Link className="text-link" to="/announcements">
-          View all announcements
+          See more
         </Link>
       </div>
 

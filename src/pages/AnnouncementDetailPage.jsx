@@ -15,6 +15,7 @@ import {
   canEditAnnouncement,
 } from "../utils/announcementPermissions";
 import { formatDate } from "../utils/format";
+import { formatDateOnly } from "../utils/torontoDate";
 import { getErrorMessage } from "../utils/errors";
 
 const UUID_PATTERN =
@@ -148,13 +149,19 @@ export function AnnouncementDetailPage() {
 
         <dl className="meta-list">
           <div>
+            <dt>Posting date</dt>
+            <dd>
+              {formatDateOnly(announcement.scheduled_posting_date) || "—"}
+            </dd>
+          </div>
+          <div>
             <dt>Published</dt>
             <dd>{formatDate(announcement.published_at) || "Not published"}</dd>
           </div>
-          {announcement.expires_at ? (
+          {announcement.archived_at ? (
             <div>
-              <dt>Expires</dt>
-              <dd>{formatDate(announcement.expires_at)}</dd>
+              <dt>Archived</dt>
+              <dd>{formatDate(announcement.archived_at)}</dd>
             </div>
           ) : null}
           <div>

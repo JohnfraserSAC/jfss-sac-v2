@@ -79,10 +79,27 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
     load();
   }, [canView, load]);
 
-  const sortedPending = useMemo(
-    () => sortPendingClubs(pendingClubs),
-    [pendingClubs],
-  );
+  const sortedPending = useMemo(() => {
+    const clubsWithOpenRequests = new Set(
+      (requests || [])
+        .filter((row) =>
+          ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(
+            row.status,
+          ),
+        )
+        .map((row) => row.club_id)
+        .filter(Boolean),
+    );
+
+    return sortPendingClubs(pendingClubs).filter((row) => {
+      if (clubsWithOpenRequests.has(row.club_id)) return false;
+      // Also hide when the watch list reports an open package, even if the
+      // request queue query lags or filters differently.
+      return !["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(
+        row.supervisor_request_status,
+      );
+    });
+  }, [pendingClubs, requests]);
 
   if (!canView) {
     return (
@@ -95,6 +112,10 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
 
   async function runAction(request, action) {
     const notes = (notesById[request.id] || "").trim();
+    if (action === "REJECTED" && !notes) {
+      setError("Review notes are required when rejecting.");
+      return;
+    }
     setBusyId(request.id);
     setError("");
     setSuccess("");
@@ -145,13 +166,18 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
 
   async function confirmRejectPending() {
     if (!rejectTarget) return;
+    const notes = rejectNotes.trim();
+    if (!notes) {
+      setError("Review notes are required when rejecting.");
+      return;
+    }
     setBusyId(rejectTarget.club_id);
     setError("");
     setSuccess("");
     try {
       await adminRejectPendingSupervisorClub({
         clubId: rejectTarget.club_id,
-        reviewNotes: rejectNotes.trim() || null,
+        reviewNotes: notes,
       });
       setSuccess(
         `${rejectTarget.name} was rejected and returned to inactive / reapply-eligible.`,
@@ -283,7 +309,7 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
                     <>
                       <TextArea
                         id={`sup-notes-${request.id}`}
-                        label="Review notes (optional for reject)"
+                        label="Review notes"
                         value={notesById[request.id] || ""}
                         onChange={(event) =>
                           setNotesById((current) => ({
@@ -291,7 +317,7 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
                             [request.id]: event.target.value,
                           }))
                         }
-                        hint="Optional when rejecting. A default note is stored if left blank."
+                        hint="Required when rejecting. Optional when approving."
                       />
                       <div className="button-row">
                         <button
@@ -308,9 +334,18 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
                           type="button"
                           className="button button--danger"
                           disabled={busyId === request.id}
-                          onClick={() =>
-                            setConfirmAction({ request, action: "REJECTED" })
-                          }
+                          onClick={() => {
+                            if (!(notesById[request.id] || "").trim()) {
+                              setError(
+                                "Review notes are required when rejecting.",
+                              );
+                              return;
+                            }
+                            setConfirmAction({
+                              request,
+                              action: "REJECTED",
+                            });
+                          }}
                         >
                           Reject
                         </button>
@@ -467,7 +502,7 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
         <p>
           {confirmAction?.action === "APPROVED"
             ? `Approve the teacher supervisor for ${confirmAction.request.clubs?.name || "this club"}?`
-            : `Reject the supervisor request for ${confirmAction?.request?.clubs?.name || "this club"}?`}
+            : `Reject the supervisor request for ${confirmAction?.request?.clubs?.name || "this club"}? Review notes are required.`}
         </p>
       </ConfirmDialog>
 
@@ -499,6 +534,7 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
         confirmLabel="Reject club"
         destructive
         busy={busyId === rejectTarget?.club_id}
+        confirmDisabled={!rejectNotes.trim()}
         onCancel={() => setRejectTarget(null)}
         onConfirm={confirmRejectPending}
       >
@@ -513,6 +549,8 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
           label="Review notes"
           value={rejectNotes}
           onChange={(event) => setRejectNotes(event.target.value)}
+          required
+          hint="Required when rejecting."
         />
       </ConfirmDialog>
     </div>

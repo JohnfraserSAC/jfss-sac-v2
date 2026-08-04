@@ -386,7 +386,7 @@ export function AdminClubRequestsPage({ embedded = false }) {
                         setNotes(request.id, event.target.value)
                       }
                       rows={3}
-                      hint="Required when rejecting."
+                      hint="Required when rejecting. Optional when approving."
                     />
 
                     <div className="button-row">
@@ -394,9 +394,15 @@ export function AdminClubRequestsPage({ embedded = false }) {
                         type="button"
                         className="button button--danger"
                         disabled={isBusy}
-                        onClick={() =>
-                          setRejectTarget(request)
-                        }
+                        onClick={() => {
+                          if (!(notesById[request.id] || "").trim()) {
+                            setActionError(
+                              "Review notes are required when rejecting.",
+                            );
+                            return;
+                          }
+                          setRejectTarget(request);
+                        }}
                       >
                         Reject
                       </button>
@@ -462,6 +468,9 @@ export function AdminClubRequestsPage({ embedded = false }) {
         confirmLabel="Reject"
         destructive
         busy={busyId === rejectTarget?.id}
+        confirmDisabled={
+          !((notesById[rejectTarget?.id] || "").trim())
+        }
         onCancel={() => {
           if (busyId) return;
           setRejectTarget(null);

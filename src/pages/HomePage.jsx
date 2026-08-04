@@ -89,7 +89,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <HomepageAnnouncements limit={8} />
+      <HomepageAnnouncements limit={5} />
     </div>
   );
 }

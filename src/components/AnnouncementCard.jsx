@@ -3,6 +3,7 @@ import { AnnouncementStatusBadge } from "./AnnouncementStatusBadge";
 import { AnnouncementTypeBadge } from "./AnnouncementTypeBadge";
 import { announcementExcerpt } from "../utils/announcementPermissions";
 import { formatDate } from "../utils/format";
+import { formatDateOnly } from "../utils/torontoDate";
 
 export function AnnouncementCard({
   announcement,
@@ -75,10 +76,10 @@ export function AnnouncementCard({
               )}
             </dd>
           </div>
-          {announcement.expires_at ? (
+          {announcement.scheduled_posting_date ? (
             <div>
-              <dt>Expires</dt>
-              <dd>{formatDate(announcement.expires_at)}</dd>
+              <dt>Posting date</dt>
+              <dd>{formatDateOnly(announcement.scheduled_posting_date)}</dd>
             </div>
           ) : null}
         </dl>

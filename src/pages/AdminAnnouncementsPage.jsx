@@ -14,6 +14,7 @@ import {
   reviewAnnouncement,
 } from "../services/announcements";
 import { formatDate } from "../utils/format";
+import { formatDateOnly, getPostingUrgency } from "../utils/torontoDate";
 import { getErrorMessage } from "../utils/errors";
 
 export function AdminAnnouncementsPage({ embedded = false }) {
@@ -64,7 +65,9 @@ export function AdminAnnouncementsPage({ embedded = false }) {
         notes,
       );
       setSuccess(
-        `Updated “${reviewDialog.announcement.title}” to ${reviewDialog.action}.`,
+        reviewDialog.action === "PUBLISH"
+          ? `Approved “${reviewDialog.announcement.title}”. It will appear on the public board on its Toronto posting date.`
+          : `Updated “${reviewDialog.announcement.title}” to ${reviewDialog.action}.`,
       );
       setReviewDialog(null);
       await loadQueue();
@@ -87,9 +90,8 @@ export function AdminAnnouncementsPage({ embedded = false }) {
             <p className="eyebrow">Administration</p>
             <h1>Announcement review queue</h1>
             <p className="lede">
-              Review club-owner submissions. Creator profiles are not joined
-              here because profiles RLS may only allow users to read their own
-              row.
+              Review submissions sorted by scheduled Toronto posting date. Approve
+              schedules the post for that date — it does not publish immediately.
             </p>
           </div>
         </header>
@@ -99,13 +101,14 @@ export function AdminAnnouncementsPage({ embedded = false }) {
 
       {readOnly ? (
         <PermissionNotice title="Read only">
-          You can view announcement submissions, but you cannot approve,
-          reject, request changes, or publish.
+          You can view announcement submissions, but you cannot approve or
+          reject them.
         </PermissionNotice>
       ) : (
-        <PermissionNotice title="Creator profile limitation">
-          Moderation shows the created-by UUID. A safe creator-profile lookup
-          RPC would be needed to display names and emails.
+        <PermissionNotice title="Scheduled posting">
+          Approval keeps the announcement hidden until 12:00 a.m.
+          America/Toronto on its posting date. Requests not approved before
+          that day begin are cancelled automatically.
         </PermissionNotice>
       )}
 
@@ -148,6 +151,9 @@ export function AdminAnnouncementsPage({ embedded = false }) {
           {announcements.map((announcement) => {
             const club = announcement.clubs;
             const isBusy = busyId === announcement.id;
+            const urgency = getPostingUrgency(
+              announcement.scheduled_posting_date,
+            );
 
             return (
               <article key={announcement.id} className="panel admin-request-card">
@@ -157,6 +163,17 @@ export function AdminAnnouncementsPage({ embedded = false }) {
                     <div className="badge-row">
                       <AnnouncementStatusBadge status={announcement.status} />
                       <AnnouncementTypeBadge club={club} />
+                      {announcement.scheduled_posting_date ? (
+                        <span
+                          className={`urgency-text urgency-text--${urgency.tone}`}
+                        >
+                          {urgency.label}
+                        </span>
+                      ) : (
+                        <span className="urgency-text urgency-text--danger">
+                          Posting date required
+                        </span>
+                      )}
                     </div>
                   </div>
                   <Link
@@ -191,12 +208,14 @@ export function AdminAnnouncementsPage({ embedded = false }) {
                     <dd>{club?.name || "General"}</dd>
                   </div>
                   <div>
-                    <dt>Submitted</dt>
-                    <dd>{formatDate(announcement.submitted_at)}</dd>
+                    <dt>Posting date</dt>
+                    <dd>
+                      {formatDateOnly(announcement.scheduled_posting_date)}
+                    </dd>
                   </div>
                   <div>
-                    <dt>Expires</dt>
-                    <dd>{formatDate(announcement.expires_at)}</dd>
+                    <dt>Submitted</dt>
+                    <dd>{formatDate(announcement.submitted_at)}</dd>
                   </div>
                 </dl>
 
@@ -238,19 +257,20 @@ export function AdminAnnouncementsPage({ embedded = false }) {
                         isBusy ||
                         !["SUBMITTED", "UNDER_REVIEW"].includes(
                           announcement.status,
-                        )
+                        ) ||
+                        !announcement.scheduled_posting_date
                       }
                       onClick={() =>
                         setReviewDialog({
                           announcement,
                           action: "PUBLISH",
-                          title: "Approve and publish",
-                          confirmLabel: "Publish",
+                          title: "Approve announcement",
+                          confirmLabel: "Approve",
                           requireNotes: false,
                         })
                       }
                     >
-                      Approve and publish
+                      Approve
                     </button>
                   </div>
                 ) : null}

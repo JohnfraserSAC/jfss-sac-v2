@@ -6,6 +6,8 @@ import { RoleRoute } from "./components/RoleRoute";
 import {
   ExecApplicationsIndexRedirect,
   ExecApplicationsLayout,
+  ExecArchivedIndexRedirect,
+  ExecArchivedLayout,
   ExecDashboardIndexRedirect,
   ExecDashboardLayout,
   ExecRequestsIndexRedirect,
@@ -26,6 +28,7 @@ import { MyClubsPage } from "./pages/MyClubsPage";
 import { AdminClubRequestsPage } from "./pages/AdminClubRequestsPage";
 import { AdminClubReapplicationsPage } from "./pages/AdminClubReapplicationsPage";
 import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
+import { AdminArchivedAnnouncementsPage } from "./pages/AdminArchivedAnnouncementsPage";
 import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
@@ -185,10 +188,17 @@ export default function App() {
                 />
               </Route>
 
-              <Route
-                path="archived"
-                element={<AdminArchivedClubsPage embedded />}
-              />
+              <Route path="archived" element={<ExecArchivedLayout />}>
+                <Route index element={<ExecArchivedIndexRedirect />} />
+                <Route
+                  path="clubs"
+                  element={<AdminArchivedClubsPage embedded />}
+                />
+                <Route
+                  path="announcements"
+                  element={<AdminArchivedAnnouncementsPage embedded />}
+                />
+              </Route>
 
               {/* Legacy redirects — preserve old bookmarks */}
               <Route
@@ -241,11 +251,15 @@ export default function App() {
               />
               <Route
                 path="archived-clubs"
-                element={<Navigate to="/exec-dashboard/archived" replace />}
+                element={
+                  <Navigate to="/exec-dashboard/archived/clubs" replace />
+                }
               />
               <Route
                 path="inactive-clubs"
-                element={<Navigate to="/exec-dashboard/archived" replace />}
+                element={
+                  <Navigate to="/exec-dashboard/archived/clubs" replace />
+                }
               />
               <Route
                 path="active-clubs"

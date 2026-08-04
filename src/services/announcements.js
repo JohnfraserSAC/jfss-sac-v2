@@ -18,6 +18,7 @@ const ANNOUNCEMENT_FIELDS = `
   published_at,
   expires_at,
   archived_at,
+  scheduled_posting_date,
   created_at,
   updated_at
 `;
@@ -52,9 +53,19 @@ function mapAnnouncementError(error, fallback) {
     return "You do not have permission to create an announcement for this club.";
   }
 
-  if (lower.includes("only sac or site administrators may review") ||
-    lower.includes("only sac administrators may review")) {
-    return "Only SAC administrators may approve club announcements.";
+  if (
+    lower.includes("only sac or site administrators may review") ||
+    lower.includes("only sac administrators may review") ||
+    lower.includes("only sac administrators and faculty advisors may review")
+  ) {
+    return "Only SAC administrators and faculty advisors may approve club announcements.";
+  }
+
+  if (
+    lower.includes("posting date") ||
+    lower.includes("scheduled posting")
+  ) {
+    return message;
   }
 
   if (lower.includes("can no longer be edited") || lower.includes("may be edited")) {
@@ -72,7 +83,17 @@ function mapAnnouncementError(error, fallback) {
   return getErrorMessage(error, fallback);
 }
 
+async function refreshAnnouncementLifecycle() {
+  const { error } = await supabase.rpc("refresh_announcement_lifecycle");
+  if (error) {
+    logServiceError("refreshAnnouncementLifecycle", error);
+    // Non-fatal for reads: RLS remains time-aware even if status sync fails.
+  }
+}
+
 async function fetchAnnouncementById(id) {
+  await refreshAnnouncementLifecycle();
+
   const { data, error } = await supabase
     .from("announcements")
     .select(ANNOUNCEMENT_WITH_CLUB)
@@ -99,6 +120,8 @@ export async function getPublishedAnnouncements({
   limit = 50,
   offset = 0,
 } = {}) {
+  await refreshAnnouncementLifecycle();
+
   let query = supabase
     .from("announcements")
     .select(ANNOUNCEMENT_WITH_CLUB)
@@ -144,6 +167,8 @@ export async function getAnnouncementById(id) {
 }
 
 export async function getMyAnnouncements(userId, { status = "ALL" } = {}) {
+  await refreshAnnouncementLifecycle();
+
   let query = supabase
     .from("announcements")
     .select(ANNOUNCEMENT_WITH_CLUB)
@@ -166,14 +191,35 @@ export async function getMyAnnouncements(userId, { status = "ALL" } = {}) {
   return data ?? [];
 }
 
+function compareReviewQueue(a, b) {
+  const dateA = a.scheduled_posting_date || "9999-12-31";
+  const dateB = b.scheduled_posting_date || "9999-12-31";
+  if (dateA !== dateB) return dateA < dateB ? -1 : 1;
+
+  const submittedA = a.submitted_at || "";
+  const submittedB = b.submitted_at || "";
+  if (submittedA !== submittedB) return submittedA < submittedB ? -1 : 1;
+
+  const nameA = (a.clubs?.name || "General").toLowerCase();
+  const nameB = (b.clubs?.name || "General").toLowerCase();
+  if (nameA !== nameB) return nameA < nameB ? -1 : 1;
+  return 0;
+}
+
 export async function getAnnouncementReviewQueue({
   status = "ACTIVE",
   search = "",
   clubId = null,
 } = {}) {
+  await refreshAnnouncementLifecycle();
+
   let query = supabase
     .from("announcements")
     .select(ANNOUNCEMENT_WITH_CLUB)
+    .order("scheduled_posting_date", {
+      ascending: true,
+      nullsFirst: false,
+    })
     .order("submitted_at", { ascending: true, nullsFirst: false });
 
   if (status === "ACTIVE") {
@@ -205,6 +251,38 @@ export async function getAnnouncementReviewQueue({
     logServiceError("getAnnouncementReviewQueue", error);
     throw new Error(
       mapAnnouncementError(error, "Could not load the announcement queue."),
+    );
+  }
+
+  return [...(data ?? [])].sort(compareReviewQueue);
+}
+
+export async function getArchivedAnnouncements({ search = "" } = {}) {
+  await refreshAnnouncementLifecycle();
+
+  let query = supabase
+    .from("announcements")
+    .select(ANNOUNCEMENT_WITH_CLUB)
+    .eq("status", "ARCHIVED")
+    .order("scheduled_posting_date", {
+      ascending: false,
+      nullsFirst: false,
+    })
+    .order("archived_at", { ascending: false, nullsFirst: false });
+
+  const trimmed = search.trim();
+  if (trimmed) {
+    query = query.or(
+      `title.ilike.%${trimmed}%,summary.ilike.%${trimmed}%`,
+    );
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    logServiceError("getArchivedAnnouncements", error);
+    throw new Error(
+      mapAnnouncementError(error, "Could not load archived announcements."),
     );
   }
 
@@ -262,12 +340,12 @@ export async function getApprovedClubsForStaffAnnouncements() {
 }
 
 export async function createAnnouncement(values, action) {
-  const requireClub = action === "SUBMIT" || action === "DRAFT"
-    ? Boolean(values.requireClub)
-    : false;
+  const requireClub = Boolean(values.requireClub);
+  const requirePostingDate = action === "SUBMIT";
 
   const { isValid, errors, data } = validateAnnouncementForm(values, {
-    requireClub: values.requireClub || requireClub,
+    requireClub,
+    requirePostingDate,
   });
 
   if (!isValid) {
@@ -285,7 +363,7 @@ export async function createAnnouncement(values, action) {
       p_image_url: data.imageUrl,
       p_club_id: data.clubId,
       p_action: action,
-      p_expires_at: data.expiresAt,
+      p_scheduled_posting_date: data.scheduledPostingDate,
     },
   );
 
@@ -300,7 +378,10 @@ export async function createAnnouncement(values, action) {
 }
 
 export async function editAnnouncement(id, values, action) {
-  const { isValid, errors, data } = validateAnnouncementForm(values);
+  const requirePostingDate = action === "SUBMIT";
+  const { isValid, errors, data } = validateAnnouncementForm(values, {
+    requirePostingDate,
+  });
 
   if (!isValid) {
     const error = new Error(Object.values(errors)[0]);
@@ -317,7 +398,7 @@ export async function editAnnouncement(id, values, action) {
       p_summary: data.summary,
       p_image_url: data.imageUrl,
       p_action: action,
-      p_expires_at: data.expiresAt,
+      p_scheduled_posting_date: data.scheduledPostingDate,
     },
   );
 

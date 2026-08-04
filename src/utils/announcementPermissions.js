@@ -1,3 +1,8 @@
+import {
+  getTorontoTomorrowYmd,
+  isValidFutureTorontoPostingDate,
+} from "./torontoDate";
+
 export const ANNOUNCEMENT_STATUS_LABELS = {
   DRAFT: "Draft",
   SUBMITTED: "Submitted",
@@ -5,6 +10,7 @@ export const ANNOUNCEMENT_STATUS_LABELS = {
   CHANGES_REQUESTED: "Changes requested",
   PUBLISHED: "Published",
   REJECTED: "Rejected",
+  CANCELLED: "Cancelled",
   ARCHIVED: "Archived",
 };
 
@@ -12,6 +18,8 @@ export function canPublishDirectly({
   isSacAdmin = false,
   isFacultyAdvisor = false,
 }) {
+  // Kept for AuthContext compatibility. Direct publish is disabled;
+  // staff submit for review and approve from the queue.
   return isSacAdmin || isFacultyAdvisor;
 }
 
@@ -55,13 +63,15 @@ export function canEditAnnouncement({
   if (!announcement || !userId) return false;
 
   if (isSacAdmin) {
-    return announcement.status !== "ARCHIVED";
+    return !["ARCHIVED", "CANCELLED", "REJECTED", "PUBLISHED"].includes(
+      announcement.status,
+    );
   }
 
   if (
     isFacultyAdvisor &&
     announcement.created_by === userId &&
-    ["DRAFT", "PUBLISHED"].includes(announcement.status)
+    ["DRAFT", "CHANGES_REQUESTED"].includes(announcement.status)
   ) {
     return true;
   }
@@ -89,13 +99,7 @@ export function canArchiveAnnouncement({
   return isFacultyAdvisor && announcement.created_by === userId;
 }
 
-export function getAllowedCreateActions({
-  isSacAdmin = false,
-  isFacultyAdvisor = false,
-}) {
-  if (canPublishDirectly({ isSacAdmin, isFacultyAdvisor })) {
-    return ["DRAFT", "PUBLISH"];
-  }
+export function getAllowedCreateActions() {
   return ["DRAFT", "SUBMIT"];
 }
 
@@ -118,35 +122,28 @@ export function getAllowedEditActions({
     return [];
   }
 
-  if (isSacAdmin) {
-    if (announcement.status === "PUBLISHED") return ["SAVE"];
-    return ["SAVE", "PUBLISH"];
-  }
-
-  if (isFacultyAdvisor && announcement.created_by === userId) {
-    if (announcement.status === "DRAFT") return ["SAVE", "PUBLISH"];
-    if (announcement.status === "PUBLISHED") return ["SAVE"];
-    return [];
-  }
-
-  if (
-    announcement.created_by === userId &&
-    ["DRAFT", "CHANGES_REQUESTED"].includes(announcement.status)
-  ) {
+  if (["DRAFT", "CHANGES_REQUESTED"].includes(announcement.status)) {
     return ["SAVE", "SUBMIT"];
+  }
+
+  if (isSacAdmin) {
+    return ["SAVE"];
   }
 
   return [];
 }
 
-export function validateAnnouncementForm(values, { requireClub = false } = {}) {
+export function validateAnnouncementForm(
+  values,
+  { requireClub = false, requirePostingDate = false } = {},
+) {
   const errors = {};
   const title = String(values.title ?? "").trim();
   const summaryRaw = String(values.summary ?? "").trim();
   const body = String(values.body ?? "").trim();
   const imageUrlRaw = String(values.imageUrl ?? "").trim();
   const clubId = values.clubId || null;
-  const expiresAtRaw = String(values.expiresAt ?? "").trim();
+  const postingDateRaw = String(values.scheduledPostingDate ?? "").trim();
 
   if (title.length < 3 || title.length > 160) {
     errors.title = "Title must be between 3 and 160 characters.";
@@ -175,15 +172,15 @@ export function validateAnnouncementForm(values, { requireClub = false } = {}) {
     errors.clubId = "Select a club for this announcement.";
   }
 
-  let expiresAt = null;
-  if (expiresAtRaw) {
-    const parsed = new Date(expiresAtRaw);
-    if (Number.isNaN(parsed.getTime())) {
-      errors.expiresAt = "Enter a valid expiry date and time.";
-    } else if (parsed.getTime() <= Date.now()) {
-      errors.expiresAt = "Expiry must be in the future.";
+  let scheduledPostingDate = null;
+  if (requirePostingDate || postingDateRaw) {
+    if (!postingDateRaw) {
+      errors.scheduledPostingDate = "Announcement posting date is required.";
+    } else if (!isValidFutureTorontoPostingDate(postingDateRaw)) {
+      errors.scheduledPostingDate =
+        "Choose a date after today in America/Toronto (earliest: tomorrow).";
     } else {
-      expiresAt = parsed.toISOString();
+      scheduledPostingDate = postingDateRaw;
     }
   }
 
@@ -196,8 +193,9 @@ export function validateAnnouncementForm(values, { requireClub = false } = {}) {
       body,
       imageUrl: imageUrlRaw || null,
       clubId,
-      expiresAt,
+      scheduledPostingDate,
     },
+    minPostingDate: getTorontoTomorrowYmd(),
   };
 }
 
@@ -210,11 +208,11 @@ export function announcementExcerpt(announcement, maxLength = 160) {
   return `${source.slice(0, maxLength - 1).trimEnd()}…`;
 }
 
-export function toDateTimeLocalValue(isoValue) {
-  if (!isoValue) return "";
-  const date = new Date(isoValue);
-  if (Number.isNaN(date.getTime())) return "";
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60_000);
-  return local.toISOString().slice(0, 16);
+export function toDateOnlyValue(value) {
+  if (!value) return "";
+  const raw = String(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  // Avoid shifting date-only ISO timestamps across timezones.
+  const prefix = raw.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(prefix) ? prefix : "";
 }
