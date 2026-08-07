@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   addCalendarDaysYmd,
   diffCalendarDaysYmd,
+  getAutomaticSchoolDay,
   getPostingUrgency,
   getTorontoTodayYmd,
   getTorontoTomorrowYmd,
   isValidFutureTorontoPostingDate,
+  msUntilNextTorontoMidnight,
+  schoolDayLabel,
 } from "./torontoDate";
 
 describe("torontoDate", () => {
@@ -43,6 +46,22 @@ describe("torontoDate", () => {
     ).toBe(false);
     expect(isValidFutureTorontoPostingDate(getTorontoTomorrowYmd())).toBe(
       true,
+    );
+  });
+
+  it("maps odd Toronto dates to Day 1 and even to Day 2", () => {
+    expect(getAutomaticSchoolDay("2026-01-04")).toBe("DAY_2");
+    expect(getAutomaticSchoolDay("2026-01-05")).toBe("DAY_1");
+    expect(getAutomaticSchoolDay("2026-02-28")).toBe("DAY_2");
+    expect(getAutomaticSchoolDay("2026-03-01")).toBe("DAY_1");
+    expect(schoolDayLabel("DAY_1")).toBe("Day 1");
+    expect(schoolDayLabel("DAY_2")).toBe("Day 2");
+  });
+
+  it("computes a positive delay until the next Toronto midnight", () => {
+    expect(msUntilNextTorontoMidnight()).toBeGreaterThan(0);
+    expect(msUntilNextTorontoMidnight()).toBeLessThanOrEqual(
+      36 * 60 * 60 * 1000,
     );
   });
 });

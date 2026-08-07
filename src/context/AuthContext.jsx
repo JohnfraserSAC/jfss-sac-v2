@@ -197,6 +197,7 @@ export function AuthProvider({ children }) {
   const canAccessExecDashboard =
     isSacAdmin || isFacultyAdvisor || isSacExec;
   const canMutateReviews = isSacAdmin || isFacultyAdvisor;
+  const canMutateSchoolDay = isSacAdmin || isSacExec;
   const canCreateAnnouncements = canCreateAnnouncement({
     isSacAdmin,
     isFacultyAdvisor,
@@ -217,6 +218,7 @@ export function AuthProvider({ children }) {
       isAdmin,
       canAccessExecDashboard,
       canMutateReviews,
+      canMutateSchoolDay,
       canCreateAnnouncements,
       accessDenied,
       authError,
@@ -239,6 +241,7 @@ export function AuthProvider({ children }) {
       isAdmin,
       canAccessExecDashboard,
       canMutateReviews,
+      canMutateSchoolDay,
       canCreateAnnouncements,
       accessDenied,
       authError,

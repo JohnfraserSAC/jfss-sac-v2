@@ -1626,3 +1626,96 @@ summary:focus-visible {
 .detail-list dd {
   margin: 0.15rem 0 0;
 }
+
+/* Homepage school day + weather */
+.home-info-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.home-info-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  align-items: start;
+  padding: 1.15rem 1.25rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.home-info-card__icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  color: var(--primary);
+}
+
+.home-info-card__eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.home-info-card__value {
+  margin: 0.35rem 0 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem;
+}
+
+.home-info-card__condition {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.home-info-card__meta {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.home-info-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.75rem 0 0;
+}
+
+.home-info-card__stats dt {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.home-info-card__stats dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+@media (max-width: 720px) {
+  .home-info-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .home-info-card__stats {
+    grid-template-columns: 1fr;
+  }
+}

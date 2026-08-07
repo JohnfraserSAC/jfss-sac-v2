@@ -102,3 +102,38 @@ export function isValidFutureTorontoPostingDate(ymd, now = new Date()) {
   if (!YMD_PATTERN.test(String(ymd || "").trim())) return false;
   return diffCalendarDaysYmd(getTorontoTodayYmd(now), ymd) >= 1;
 }
+
+export function getAutomaticSchoolDay(ymd, now = new Date()) {
+  const dateYmd = ymd || getTorontoTodayYmd(now);
+  const match = YMD_PATTERN.exec(String(dateYmd).trim());
+  if (!match) return null;
+  const dayOfMonth = Number(match[3]);
+  return dayOfMonth % 2 === 1 ? "DAY_1" : "DAY_2";
+}
+
+export function schoolDayLabel(dayValue) {
+  if (dayValue === "DAY_1") return "Day 1";
+  if (dayValue === "DAY_2") return "Day 2";
+  return "—";
+}
+
+/**
+ * Milliseconds until the next America/Toronto midnight.
+ * Uses binary search so daylight-saving transitions are handled safely.
+ */
+export function msUntilNextTorontoMidnight(now = new Date()) {
+  const tomorrowYmd = getTorontoTomorrowYmd(now);
+  let lo = now.getTime();
+  let hi = now.getTime() + 36 * 60 * 60 * 1000;
+
+  while (hi - lo > 250) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (getTorontoTodayYmd(new Date(mid)) < tomorrowYmd) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+
+  return Math.max(hi - now.getTime(), 1000);
+}

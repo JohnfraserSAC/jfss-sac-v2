@@ -31,6 +31,7 @@ import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
 import { AdminArchivedAnnouncementsPage } from "./pages/AdminArchivedAnnouncementsPage";
 import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
+import { AdminSchoolDayPage } from "./pages/AdminSchoolDayPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { AnnouncementDetailPage } from "./pages/AnnouncementDetailPage";
 import { CreateAnnouncementPage } from "./pages/CreateAnnouncementPage";
@@ -187,6 +188,11 @@ export default function App() {
                   element={<AdminSupervisorRequestsPage embedded />}
                 />
               </Route>
+
+              <Route
+                path="school-day"
+                element={<AdminSchoolDayPage embedded />}
+              />
 
               <Route path="archived" element={<ExecArchivedLayout />}>
                 <Route index element={<ExecArchivedIndexRedirect />} />

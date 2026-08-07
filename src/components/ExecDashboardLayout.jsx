@@ -19,6 +19,13 @@ const PRIMARY_TABS = [
       isSacAdmin || isSacExec || isFacultyAdvisor,
   },
   {
+    id: "school-day",
+    to: "/exec-dashboard/school-day",
+    label: "School Day",
+    matchPrefix: "/exec-dashboard/school-day",
+    visible: ({ isSacAdmin, isSacExec }) => isSacAdmin || isSacExec,
+  },
+  {
     id: "archived",
     to: "/exec-dashboard/archived/clubs",
     label: "Archived",
@@ -62,7 +69,8 @@ export function ExecDashboardLayout() {
           <p>
             As a SAC Executive you can view queues and re-application details,
             but you cannot approve, reject, or change request state. Mutation
-            actions are limited to SAC administrators.
+            actions are limited to SAC administrators — except the School Day
+            override, which SAC Executives may also change.
           </p>
         </div>
       ) : null}
