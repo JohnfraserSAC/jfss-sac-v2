@@ -117,7 +117,7 @@ export function HomeDayWeatherPanel({
               <p className="home-info-card__meta">
                 {schoolDay?.override_active
                   ? "Manual override active for today"
-                  : "Automatic (odd / even Toronto date)"}
+                  : "regular day schedule"}
               </p>
             </>
           )}

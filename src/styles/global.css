@@ -122,60 +122,100 @@ select {
   position: sticky;
   top: 0;
   z-index: 40;
-  backdrop-filter: blur(10px);
-  background: rgba(243, 246, 248, 0.92);
-  border-bottom: 1px solid var(--border);
+  background: #eef3f8;
+  border-bottom: 1px solid #d7e2ec;
 }
 
 .site-header__inner {
-  width: min(100% - 1.5rem, 1280px);
+  position: relative;
+  width: min(100% - 1.5rem, var(--max-width));
   margin: 0 auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 1fr) auto minmax(4.5rem, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.55rem 0;
-  min-height: 3.25rem;
+  gap: 0.75rem 1rem;
+  padding: 0.45rem 0;
+  min-height: 3.75rem;
 }
 
-.brand {
+.site-header__slot--left {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+}
+
+.site-header__slot--right {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.brand-logo {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
-  white-space: nowrap;
-  padding: 0.35rem 0.2rem;
+  padding: 0.1rem;
+  border-radius: 8px;
+  line-height: 0;
 }
 
-.brand--active,
-.brand:hover {
-  color: var(--primary);
+.brand-logo__image {
+  display: block;
+  height: 3.35rem;
+  width: auto;
+  max-width: 11rem;
+  object-fit: contain;
+}
+
+.brand-logo--active,
+.brand-logo:hover {
+  opacity: 0.92;
 }
 
 .menu-toggle {
   display: none;
-  border: 1px solid var(--border-strong);
-  background: var(--bg-elevated);
-  color: var(--text-strong);
-  border-radius: 999px;
-  padding: 0.45rem 0.8rem;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid #c5d3e0;
+  background: #f7fafc;
+  color: #0f2340;
+  border-radius: 8px;
+  padding: 0;
   cursor: pointer;
   flex-shrink: 0;
 }
 
+.menu-toggle__bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 1.1rem;
+  height: 0.85rem;
+}
+
+.menu-toggle__bars span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  border-radius: 999px;
+  background: currentColor;
+}
+
 .menu-toggle:focus-visible,
 .nav-link:focus-visible,
+.nav-avatar:focus-visible,
 .button:focus-visible,
 .input:focus-visible,
 .textarea:focus-visible,
 .select:focus-visible,
 .text-link:focus-visible,
 .quick-link:focus-visible,
-.brand:focus-visible,
+.brand-logo:focus-visible,
 summary:focus-visible {
   outline: none;
   box-shadow: var(--focus);
@@ -184,9 +224,8 @@ summary:focus-visible {
 .main-nav {
   display: flex;
   align-items: center;
-  flex: 1;
+  justify-content: center;
   min-width: 0;
-  justify-content: flex-end;
 }
 
 .main-nav__links {
@@ -194,58 +233,87 @@ summary:focus-visible {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.15rem;
+  justify-content: center;
+  gap: 0.15rem 0.45rem;
   margin: 0;
   padding: 0;
-  width: 100%;
-}
-
-.main-nav__home-mobile,
-.main-nav__account-mobile {
-  display: none;
 }
 
 .nav-link {
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 0;
   text-decoration: none;
-  color: var(--text);
+  color: #0f2340;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   white-space: nowrap;
   line-height: 1.2;
-  border: 1px solid transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
 }
 
 .nav-link:hover {
-  background: var(--bg-muted);
-  color: var(--text-strong);
+  color: #164e9b;
+  background: transparent;
 }
 
 .nav-link--active {
-  background: var(--primary-soft);
-  color: var(--primary);
+  color: #0b3d7a;
+  border-bottom-color: #2f6fbf;
+  background: transparent;
 }
 
-.nav-link--profile {
-  border-color: var(--border-strong);
+.nav-link--login {
+  border: 1px solid #c5d3e0;
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  border-bottom-width: 1px;
 }
 
-.nav-link--button {
-  color: var(--text-muted);
+.nav-link--login.nav-link--active {
+  border-color: #2f6fbf;
+  border-bottom-color: #2f6fbf;
 }
 
-.nav-account-label {
+.nav-avatar {
+  display: inline-flex;
+  width: 2.55rem;
+  height: 2.55rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #c5d3e0;
+  background: #d9e6f2;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nav-avatar:hover,
+.nav-avatar--active {
+  border-color: #2f6fbf;
+}
+
+.nav-avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  padding: 0.35rem 0.55rem;
+}
+
+.nav-avatar__fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0b3d7a;
+  letter-spacing: 0.02em;
 }
 
 .subtabs {
@@ -409,6 +477,83 @@ summary:focus-visible {
 .narrow-page {
   display: grid;
   gap: 1.25rem;
+}
+
+.home-page {
+  gap: 1.25rem;
+}
+
+.home-banner {
+  position: relative;
+  overflow: hidden;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-top: -2rem;
+  background: #213659;
+  color: #ffffff;
+  border: 0;
+  box-shadow: none;
+}
+
+.home-banner__waves {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-banner__inner {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 2rem, var(--max-width));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: clamp(14rem, 28vw, 20rem);
+  padding: clamp(2rem, 4.5vw, 3.4rem) 0;
+}
+
+.home-banner__copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 38rem;
+}
+
+.home-banner__eyebrow {
+  margin: 0 0 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(226, 238, 255, 0.78);
+}
+
+.home-banner__title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(2.35rem, 5.6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.home-banner__line {
+  display: block;
+}
+
+.home-banner__accent {
+  display: block;
+  font-style: italic;
+  font-weight: 700;
+  color: #6eb6ff;
 }
 
 .narrow-page {
@@ -1486,18 +1631,24 @@ summary:focus-visible {
     display: inline-flex;
   }
 
+  .site-header__inner {
+    grid-template-columns: auto 1fr auto;
+  }
+
   .main-nav {
     display: none;
     position: absolute;
-    top: calc(100% + 1px);
+    top: 100%;
     left: 0;
     right: 0;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
-    padding: 0.85rem 1rem 1rem;
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--border);
+    gap: 0.35rem;
+    max-height: min(70vh, 28rem);
+    overflow: auto;
+    padding: 0.75rem 1rem 1rem;
+    background: #eef3f8;
+    border-bottom: 1px solid #d7e2ec;
     box-shadow: var(--shadow);
   }
 
@@ -1507,19 +1658,27 @@ summary:focus-visible {
 
   .main-nav__links {
     flex-direction: column;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: stretch;
     width: 100%;
-  }
-
-  .main-nav__home-mobile,
-  .main-nav__account-mobile {
-    display: list-item;
+    gap: 0.1rem;
   }
 
   .nav-link {
     width: 100%;
     justify-content: flex-start;
+    border-bottom: 0;
+    border-radius: 8px;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .nav-link--active {
+    background: rgba(47, 111, 191, 0.12);
+    border-bottom-color: transparent;
+  }
+
+  .nav-link--login {
+    width: auto;
   }
 
   .club-card,
@@ -1717,5 +1876,14 @@ summary:focus-visible {
 
   .home-info-card__stats {
     grid-template-columns: 1fr;
+  }
+
+  .home-banner__inner {
+    min-height: 0;
+    padding: 1.65rem 0 1.75rem;
+  }
+
+  .home-banner__title {
+    font-size: clamp(2rem, 9vw, 2.75rem);
   }
 }

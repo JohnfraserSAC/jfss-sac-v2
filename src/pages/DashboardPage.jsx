@@ -23,6 +23,7 @@ export function DashboardPage() {
     authError,
     refreshRoles,
     refreshProfile,
+    signOut,
   } = useAuth();
   const [summary, setSummary] = useState(null);
   const [memberships, setMemberships] = useState([]);
@@ -31,6 +32,7 @@ export function DashboardPage() {
   const [missingClubs, setMissingClubs] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -107,6 +109,17 @@ export function DashboardPage() {
     return <LoadingScreen message="Loading dashboard…" />;
   }
 
+  async function handleSignOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+    } catch (signOutError) {
+      setError(getErrorMessage(signOutError, "Sign out failed."));
+      setSigningOut(false);
+    }
+  }
+
   return (
     <div className="page">
       <header className="page-header">
@@ -115,6 +128,14 @@ export function DashboardPage() {
           <h1>{displayName(profile, user)}</h1>
           <p className="lede">Your profile, roles, requests, and memberships.</p>
         </div>
+        <button
+          type="button"
+          className="button button--secondary"
+          onClick={handleSignOut}
+          disabled={signingOut}
+        >
+          {signingOut ? "Signing out…" : "Sign out"}
+        </button>
       </header>
 
       {authError ? <ErrorMessage>{authError}</ErrorMessage> : null}
