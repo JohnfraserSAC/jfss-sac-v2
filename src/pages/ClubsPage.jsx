@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ClubCard } from "../components/ClubCard";
-import { ClubGridSkeleton } from "../components/ClubCardSkeleton";
-import { ClubsSubnav } from "../components/ClubsSubnav";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { TextInput } from "../components/FormField";
+import { ClubCard } from "../components/clubs/ClubCard";
+import { ClubGridSkeleton } from "../components/clubs/ClubGridSkeleton";
+import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { TextInput } from "../components/ui/TextInput";
 import { getApprovedClubs } from "../services/clubs";
 import { getErrorMessage } from "../utils/errors";
 

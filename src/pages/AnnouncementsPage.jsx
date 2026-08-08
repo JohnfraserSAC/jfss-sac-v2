@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AnnouncementCard } from "../components/AnnouncementCard";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { Select, TextInput } from "../components/FormField";
+import { AnnouncementCard } from "../components/announcements/AnnouncementCard";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { Select } from "../components/ui/Select";
+import { TextInput } from "../components/ui/TextInput";
 import { getPublishedAnnouncements } from "../services/announcements";
 import { getErrorMessage } from "../utils/errors";
 

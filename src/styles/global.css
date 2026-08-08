@@ -1,5 +1,5 @@
 :root {
-  --bg: #f3f6f8;
+  --bg: #f7f8fd;
   --bg-elevated: #ffffff;
   --bg-muted: #e8eef2;
   --text: #334155;
@@ -46,9 +46,7 @@ body {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text);
-  background:
-    radial-gradient(circle at top left, rgba(11, 79, 108, 0.08), transparent 28%),
-    linear-gradient(180deg, #eef3f6 0%, var(--bg) 40%, #edf2f5 100%);
+  background: var(--bg);
 }
 
 #root {
@@ -122,7 +120,7 @@ select {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: #eef3f8;
+  background: var(--bg);
   border-bottom: 1px solid #d7e2ec;
 }
 
@@ -290,7 +288,9 @@ summary:focus-visible {
   background: #d9e6f2;
   text-decoration: none;
   flex-shrink: 0;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .nav-avatar:hover,
@@ -815,7 +815,10 @@ summary:focus-visible {
   text-decoration: none;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .button:disabled {
@@ -1647,7 +1650,7 @@ summary:focus-visible {
     max-height: min(70vh, 28rem);
     overflow: auto;
     padding: 0.75rem 1rem 1rem;
-    background: #eef3f8;
+    background: var(--bg);
     border-bottom: 1px solid #d7e2ec;
     box-shadow: var(--shadow);
   }

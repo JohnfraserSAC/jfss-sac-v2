@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AttachmentPreview } from "../components/AttachmentPreview";
-import { ConfirmDialog } from "../components/ConfirmDialog";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { PermissionNotice } from "../components/PermissionNotice";
-import { TextArea, TextInput } from "../components/FormField";
-import { StatusBadge } from "../components/StatusBadge";
-import { Spinner } from "../components/Spinner";
+import { AttachmentPreview } from "../components/ui/AttachmentPreview";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { PermissionNotice } from "../components/ui/PermissionNotice";
+import { TextArea } from "../components/ui/TextArea";
+import { TextInput } from "../components/ui/TextInput";
+import { StatusBadge } from "../components/ui/StatusBadge";
+import { Spinner } from "../components/ui/Spinner";
 import {
   adminRejectPendingSupervisorClub,
   createSignedSupervisorDocumentUrl,

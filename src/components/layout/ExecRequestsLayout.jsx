@@ -1,0 +1,54 @@
+import { NavLink, Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+
+export function ExecRequestsLayout() {
+  const { isSacAdmin, isSacExec, isFacultyAdvisor } = useAuth();
+  const canView = isSacAdmin || isSacExec || isFacultyAdvisor;
+
+  if (!canView) {
+    return <Navigate to="/" replace />;
+  }
+
+  const subtabs = [
+    ...(isSacAdmin
+      ? [
+          {
+            to: "/exec-dashboard/requests/funding",
+            label: "Club Funding",
+          },
+        ]
+      : []),
+    {
+      to: "/exec-dashboard/requests/announcements",
+      label: "Announcements",
+    },
+    ...(isSacAdmin || isSacExec
+      ? [
+          {
+            to: "/exec-dashboard/requests/supervisor",
+            label: "Supervisor Requests",
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <div className="exec-section">
+      <nav className="subtabs subtabs--nested" aria-label="Requests">
+        {subtabs.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            end
+            className={({ isActive }) =>
+              isActive ? "subtab subtab--active" : "subtab"
+            }
+          >
+            {tab.label}
+          </NavLink>
+        ))}
+      </nav>
+      <Outlet />
+    </div>
+  );
+}

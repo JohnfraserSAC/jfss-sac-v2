@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ClubsSubnav } from "../components/ClubsSubnav";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { TextArea, TextInput } from "../components/FormField";
-import { Spinner } from "../components/Spinner";
+import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { TextArea } from "../components/ui/TextArea";
+import { TextInput } from "../components/ui/TextInput";
+import { Spinner } from "../components/ui/Spinner";
 import { submitClubRequest } from "../services/clubRequests";
 import { getErrorMessage } from "../utils/errors";
 import { validateClubRequestForm } from "../utils/validation";

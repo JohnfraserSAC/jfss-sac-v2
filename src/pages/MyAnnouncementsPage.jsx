@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AnnouncementCard } from "../components/AnnouncementCard";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { Select } from "../components/FormField";
+import { AnnouncementCard } from "../components/announcements/AnnouncementCard";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { Select } from "../components/ui/Select";
 import { getMyAnnouncements } from "../services/announcements";
 import { canEditAnnouncement } from "../utils/announcementPermissions";
 import { getErrorMessage } from "../utils/errors";

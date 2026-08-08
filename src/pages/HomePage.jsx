@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { HomeBanner } from "../components/HomeBanner";
-import { HomeDayWeatherPanel } from "../components/HomeDayWeatherPanel";
-import { HomepageAnnouncements } from "../components/HomepageAnnouncements";
-import { ErrorMessage } from "../components/ErrorMessage";
+import { HomeBanner } from "../components/home/HomeBanner";
+import { HomeDayWeatherPanel } from "../components/home/HomeDayWeatherPanel";
+import { HomepageAnnouncements } from "../components/announcements/HomepageAnnouncements";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { useAuth } from "../context/AuthContext";
 import { getEffectiveSchoolDay } from "../services/schoolDay";
 import { getMississaugaWeather } from "../services/weather";

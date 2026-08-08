@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { PermissionNotice } from "../components/PermissionNotice";
-import { TextInput } from "../components/FormField";
-import { StatusBadge } from "../components/StatusBadge";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { PermissionNotice } from "../components/ui/PermissionNotice";
+import { TextInput } from "../components/ui/TextInput";
+import { StatusBadge } from "../components/ui/StatusBadge";
 import { listArchivedClubs } from "../services/clubs";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";

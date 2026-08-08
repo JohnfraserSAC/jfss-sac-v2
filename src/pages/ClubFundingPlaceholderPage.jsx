@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { getClubBySlug } from "../services/clubs";
 import { getCurrentUserClubMembership } from "../services/memberships";
 import { isClubLeader } from "../utils/clubPermissions";

@@ -1,18 +1,16 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import { AppShell } from "./components/AppShell";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { RoleRoute } from "./components/RoleRoute";
-import {
-  ExecApplicationsIndexRedirect,
-  ExecApplicationsLayout,
-  ExecArchivedIndexRedirect,
-  ExecArchivedLayout,
-  ExecDashboardIndexRedirect,
-  ExecDashboardLayout,
-  ExecRequestsIndexRedirect,
-  ExecRequestsLayout,
-} from "./components/ExecDashboardLayout";
+import { AppShell } from "./components/layout/AppShell";
+import { ExecDashboardLayout } from "./components/layout/ExecDashboardLayout";
+import { ExecApplicationsLayout } from "./components/layout/ExecApplicationsLayout";
+import { ExecRequestsLayout } from "./components/layout/ExecRequestsLayout";
+import { ExecArchivedLayout } from "./components/layout/ExecArchivedLayout";
+import { ExecDashboardIndexRedirect } from "./components/layout/ExecDashboardIndexRedirect";
+import { ExecApplicationsIndexRedirect } from "./components/layout/ExecApplicationsIndexRedirect";
+import { ExecRequestsIndexRedirect } from "./components/layout/ExecRequestsIndexRedirect";
+import { ExecArchivedIndexRedirect } from "./components/layout/ExecArchivedIndexRedirect";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { RoleRoute } from "./components/auth/RoleRoute";
 import { EXEC_DASHBOARD_ROLES } from "./utils/execPermissions";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";

@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import {
-  ArchiveAnnouncementDialog,
-} from "../components/ArchiveAnnouncementDialog";
-import { AnnouncementStatusBadge } from "../components/AnnouncementStatusBadge";
-import { AnnouncementTypeBadge } from "../components/AnnouncementTypeBadge";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
+import { ArchiveAnnouncementDialog } from "../components/announcements/ArchiveAnnouncementDialog";
+import { AnnouncementStatusBadge } from "../components/announcements/AnnouncementStatusBadge";
+import { AnnouncementTypeBadge } from "../components/announcements/AnnouncementTypeBadge";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { getAnnouncementById } from "../services/announcements";
 import {
   canArchiveAnnouncement,

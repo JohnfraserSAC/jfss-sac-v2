@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AnnouncementForm } from "../components/AnnouncementForm";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
+import { AnnouncementForm } from "../components/announcements/AnnouncementForm";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
 import {
   editAnnouncement,
   getAnnouncementById,

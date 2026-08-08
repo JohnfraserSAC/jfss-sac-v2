@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ClubInvitationsPanel } from "../components/ClubInvitationsPanel";
-import { ClubRoleBadge } from "../components/ClubRoleBadge";
-import { ClubsSubnav } from "../components/ClubsSubnav";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { StatusBadge } from "../components/StatusBadge";
+import { ClubInvitationsPanel } from "../components/clubs/ClubInvitationsPanel";
+import { ClubRoleBadge } from "../components/clubs/ClubRoleBadge";
+import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { StatusBadge } from "../components/ui/StatusBadge";
 import { getMyPendingClubInvitations } from "../services/clubInvitations";
 import { getMyClubMemberships } from "../services/memberships";
 import {

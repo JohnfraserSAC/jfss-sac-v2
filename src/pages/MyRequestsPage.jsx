@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ConfirmDialog } from "../components/ConfirmDialog";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { RequestCard } from "../components/RequestCard";
-import { StatusBadge } from "../components/StatusBadge";
-import { Spinner } from "../components/Spinner";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { RequestCard } from "../components/clubs/RequestCard";
+import { StatusBadge } from "../components/ui/StatusBadge";
+import { Spinner } from "../components/ui/Spinner";
 import {
   deleteDraftClubRequest,
   getMyClubRequests,

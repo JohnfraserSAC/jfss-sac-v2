@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AddClubMemberForm } from "../components/AddClubMemberForm";
-import { ArchiveClubDialog } from "../components/ArchiveClubDialog";
-import { ChangeRoleDialog } from "../components/ChangeRoleDialog";
-import { ClubDetailsPanel } from "../components/ClubDetailsPanel";
-import { ClubManageTabs } from "../components/ClubManageTabs";
-import { ClubPeoplePanel } from "../components/ClubPeoplePanel";
-import { ClubRequestsPanel } from "../components/ClubRequestsPanel";
-import { ConfirmDialog } from "../components/ConfirmDialog";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { RemoveMemberDialog } from "../components/RemoveMemberDialog";
+import { AddClubMemberForm } from "../components/clubs/AddClubMemberForm";
+import { ArchiveClubDialog } from "../components/clubs/ArchiveClubDialog";
+import { ChangeRoleDialog } from "../components/clubs/ChangeRoleDialog";
+import { ClubDetailsPanel } from "../components/clubs/ClubDetailsPanel";
+import { ClubManageTabs } from "../components/clubs/ClubManageTabs";
+import { ClubPeoplePanel } from "../components/clubs/ClubPeoplePanel";
+import { ClubRequestsPanel } from "../components/clubs/ClubRequestsPanel";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { RemoveMemberDialog } from "../components/clubs/RemoveMemberDialog";
 import { getClubAnnualState, getClubBySlug } from "../services/clubs";
 import {
   getApprovedReapplicationForClub,

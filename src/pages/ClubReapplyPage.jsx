@@ -1,12 +1,14 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LocalFilePreview } from "../components/AttachmentPreview";
-import { ClubsSubnav } from "../components/ClubsSubnav";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { FilePicker } from "../components/FilePicker";
-import { Select, TextArea, TextInput } from "../components/FormField";
-import { Spinner } from "../components/Spinner";
+import { LocalFilePreview } from "../components/ui/LocalFilePreview";
+import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { FilePicker } from "../components/ui/FilePicker";
+import { Select } from "../components/ui/Select";
+import { TextArea } from "../components/ui/TextArea";
+import { TextInput } from "../components/ui/TextInput";
+import { Spinner } from "../components/ui/Spinner";
 import {
   CLUB_APPLICATION_DOCUMENTS_BUCKET,
   CLUB_LOGOS_BUCKET,

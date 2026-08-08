@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ClubRoleBadge } from "../components/ClubRoleBadge";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { StatusBadge } from "../components/StatusBadge";
+import { ClubRoleBadge } from "../components/clubs/ClubRoleBadge";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { StatusBadge } from "../components/ui/StatusBadge";
 import { getClubBySlug } from "../services/clubs";
 import { getMyMembershipForClub } from "../services/memberships";
 import {

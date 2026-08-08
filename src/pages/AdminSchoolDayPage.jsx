@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { EmptyState } from "../components/EmptyState";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { PermissionNotice } from "../components/PermissionNotice";
-import { Spinner } from "../components/Spinner";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { PermissionNotice } from "../components/ui/PermissionNotice";
+import { Spinner } from "../components/ui/Spinner";
 import {
   clearSchoolDayOverride,
   getEffectiveSchoolDay,

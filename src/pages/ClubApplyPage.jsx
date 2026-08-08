@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import {
-  ClubLiaisonContacts,
-  TeacherSupervisorFormSection,
-} from "../components/ClubApplicationShared";
-import { ClubsSubnav } from "../components/ClubsSubnav";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { TextArea, TextInput } from "../components/FormField";
-import { SignedFormUpload } from "../components/SignedFormUpload";
-import { Spinner } from "../components/Spinner";
+import { ClubLiaisonContacts } from "../components/clubs/ClubLiaisonContacts";
+import { TeacherSupervisorFormSection } from "../components/clubs/TeacherSupervisorFormSection";
+import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { TextArea } from "../components/ui/TextArea";
+import { TextInput } from "../components/ui/TextInput";
+import { SignedFormUpload } from "../components/clubs/SignedFormUpload";
+import { Spinner } from "../components/ui/Spinner";
 import {
   CLUB_APPLICATION_DEADLINE_TEXT,
   CLUB_APPLICATION_SCHOOL_YEAR,

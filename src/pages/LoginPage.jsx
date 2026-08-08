@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ErrorMessage } from "../components/ErrorMessage";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { Spinner } from "../components/Spinner";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { Spinner } from "../components/ui/Spinner";
 import { getErrorMessage } from "../utils/errors";
 
 export function LoginPage() {
