@@ -152,7 +152,7 @@ export function EditAnnouncementPage() {
     return (
       <div className="page narrow-page">
         <ErrorMessage>{error || "Unable to edit this announcement."}</ErrorMessage>
-        <Link className="text-link" to="/my-announcements">
+        <Link className="text-link" to="/my-requests/announcements">
           Back to My Announcements
         </Link>
       </div>
@@ -178,7 +178,7 @@ export function EditAnnouncementPage() {
     try {
       await editAnnouncement(id, validation.data, action);
 
-      navigate("/my-announcements", {
+      navigate("/my-requests/announcements", {
         replace: true,
         state: {
           notice:

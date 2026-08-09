@@ -13,10 +13,7 @@ import {
   setSchoolDayOverride,
 } from "../services/schoolDay";
 import { formatDate } from "../utils/format";
-import {
-  formatDateOnly,
-  schoolDayLabel,
-} from "../utils/torontoDate";
+import { formatDateOnly, schoolDayLabel } from "../utils/torontoDate";
 import { getErrorMessage } from "../utils/errors";
 
 export function AdminSchoolDayPage({ embedded = false }) {
@@ -60,7 +57,10 @@ export function AdminSchoolDayPage({ embedded = false }) {
       setSuccess(`Today is now overridden to ${schoolDayLabel(dayValue)}.`);
     } catch (actionError) {
       setError(
-        getErrorMessage(actionError, "Could not update the school day override."),
+        getErrorMessage(
+          actionError,
+          "Could not update the school day override.",
+        ),
       );
     } finally {
       setBusy(false);
@@ -78,7 +78,10 @@ export function AdminSchoolDayPage({ embedded = false }) {
       setSuccess("Day override cleared. Automatic day is in effect again.");
     } catch (actionError) {
       setError(
-        getErrorMessage(actionError, "Could not clear the school day override."),
+        getErrorMessage(
+          actionError,
+          "Could not clear the school day override.",
+        ),
       );
     } finally {
       setBusy(false);
@@ -136,7 +139,9 @@ export function AdminSchoolDayPage({ embedded = false }) {
 
   const automaticLabel = schoolDayLabel(data?.automatic_day);
   const effectiveLabel = schoolDayLabel(data?.effective_day);
-  const isHalfDay = Boolean(data?.is_half_day || data?.schedule_override_active);
+  const isHalfDay = Boolean(
+    data?.is_half_day || data?.schedule_override_active,
+  );
 
   return (
     <div className={embedded ? "exec-section" : "page"}>
@@ -147,16 +152,6 @@ export function AdminSchoolDayPage({ embedded = false }) {
       ) : (
         <h2 className="exec-section__title">School Day Override</h2>
       )}
-
-      <p className="lede">
-        The automatic day uses the Toronto calendar date: odd dates are Day 1,
-        even dates are Day 2. Day 1 runs Periods 1 → 2 → lunch → 3 → 4. Day 2
-        runs Periods 2 → 1 → lunch → 4 → 3. Use half day for the shortened
-        four-period schedule. Overrides apply only to today&apos;s Toronto date
-        and clear automatically at midnight. Period times are shown on the
-        homepage.
-      </p>
-
       {isSacExec && !isSacAdmin ? (
         <PermissionNotice title="Limited exception">
           SAC Executives may change today&apos;s school day and half-day

@@ -1,23 +1,20 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ClubLiaisonContacts } from "../components/clubs/ClubLiaisonContacts";
-import { TeacherSupervisorFormSection } from "../components/clubs/TeacherSupervisorFormSection";
+import { ClubApplyNotice } from "../components/clubs/ClubApplyNotice";
+import { TeacherSupervisorSection } from "../components/clubs/TeacherSupervisorSection";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { TextArea } from "../components/ui/TextArea";
 import { TextInput } from "../components/ui/TextInput";
-import { SignedFormUpload } from "../components/clubs/SignedFormUpload";
 import { Spinner } from "../components/ui/Spinner";
-import {
-  CLUB_APPLICATION_DEADLINE_TEXT,
-  CLUB_APPLICATION_SCHOOL_YEAR,
-} from "../config/clubApplications";
+import { CLUB_APPLICATION_SCHOOL_YEAR } from "../config/clubApplications";
+import { supabase } from "../lib/supabase";
 import {
   deleteClubApplicationDocument,
   uploadClubApplicationDocument,
 } from "../services/clubDocuments";
 import { submitClubRegistrationApplication } from "../services/clubRequests";
-import { validateSupervisorEmails } from "../services/clubReapplications";
+import { isValidPdsbEmail, normalizePdsbEmail } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
 
 const INITIAL = {
@@ -25,7 +22,6 @@ const INITIAL = {
   description: "",
   student_benefit: "",
   leader_details: "",
-  teacher_supervisor_emails: "",
   club_contact_information: "",
   potential_event_ideas: "",
   leader_contact_information: "",
@@ -34,6 +30,8 @@ const INITIAL = {
 export function ClubApplyPage() {
   const { user, profile } = useAuth();
   const [values, setValues] = useState(INITIAL);
+  const [supervisorName, setSupervisorName] = useState("");
+  const [supervisorEmail, setSupervisorEmail] = useState("");
   const [file, setFile] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState("");
@@ -68,19 +66,19 @@ export function ClubApplyPage() {
         "Provide club contact information such as email or Instagram.";
     }
 
-    const supervisor = validateSupervisorEmails(
-      values.teacher_supervisor_emails,
-      { required: true },
-    );
-    if (supervisor.error) {
-      errors.teacher_supervisor_emails = supervisor.error;
+    if (supervisorName.trim().length < 2) {
+      errors.supervisor_name = "Enter the teacher’s full name.";
     }
-
+    const email = normalizePdsbEmail(supervisorEmail);
+    if (!isValidPdsbEmail(email)) {
+      errors.supervisor_email =
+        "Enter an exact teacher @pdsb.net email address.";
+    }
     if (!file) {
       errors.signed_form = "Upload the signed Teacher Supervisor Form image.";
     }
 
-    return { errors, emails: supervisor.emails };
+    return { errors, email };
   }
 
   async function handleSubmit(event) {
@@ -90,7 +88,7 @@ export function ClubApplyPage() {
     setError("");
     setSuccessId(null);
 
-    const { errors, emails } = validate();
+    const { errors, email } = validate();
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       setError("Please fix the highlighted fields before submitting.");
@@ -115,7 +113,7 @@ export function ClubApplyPage() {
         description: values.description,
         studentBenefit: values.student_benefit,
         leaderDetails: values.leader_details,
-        teacherSupervisorEmails: emails,
+        teacherSupervisorEmails: [email],
         clubContactInformation: values.club_contact_information,
         teacherSupervisorFormStoragePath: uploadedPath,
         potentialEventIdeas: values.potential_event_ideas,
@@ -123,8 +121,19 @@ export function ClubApplyPage() {
         schoolYear: CLUB_APPLICATION_SCHOOL_YEAR,
       });
 
+      // Persist supervisor display name when the column is available to the applicant.
+      const { error: nameUpdateError } = await supabase
+        .from("club_registration_requests")
+        .update({ faculty_advisor_name: supervisorName.trim() })
+        .eq("id", requestId);
+      if (nameUpdateError) {
+        // Name capture is best-effort; email + form remain the required records.
+      }
+
       setSuccessId(requestId);
       setValues(INITIAL);
+      setSupervisorName("");
+      setSupervisorEmail("");
       setFile(null);
       setFieldErrors({});
     } catch (submitError) {
@@ -141,24 +150,7 @@ export function ClubApplyPage() {
 
   return (
     <div className="page narrow-page">
-      <section className="panel">
-        <p>
-          Please note that submitting a proposal does not guarantee approval.
-          All applications will be reviewed based on feasibility, student
-          interest, and their impact on the school community.
-        </p>
-        <p className="alert alert--warning" role="status">
-          All proposals must be submitted by {CLUB_APPLICATION_DEADLINE_TEXT}.
-          Late submissions will not be considered.
-        </p>
-        <p className="muted">
-          Submitting as <strong>{respondentEmail}</strong>. Your account email
-          is recorded automatically.
-        </p>
-      </section>
-
-      <ClubLiaisonContacts />
-      <TeacherSupervisorFormSection />
+      <ClubApplyNotice accountEmail={respondentEmail} />
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
@@ -167,128 +159,124 @@ export function ClubApplyPage() {
           <strong>Application submitted</strong>
           <p>
             Your new club application was submitted successfully.{" "}
-            <Link className="text-link" to="/my-requests">
+            <Link className="text-link" to="/my-requests/applications">
               View my requests
             </Link>
           </p>
         </div>
       ) : null}
 
-      <form className="panel form-stack" onSubmit={handleSubmit} noValidate>
-        <TextInput
-          id="proposed_name"
-          name="proposed_name"
-          label="What is your club name?"
-          value={values.proposed_name}
-          onChange={updateField}
-          error={fieldErrors.proposed_name}
-          required
-          disabled={submitting}
-        />
+      <form className="stack" onSubmit={handleSubmit} noValidate>
+        <div className="panel form-stack">
+          <TextInput
+            id="proposed_name"
+            name="proposed_name"
+            label="What is your club name?"
+            value={values.proposed_name}
+            onChange={updateField}
+            error={fieldErrors.proposed_name}
+            required
+            disabled={submitting}
+          />
 
-        <TextArea
-          id="description"
-          name="description"
-          label="Pitch a quick description of your club and how it benefits the students at JFSS."
-          value={values.description}
-          onChange={updateField}
-          error={fieldErrors.description}
-          rows={5}
-          required
-          disabled={submitting}
-          hint="Use this field for the main pitch. Expand the student benefit in the next question."
-        />
+          <TextArea
+            id="description"
+            name="description"
+            label="Pitch a quick description of your club and how it benefits the students at JFSS."
+            value={values.description}
+            onChange={updateField}
+            error={fieldErrors.description}
+            rows={5}
+            required
+            disabled={submitting}
+            hint="Use this field for the main pitch. Expand the student benefit in the next question."
+          />
 
-        <TextArea
-          id="student_benefit"
-          name="student_benefit"
-          label="How does this club benefit students at JFSS?"
-          value={values.student_benefit}
-          onChange={updateField}
-          error={fieldErrors.student_benefit}
-          rows={4}
-          required
-          disabled={submitting}
-        />
+          <TextArea
+            id="student_benefit"
+            name="student_benefit"
+            label="How does this club benefit students at JFSS?"
+            value={values.student_benefit}
+            onChange={updateField}
+            error={fieldErrors.student_benefit}
+            rows={4}
+            required
+            disabled={submitting}
+          />
 
-        <TextArea
-          id="leader_details"
-          name="leader_details"
-          label="Who are/is your club leader(s)? Include each leader’s full name and grade."
-          value={values.leader_details}
-          onChange={updateField}
-          error={fieldErrors.leader_details}
-          rows={4}
-          required
-          disabled={submitting}
-        />
+          <TextArea
+            id="leader_details"
+            name="leader_details"
+            label="Who are/is your club leader(s)? Include each leader’s full name and grade."
+            value={values.leader_details}
+            onChange={updateField}
+            error={fieldErrors.leader_details}
+            rows={4}
+            required
+            disabled={submitting}
+          />
 
-        <TextArea
-          id="teacher_supervisor_emails"
-          name="teacher_supervisor_emails"
-          label="Who is/are your teacher supervisor(s)? Please provide their PDSB email."
-          value={values.teacher_supervisor_emails}
-          onChange={updateField}
-          error={fieldErrors.teacher_supervisor_emails}
-          rows={3}
-          required
-          disabled={submitting}
-          hint="One or more exact @pdsb.net emails, separated by commas or new lines."
-        />
+          <TextInput
+            id="club_contact_information"
+            name="club_contact_information"
+            label="How can we contact your club? For example, provide your club email or Instagram account."
+            value={values.club_contact_information}
+            onChange={updateField}
+            error={fieldErrors.club_contact_information}
+            required
+            disabled={submitting}
+          />
 
-        <TextInput
-          id="club_contact_information"
-          name="club_contact_information"
-          label="How can we contact your club? For example, provide your club email or Instagram account."
-          value={values.club_contact_information}
-          onChange={updateField}
-          error={fieldErrors.club_contact_information}
-          required
-          disabled={submitting}
-        />
+          <TextArea
+            id="potential_event_ideas"
+            name="potential_event_ideas"
+            label="Does your club have any planned or potential event ideas for the upcoming year? If yes, provide rough details, including what, when, and where."
+            value={values.potential_event_ideas}
+            onChange={updateField}
+            rows={4}
+            disabled={submitting}
+            hint="Optional"
+          />
 
-        <TextArea
-          id="potential_event_ideas"
-          name="potential_event_ideas"
-          label="Does your club have any planned or potential event ideas for the upcoming year? If yes, provide rough details, including what, when, and where."
-          value={values.potential_event_ideas}
-          onChange={updateField}
-          rows={4}
-          disabled={submitting}
-          hint="Optional"
-        />
+          <TextArea
+            id="leader_contact_information"
+            name="leader_contact_information"
+            label="Please provide your club leader contact information, such as email or Instagram."
+            value={values.leader_contact_information}
+            onChange={updateField}
+            rows={3}
+            disabled={submitting}
+            hint="Optional"
+          />
+        </div>
 
-        <TextArea
-          id="leader_contact_information"
-          name="leader_contact_information"
-          label="Please provide your club leader contact information, such as email or Instagram."
-          value={values.leader_contact_information}
-          onChange={updateField}
-          rows={3}
-          disabled={submitting}
-          hint="Optional"
-        />
-
-        <SignedFormUpload
+        <TeacherSupervisorSection
+          name={supervisorName}
+          email={supervisorEmail}
+          onNameChange={(event) => setSupervisorName(event.target.value)}
+          onEmailChange={(event) => setSupervisorEmail(event.target.value)}
           file={file}
-          onChange={setFile}
-          error={fieldErrors.signed_form}
+          onFileChange={setFile}
+          nameError={fieldErrors.supervisor_name}
+          emailError={fieldErrors.supervisor_email}
+          fileError={fieldErrors.signed_form}
           disabled={submitting}
-        />
-
-        <button
-          type="submit"
-          className="button button--primary"
-          disabled={submitting}
+          required
         >
-          {submitting ? (
-            <>
-              <Spinner size="sm" label="Submitting" /> Submitting…
-            </>
-          ) : (
-            "Submit club application"
-          )}
-        </button>
+          <button
+            type="submit"
+            className="button button--primary"
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <Spinner size="sm" label="Submitting" /> Submitting…
+              </>
+            ) : (
+              "Submit club application"
+            )}
+          </button>
+        </TeacherSupervisorSection>
       </form>
     </div>
   );

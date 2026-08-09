@@ -187,8 +187,8 @@ export const CLUBS_WAVE_LOCAL = [
 ];
 
 export const CLUBS_WAVE_ANIM = {
-  durationMin: 3.2,
-  durationMax: 4.8,
+  durationMin: 1.2,
+  durationMax: 2.0,
   yAmp: 16,
   xAmp: 8,
 };

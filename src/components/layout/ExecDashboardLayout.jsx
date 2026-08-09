@@ -48,20 +48,13 @@ export function ExecDashboardLayout() {
 
   return (
     <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Executive</p>
-          <h1>Exec Dashboard</h1>
-          <p className="lede">
-            Review club applications, request queues, and archived records.
-          </p>
-        </div>
-        {!canMutateReviews ? (
+      {!canMutateReviews ? (
+        <div className="page-header">
           <span className="badge badge--role badge--role-sac-exec">
             Read only
           </span>
-        ) : null}
-      </header>
+        </div>
+      ) : null}
 
       {isSacExec && !canMutateReviews ? (
         <div className="alert alert--warning" role="status">

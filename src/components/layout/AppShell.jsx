@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { SiteBanner } from "../banners/SiteBanner";
 import { useAuth } from "../../context/AuthContext";
+import { resolvePageBanner } from "../../config/pageBanners";
 import { getStudentNumberFromEmail } from "../../utils/domain";
 import { displayName } from "../../utils/format";
 
 const navLinks = [
   { to: "/clubs", label: "Clubs" },
   { to: "/schedule", label: "Schedule" },
-  { to: "/events", label: "Events" },
+  { to: "/sports", label: "Sports" },
   { to: "/student-resources", label: "Student Resources" },
 ];
 
@@ -47,8 +49,11 @@ export function AppShell() {
     isSacExec,
     isFacultyAdvisor,
   } = useAuth();
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
+  const isHome = pathname === "/" || pathname === "";
+  const pageBanner = resolvePageBanner(pathname);
 
   const name = displayName(profile, user);
   const avatarUrl = getAvatarUrl(profile, user);
@@ -226,7 +231,22 @@ export function AppShell() {
       </header>
 
       <main className="site-main">
-        <Outlet />
+        {pageBanner ? (
+          <SiteBanner
+            variant="section"
+            ariaLabel={pageBanner.ariaLabel}
+            eyebrow={pageBanner.eyebrow}
+            title={pageBanner.title}
+            description={pageBanner.description}
+          />
+        ) : null}
+        <div
+          className={
+            isHome ? "site-main__body site-main__body--home" : "site-main__body"
+          }
+        >
+          <Outlet />
+        </div>
       </main>
 
       <footer className="site-footer">

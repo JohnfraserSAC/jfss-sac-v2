@@ -1,4 +1,4 @@
-export function StudentResourcesPage() {
+export function SportsPage() {
   return (
     <div className="page">
       <section className="panel">

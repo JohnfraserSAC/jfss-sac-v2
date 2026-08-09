@@ -229,7 +229,7 @@ export function AnnouncementDetailPage() {
         onClose={() => setArchiveOpen(false)}
         onSuccess={() => {
           setNotice("Announcement archived.");
-          navigate("/my-announcements", {
+          navigate("/my-requests/announcements", {
             replace: true,
             state: { notice: "Announcement archived." },
           });

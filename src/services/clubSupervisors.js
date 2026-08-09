@@ -146,6 +146,27 @@ export async function getClubSupervisorRequests(clubId) {
   return data ?? [];
 }
 
+/** Supervisor requests for clubs the user owns (RLS: owners + SAC admin/exec). */
+export async function getMySupervisorRequestsForClubs(clubIds) {
+  const ids = [...new Set((clubIds || []).filter(Boolean))];
+  if (ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("club_supervisor_requests")
+    .select(SUPERVISOR_REQ_FIELDS)
+    .in("club_id", ids)
+    .order("submitted_at", { ascending: false });
+
+  if (error) {
+    logServiceError("getMySupervisorRequestsForClubs", error);
+    throw new Error(
+      getErrorMessage(error, "Could not load your supervisor requests."),
+    );
+  }
+
+  return data ?? [];
+}
+
 export async function getActiveClubAdvisors(clubId, schoolYear = null) {
   let query = supabase
     .from("club_advisors")

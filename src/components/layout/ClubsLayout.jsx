@@ -1,5 +1,4 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { SiteBanner } from "../banners/SiteBanner";
 import { ClubsSubnav } from "../clubs/ClubsSubnav";
 
 function shouldShowClubsSubnav(pathname) {
@@ -12,8 +11,9 @@ function shouldShowClubsSubnav(pathname) {
 }
 
 /**
- * Shared Clubs section shell — banner + hub subnav mount once and persist
+ * Shared Clubs section shell — hub subnav mounts once and persists
  * across Explore / My Clubs / Apply / Re-Apply so underline transitions run.
+ * Section banner is rendered by AppShell.
  */
 export function ClubsLayout() {
   const { pathname } = useLocation();
@@ -21,13 +21,6 @@ export function ClubsLayout() {
 
   return (
     <div className="page clubs-page">
-      <SiteBanner
-        variant="clubs"
-        ariaLabel="Clubs"
-        eyebrow={"\u2014 Club Dashboard"}
-        title="Your Clubs Hub."
-        description="Explore, manage, post announcements, and apply for clubs all in one space."
-      />
       {showSubnav ? <ClubsSubnav /> : null}
       <div className="clubs-page__content">
         <Outlet />

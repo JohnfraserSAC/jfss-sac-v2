@@ -297,7 +297,10 @@ export function getReapplicationDisplayStatus(request, annualStatus = null) {
   return request?.status || "UNKNOWN";
 }
 
-export function validateSupervisorEntries(entries, { required = true } = {}) {
+export function validateSupervisorEntries(
+  entries,
+  { required = true, max = 3 } = {},
+) {
   const cleaned = (entries || [])
     .map((entry) => ({
       name: String(entry.name ?? "").trim(),
@@ -312,14 +315,18 @@ export function validateSupervisorEntries(entries, { required = true } = {}) {
   if (required && cleaned.length < 1) {
     return {
       supervisors: [],
-      error: "Add at least one teacher supervisor, or mark that you are still searching.",
+      error:
+        "Add at least one teacher supervisor, or mark that you are still searching.",
     };
   }
 
-  if (cleaned.length > 3) {
+  if (cleaned.length > max) {
     return {
       supervisors: [],
-      error: "You may list at most three teacher supervisors.",
+      error:
+        max === 1
+          ? "You may list only one teacher supervisor."
+          : `You may list at most ${max} teacher supervisors.`,
     };
   }
 

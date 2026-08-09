@@ -6,7 +6,7 @@ import {
 
 /**
  * Shared full-bleed site banner with animated wave background.
- * Home and Clubs variants share layout, typography, and height.
+ * `home` = Jaguar welcome look; `section` (alias: `clubs`) = rotated dual-wave look.
  */
 export function SiteBanner({
   title,
@@ -16,15 +16,15 @@ export function SiteBanner({
   ariaLabel = "Banner",
   variant = "home",
 }) {
-  const isClubs = variant === "clubs";
+  const isSection = variant === "section" || variant === "clubs";
   const titleNodes = Array.isArray(title) ? title : [title];
 
   return (
     <section className="home-banner" aria-label={ariaLabel}>
       <AnimatedLayeredWaves
         backgroundColor="#213659"
-        layers={isClubs ? CLUBS_WAVE_LAYERS : HOME_WAVE_LAYERS}
-        rotation={isClubs ? 180 : 0}
+        layers={isSection ? CLUBS_WAVE_LAYERS : HOME_WAVE_LAYERS}
+        rotation={isSection ? 180 : 0}
       />
       <div className="home-banner__inner">
         <div className="home-banner__copy">

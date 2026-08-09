@@ -22,8 +22,13 @@ import { ClubManagePage } from "./pages/ClubManagePage";
 import { ClubApplyPage } from "./pages/ClubApplyPage";
 import { ClubReapplyPage } from "./pages/ClubReapplyPage";
 import { ClubFundingPlaceholderPage } from "./pages/ClubFundingPlaceholderPage";
-import { MyRequestsPage } from "./pages/MyRequestsPage";
+import { MyClubApplicationsPage } from "./pages/MyClubApplicationsPage";
+import { MyClubReapplicationsPage } from "./pages/MyClubReapplicationsPage";
+import { MySupervisorRequestsPage } from "./pages/MySupervisorRequestsPage";
+import { MyFundingRequestsPage } from "./pages/MyFundingRequestsPage";
 import { MyClubsPage } from "./pages/MyClubsPage";
+import { MyRequestsLayout } from "./components/layout/MyRequestsLayout";
+import { MyRequestsIndexRedirect } from "./components/layout/MyRequestsIndexRedirect";
 import { AdminClubRequestsPage } from "./pages/AdminClubRequestsPage";
 import { AdminClubReapplicationsPage } from "./pages/AdminClubReapplicationsPage";
 import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
@@ -38,7 +43,7 @@ import { EditAnnouncementPage } from "./pages/EditAnnouncementPage";
 import { MyAnnouncementsPage } from "./pages/MyAnnouncementsPage";
 import { AdminAnnouncementsPage } from "./pages/AdminAnnouncementsPage";
 import { SchedulePage } from "./pages/SchedulePage";
-import { EventsPage } from "./pages/EventsPage";
+import { SportsPage } from "./pages/SportsPage";
 import { StudentResourcesPage } from "./pages/StudentResourcesPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
@@ -101,7 +106,11 @@ export default function App() {
             </Route>
 
             <Route path="schedule" element={<SchedulePage />} />
-            <Route path="events" element={<EventsPage />} />
+            <Route path="sports" element={<SportsPage />} />
+            <Route
+              path="events"
+              element={<Navigate to="/sports" replace />}
+            />
             <Route path="student-resources" element={<StudentResourcesPage />} />
 
             <Route path="announcements" element={<AnnouncementsPage />} />
@@ -126,9 +135,7 @@ export default function App() {
             <Route
               path="my-announcements"
               element={
-                <ProtectedRoute>
-                  <MyAnnouncementsPage />
-                </ProtectedRoute>
+                <Navigate to="/my-requests/announcements" replace />
               }
             />
 
@@ -145,10 +152,29 @@ export default function App() {
               path="my-requests"
               element={
                 <ProtectedRoute>
-                  <MyRequestsPage />
+                  <MyRequestsLayout />
                 </ProtectedRoute>
               }
-            />
+            >
+              <Route index element={<MyRequestsIndexRedirect />} />
+              <Route
+                path="applications"
+                element={<MyClubApplicationsPage />}
+              />
+              <Route
+                path="reapplications"
+                element={<MyClubReapplicationsPage />}
+              />
+              <Route
+                path="announcements"
+                element={<MyAnnouncementsPage embedded />}
+              />
+              <Route
+                path="supervisor"
+                element={<MySupervisorRequestsPage />}
+              />
+              <Route path="funding" element={<MyFundingRequestsPage />} />
+            </Route>
 
             <Route
               path="exec-dashboard"

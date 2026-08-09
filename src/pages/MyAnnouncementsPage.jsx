@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AnnouncementCard } from "../components/announcements/AnnouncementCard";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -10,7 +10,7 @@ import { getMyAnnouncements } from "../services/announcements";
 import { canEditAnnouncement } from "../utils/announcementPermissions";
 import { getErrorMessage } from "../utils/errors";
 
-export function MyAnnouncementsPage() {
+export function MyAnnouncementsPage({ embedded = false }) {
   const location = useLocation();
   const {
     user,
@@ -59,26 +59,23 @@ export function MyAnnouncementsPage() {
     };
   }, [user.id, status]);
 
+  if (embedded && !canCreateAnnouncements) {
+    return <Navigate to="/my-requests/applications" replace />;
+  }
+
   if (loading) {
     return <LoadingScreen message="Loading your announcements…" />;
   }
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Your posts</p>
-          <h1>My announcements</h1>
-          <p className="lede">
-            Track drafts, submissions, published posts, and review feedback.
-          </p>
-        </div>
-        {canCreateAnnouncements ? (
+    <div className={embedded ? "stack" : "page"}>
+      {canCreateAnnouncements ? (
+        <header className="page-header">
           <Link className="button button--primary" to="/announcements/new">
             Create Announcement
           </Link>
-        ) : null}
-      </header>
+        </header>
+      ) : null}
 
       {notice ? (
         <div className="alert alert--success" role="status">

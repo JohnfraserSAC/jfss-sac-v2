@@ -23,8 +23,8 @@
   --radius: 14px;
   --radius-sm: 10px;
   --focus: 0 0 0 3px rgba(11, 79, 108, 0.28);
-  --font-sans: "Segoe UI", "Candara", "Trebuchet MS", sans-serif;
-  --font-display: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --font-sans: "Montserrat", "Segoe UI", sans-serif;
+  --font-display: "Montserrat", "Segoe UI", sans-serif;
   --max-width: 1100px;
   color-scheme: light;
 }
@@ -595,16 +595,27 @@ summary:focus-visible {
   margin: 0;
   padding: 2rem 0 3rem;
   overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-/* Constrain route content; banner pages opt out and constrain children instead. */
-.site-main > * {
+.site-main > .home-banner {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
+  margin-top: -2rem;
+  flex-shrink: 0;
+}
+
+.site-main__body {
   width: min(100% - 2rem, var(--max-width));
+  max-width: 100%;
   margin-inline: auto;
+  box-sizing: border-box;
 }
 
-.site-main > .home-page,
-.site-main > .clubs-page {
+.site-main__body--home {
   width: 100%;
   max-width: 100%;
   margin-inline: 0;
@@ -628,16 +639,15 @@ summary:focus-visible {
   gap: 1.25rem;
 }
 
-.clubs-page {
-  gap: 1.25rem;
-}
-
-.home-page > *:not(.home-banner),
-.clubs-page > *:not(.home-banner) {
+.home-page > *:not(.home-banner) {
   width: min(100% - 2rem, var(--max-width));
   max-width: 100%;
   margin-inline: auto;
   box-sizing: border-box;
+}
+
+.clubs-page {
+  gap: 1.25rem;
 }
 
 .clubs-page__content {
@@ -655,11 +665,15 @@ summary:focus-visible {
   overflow: hidden;
   width: 100%;
   max-width: 100%;
-  margin: -2rem 0 0;
+  margin: 0;
   background: #213659;
   color: #ffffff;
   border: 0;
   box-shadow: none;
+}
+
+.home-page > .home-banner {
+  margin-top: -2rem;
 }
 
 .home-banner__waves {
@@ -740,6 +754,15 @@ summary:focus-visible {
   justify-content: space-between;
   gap: 1rem;
   align-items: flex-start;
+}
+
+.page-header__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-strong);
 }
 
 .eyebrow {
@@ -1242,6 +1265,33 @@ summary:focus-visible {
 .form-hint {
   margin: 0;
   font-size: 0.9rem;
+}
+
+.grid-2 {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.checkbox input {
+  margin-top: 0.2rem;
+  flex: 0 0 auto;
 }
 
 .file-picker__input {
@@ -1794,6 +1844,85 @@ summary:focus-visible {
   gap: 0.35rem;
 }
 
+.club-apply-notice {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem 1.15rem;
+}
+
+.club-apply-notice__disclaimer {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.club-apply-notice__deadline {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.club-apply-notice__account {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.club-liaison-contacts__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.club-liaison-contacts--embedded {
+  margin-top: 0.15rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.4rem;
+}
+
+.club-liaison-contacts__lede {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.club-liaison-contacts__list {
+  list-style: none;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+@media (min-width: 560px) {
+  .club-liaison-contacts__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem 1rem;
+  }
+}
+
+.club-liaison-contacts__person {
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.club-liaison-contacts__name {
+  color: var(--text-strong);
+  font-size: 0.92rem;
+}
+
+.club-liaison-contacts__person .text-link {
+  overflow-wrap: anywhere;
+}
+
 .button-row--compact {
   margin-top: 0;
 }
@@ -2041,6 +2170,11 @@ summary:focus-visible {
 /* Accessible past-club combobox */
 .combobox {
   position: relative;
+  width: 100%;
+}
+
+.combobox > .input {
+  width: 100%;
 }
 
 .combobox__list {
@@ -2077,6 +2211,80 @@ summary:focus-visible {
 .combobox__empty {
   padding: 0.75rem 0.85rem;
   color: var(--muted, #666);
+}
+
+.club-reapply-selected {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+}
+
+.club-reapply-selected > p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.club-reapply-selected .button {
+  justify-self: start;
+}
+
+.teacher-supervisor-section__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.teacher-supervisor-section__link-line {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.meeting-day-picker {
+  gap: 0.55rem;
+}
+
+.meeting-day-picker legend {
+  margin-bottom: 0.35rem;
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
+.meeting-day-picker__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.meeting-day-picker__day {
+  min-width: 3.1rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--text-strong);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.meeting-day-picker__day:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border-strong));
+}
+
+.meeting-day-picker__day--selected {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, #fff);
+  color: var(--primary);
+}
+
+.meeting-day-picker__day:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .logo-preview {

@@ -1,16 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ArchiveItemCard } from "../components/ui/ArchiveItemCard";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { PermissionNotice } from "../components/ui/PermissionNotice";
 import { TextInput } from "../components/ui/TextInput";
-import { AnnouncementStatusBadge } from "../components/announcements/AnnouncementStatusBadge";
-import { AnnouncementTypeBadge } from "../components/announcements/AnnouncementTypeBadge";
 import { getArchivedAnnouncements } from "../services/announcements";
-import { formatDate } from "../utils/format";
-import { formatDateOnly } from "../utils/torontoDate";
 import { getErrorMessage } from "../utils/errors";
 
 export function AdminArchivedAnnouncementsPage({ embedded = false }) {
@@ -66,12 +62,6 @@ export function AdminArchivedAnnouncementsPage({ embedded = false }) {
         <h2 className="exec-section__title">Archived Announcements</h2>
       )}
 
-      <p className="lede">
-        Announcements that were approved, posted for their scheduled Toronto
-        day, and then automatically archived. Rejected and cancelled requests
-        are not listed here.
-      </p>
-
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <div className="toolbar">
@@ -88,66 +78,21 @@ export function AdminArchivedAnnouncementsPage({ embedded = false }) {
           Completed posts will appear here after their Toronto posting day ends.
         </EmptyState>
       ) : (
-        <div className="stack">
-          {rows.map((announcement) => {
-            const club = announcement.clubs;
-            return (
-              <article
-                key={announcement.id}
-                className="panel admin-request-card"
-              >
-                <div className="section-heading">
-                  <div>
-                    <h3>{announcement.title}</h3>
-                    <div className="badge-row">
-                      <AnnouncementStatusBadge status={announcement.status} />
-                      <AnnouncementTypeBadge club={club} />
-                    </div>
-                  </div>
-                  <Link
-                    className="text-link"
-                    to={`/announcements/${announcement.id}`}
-                  >
-                    Open detail
-                  </Link>
-                </div>
-
-                {announcement.summary ? <p>{announcement.summary}</p> : null}
-                <div className="prose">{announcement.body}</div>
-
-                <dl className="meta-list">
-                  <div>
-                    <dt>Club</dt>
-                    <dd>{club?.name || "General"}</dd>
-                  </div>
-                  <div>
-                    <dt>Scheduled posting date</dt>
-                    <dd>
-                      {formatDateOnly(announcement.scheduled_posting_date)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Approved</dt>
-                    <dd>{formatDate(announcement.reviewed_at)}</dd>
-                  </div>
-                  <div>
-                    <dt>Published</dt>
-                    <dd>{formatDate(announcement.published_at)}</dd>
-                  </div>
-                  <div>
-                    <dt>Archived</dt>
-                    <dd>{formatDate(announcement.archived_at)}</dd>
-                  </div>
-                  {announcement.review_notes ? (
-                    <div>
-                      <dt>Review notes</dt>
-                      <dd>{announcement.review_notes}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-              </article>
-            );
-          })}
+        <div className="announcement-grid">
+          {rows.map((announcement) => (
+            <ArchiveItemCard
+              key={announcement.id}
+              title={announcement.title}
+              description={
+                announcement.body?.trim() ||
+                announcement.summary?.trim() ||
+                ""
+              }
+              archivedAt={announcement.archived_at}
+              imageUrl={announcement.image_url}
+              detailTo={`/announcements/${announcement.id}`}
+            />
+          ))}
         </div>
       )}
     </div>

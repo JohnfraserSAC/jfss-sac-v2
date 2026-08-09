@@ -139,7 +139,7 @@ export function CreateAnnouncementPage() {
         action,
       );
 
-      navigate("/my-announcements", {
+      navigate("/my-requests/announcements", {
         replace: true,
         state: {
           notice:

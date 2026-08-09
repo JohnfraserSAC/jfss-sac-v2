@@ -124,8 +124,7 @@ export function DashboardPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <p className="eyebrow">Dashboard</p>
-          <h1>{displayName(profile, user)}</h1>
+          <h2 className="page-header__name">{displayName(profile, user)}</h2>
           <p className="lede">Your profile, roles, requests, and memberships.</p>
         </div>
         <button

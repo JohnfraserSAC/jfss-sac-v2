@@ -78,16 +78,6 @@ export function AnnouncementsPage() {
 
   return (
     <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">News</p>
-          <h1>Announcements</h1>
-          <p className="lede">
-            Published updates from SAC, faculty advisors, and approved clubs.
-          </p>
-        </div>
-      </header>
-
       <div className="toolbar toolbar--split">
         <TextInput
           id="announcement-search"
