@@ -45,10 +45,6 @@ export function HomepageAnnouncements({ limit = 5 }) {
         <div>
           <p className="eyebrow">Announcements</p>
           <h2 id="home-announcements-heading">Published announcements</h2>
-          <p className="muted">
-            Only published, non-expired announcements visible under current
-            policies are shown.
-          </p>
         </div>
         <Link className="text-link" to="/announcements">
           See more

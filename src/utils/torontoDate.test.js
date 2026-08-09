@@ -38,15 +38,20 @@ describe("torontoDate", () => {
     );
   });
 
-  it("rejects today and past posting dates", () => {
+  it("allows today and future posting dates, rejects past", () => {
     const today = getTorontoTodayYmd();
-    expect(isValidFutureTorontoPostingDate(today)).toBe(false);
+    expect(isValidFutureTorontoPostingDate(today)).toBe(true);
     expect(
       isValidFutureTorontoPostingDate(addCalendarDaysYmd(today, -1)),
     ).toBe(false);
     expect(isValidFutureTorontoPostingDate(getTorontoTomorrowYmd())).toBe(
       true,
     );
+  });
+
+  it("labels same-day requests as publish now", () => {
+    const today = getTorontoTodayYmd();
+    expect(getPostingUrgency(today).label).toBe("Publish now");
   });
 
   it("maps odd Toronto dates to Day 1 and even to Day 2", () => {

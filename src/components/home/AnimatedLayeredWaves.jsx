@@ -1,22 +1,17 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 /**
- * Haikei layered-waves background (viewBox 0 0 900 300).
- * Only peak/trough endpoints animate; Bézier handles stay relative to those points.
- * Path `d` updates via requestAnimationFrame + element refs.
+ * Procedural Haikei-style layered-waves background (viewBox 0 0 900 300).
+ * Peak/trough endpoints animate; Bézier handles stay relative to those points.
  *
- * Tune motion with WAVE_ANIM below.
+ * Configure layers, colours, motion, and optional 180° orientation via props.
  */
 
-/** Adjust these to control speed and travel. */
 export const WAVE_ANIM = {
-  // Seconds per peak/trough cycle (lower = faster)
   upperDurationMin: 1.5,
   upperDurationMax: 2.5,
   lowerDurationMin: 1.5,
   lowerDurationMax: 2.5,
-
-  // Max SVG-unit drift from each base coordinate
   upperYAmp: 34,
   lowerYAmp: 28,
   upperXAmp: 14,
@@ -25,13 +20,14 @@ export const WAVE_ANIM = {
 
 const VIEW_W = 900;
 const VIEW_H = 300;
-const BG = "#213659";
-const UPPER_FILL = "#3364c8";
-const LOWER_FILL = "#457fec";
 const CLOSE_Y = 301;
 
-/** Upper ridge commands from the source SVG. */
-const UPPER_BASE = [
+const HOME_BG = "#213659";
+const HOME_UPPER_FILL = "#3364c8";
+const HOME_LOWER_FILL = "#457fec";
+
+/** Upper ridge — home (multi-peak). */
+export const HOME_UPPER_BASE = [
   { cmd: "M", x: 0, y: 198, lockX: true },
   { cmd: "L", x: 25, y: 181.2 },
   {
@@ -91,8 +87,8 @@ const UPPER_BASE = [
   { cmd: "L", x: 900, y: 151, lockX: true },
 ];
 
-/** Lower ridge commands from the source SVG. */
-const LOWER_BASE = [
+/** Lower ridge — home. */
+export const HOME_LOWER_BASE = [
   { cmd: "M", x: 0, y: 275, lockX: true },
   { cmd: "L", x: 25, y: 271.3 },
   {
@@ -152,6 +148,51 @@ const LOWER_BASE = [
   { cmd: "L", x: 900, y: 203, lockX: true },
 ];
 
+/**
+ * Clubs foreground wave (pre-rotation local space).
+ * One broad trough on the right; after a 180° centre rotation the dominant
+ * crest faces left and fills the lower banner without edge gaps.
+ */
+export const CLUBS_WAVE_LOCAL = [
+  { cmd: "M", x: 0, y: 118, lockX: true },
+  { cmd: "L", x: 60, y: 122 },
+  {
+    cmd: "C",
+    c1x: 180,
+    c1y: 130,
+    c2x: 320,
+    c2y: 145,
+    x: 460,
+    y: 175,
+  },
+  {
+    cmd: "C",
+    c1x: 580,
+    c1y: 200,
+    c2x: 660,
+    c2y: 255,
+    x: 760,
+    y: 262,
+  },
+  {
+    cmd: "C",
+    c1x: 820,
+    c1y: 266,
+    c2x: 860,
+    c2y: 240,
+    x: 885,
+    y: 220,
+  },
+  { cmd: "L", x: 900, y: 210, lockX: true },
+];
+
+export const CLUBS_WAVE_ANIM = {
+  durationMin: 3.2,
+  durationMax: 4.8,
+  yAmp: 16,
+  xAmp: 8,
+};
+
 const BOTTOM_CLOSE =
   `L${VIEW_W} ${CLOSE_Y}L875 ${CLOSE_Y}` +
   `C850 ${CLOSE_Y} 800 ${CLOSE_Y} 750 ${CLOSE_Y}` +
@@ -180,17 +221,10 @@ function ridgeToPath(ridge) {
   return `${d}${BOTTOM_CLOSE}`;
 }
 
-const STATIC_UPPER = ridgeToPath(UPPER_BASE);
-const STATIC_LOWER = ridgeToPath(LOWER_BASE);
-
 function randBetween(min, max) {
   return min + Math.random() * (max - min);
 }
 
-/**
- * Local peaks (min Y) and troughs (max Y) among ridge endpoints.
- * Edge M/L points stay fixed.
- */
 function findPeakTroughIndices(ridge) {
   const points = ridge.map((seg, index) => ({
     index,
@@ -311,7 +345,6 @@ function createPeakRuntime(baseRidge, durationMin, durationMax, yAmp, xAmp) {
         }
       }
 
-      // Keep horizontal order so segments never fold.
       let prevX = -Infinity;
       for (const seg of ridge) {
         if (seg.cmd === "M" || seg.cmd === "L") {
@@ -337,47 +370,79 @@ function prefersReducedMotion() {
   );
 }
 
-export function AnimatedLayeredWaves() {
+/**
+ * @typedef {object} WaveLayerConfig
+ * @property {Array} base
+ * @property {string} fill
+ * @property {number} [durationMin]
+ * @property {number} [durationMax]
+ * @property {number} [yAmp]
+ * @property {number} [xAmp]
+ */
+
+/**
+ * @param {object} props
+ * @param {string} [props.backgroundColor]
+ * @param {WaveLayerConfig[]} [props.layers]
+ * @param {number} [props.rotation=0] Degrees around viewBox centre (SVG transform).
+ * @param {string} [props.className]
+ */
+export function AnimatedLayeredWaves({
+  backgroundColor = HOME_BG,
+  layers,
+  rotation = 0,
+  className = "home-banner__waves",
+}) {
+  const resolvedLayers = useMemo(() => {
+    if (layers?.length) return layers;
+    return [
+      {
+        base: HOME_UPPER_BASE,
+        fill: HOME_UPPER_FILL,
+        durationMin: WAVE_ANIM.upperDurationMin,
+        durationMax: WAVE_ANIM.upperDurationMax,
+        yAmp: WAVE_ANIM.upperYAmp,
+        xAmp: WAVE_ANIM.upperXAmp,
+      },
+      {
+        base: HOME_LOWER_BASE,
+        fill: HOME_LOWER_FILL,
+        durationMin: WAVE_ANIM.lowerDurationMin,
+        durationMax: WAVE_ANIM.lowerDurationMax,
+        yAmp: WAVE_ANIM.lowerYAmp,
+        xAmp: WAVE_ANIM.lowerXAmp,
+      },
+    ];
+  }, [layers]);
+
   const svgRef = useRef(null);
-  const upperRef = useRef(null);
-  const lowerRef = useRef(null);
+  const pathRefs = useRef([]);
+
+  const staticPaths = useMemo(
+    () => resolvedLayers.map((layer) => ridgeToPath(layer.base)),
+    [resolvedLayers],
+  );
 
   useEffect(() => {
     const svg = svgRef.current;
-    const upperEl = upperRef.current;
-    const lowerEl = lowerRef.current;
-    if (!svg || !upperEl || !lowerEl) return undefined;
+    const pathEls = pathRefs.current.slice(0, resolvedLayers.length);
+    if (!svg || pathEls.some((el) => !el)) return undefined;
 
     if (prefersReducedMotion()) {
-      upperEl.setAttribute("d", STATIC_UPPER);
-      lowerEl.setAttribute("d", STATIC_LOWER);
+      pathEls.forEach((el, index) => {
+        el.setAttribute("d", staticPaths[index]);
+      });
       return undefined;
     }
 
-    const {
-      upperDurationMin,
-      upperDurationMax,
-      lowerDurationMin,
-      lowerDurationMax,
-      upperYAmp,
-      lowerYAmp,
-      upperXAmp,
-      lowerXAmp,
-    } = WAVE_ANIM;
-
-    const upperWave = createPeakRuntime(
-      UPPER_BASE,
-      upperDurationMin,
-      upperDurationMax,
-      upperYAmp,
-      upperXAmp,
-    );
-    const lowerWave = createPeakRuntime(
-      LOWER_BASE,
-      lowerDurationMin,
-      lowerDurationMax,
-      lowerYAmp,
-      lowerXAmp,
+    const runtimes = resolvedLayers.map((layer) =>
+      createPeakRuntime(
+        layer.base,
+        layer.durationMin ?? WAVE_ANIM.upperDurationMin,
+        layer.durationMax ?? WAVE_ANIM.upperDurationMax,
+        layer.yAmp ?? WAVE_ANIM.upperYAmp,
+        layer.xAmp ?? WAVE_ANIM.upperXAmp,
+      ),
     );
 
     let rafId = 0;
@@ -395,8 +460,9 @@ export function AnimatedLayeredWaves() {
 
     function frame(now) {
       if (!running) return;
-      upperEl.setAttribute("d", upperWave.tick(now));
-      lowerEl.setAttribute("d", lowerWave.tick(now));
+      pathEls.forEach((el, index) => {
+        el.setAttribute("d", runtimes[index].tick(now));
+      });
       rafId = requestAnimationFrame(frame);
     }
 
@@ -430,8 +496,9 @@ export function AnimatedLayeredWaves() {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     function onMotionChange() {
       if (motionQuery.matches) {
-        upperEl.setAttribute("d", STATIC_UPPER);
-        lowerEl.setAttribute("d", STATIC_LOWER);
+        pathEls.forEach((el, index) => {
+          el.setAttribute("d", staticPaths[index]);
+        });
         stop();
       } else {
         syncPause();
@@ -445,21 +512,66 @@ export function AnimatedLayeredWaves() {
       document.removeEventListener("visibilitychange", onVisibility);
       motionQuery.removeEventListener("change", onMotionChange);
     };
-  }, []);
+  }, [resolvedLayers, staticPaths]);
+
+  const waveGroupTransform =
+    rotation !== 0
+      ? `rotate(${rotation} ${VIEW_W / 2} ${VIEW_H / 2})`
+      : undefined;
 
   return (
     <svg
       ref={svgRef}
-      className="home-banner__waves"
+      className={className}
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       preserveAspectRatio="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
       focusable="false"
     >
-      <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill={BG} />
-      <path ref={upperRef} d={STATIC_UPPER} fill={UPPER_FILL} />
-      <path ref={lowerRef} d={STATIC_LOWER} fill={LOWER_FILL} />
+      <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill={backgroundColor} />
+      <g transform={waveGroupTransform}>
+        {resolvedLayers.map((layer, index) => (
+          <path
+            key={`wave-layer-${index}`}
+            ref={(el) => {
+              pathRefs.current[index] = el;
+            }}
+            d={staticPaths[index]}
+            fill={layer.fill}
+          />
+        ))}
+      </g>
     </svg>
   );
 }
+
+export const HOME_WAVE_LAYERS = [
+  {
+    base: HOME_UPPER_BASE,
+    fill: HOME_UPPER_FILL,
+    durationMin: WAVE_ANIM.upperDurationMin,
+    durationMax: WAVE_ANIM.upperDurationMax,
+    yAmp: WAVE_ANIM.upperYAmp,
+    xAmp: WAVE_ANIM.upperXAmp,
+  },
+  {
+    base: HOME_LOWER_BASE,
+    fill: HOME_LOWER_FILL,
+    durationMin: WAVE_ANIM.lowerDurationMin,
+    durationMax: WAVE_ANIM.lowerDurationMax,
+    yAmp: WAVE_ANIM.lowerYAmp,
+    xAmp: WAVE_ANIM.lowerXAmp,
+  },
+];
+
+export const CLUBS_WAVE_LAYERS = [
+  {
+    base: CLUBS_WAVE_LOCAL,
+    fill: "#3364C8",
+    durationMin: CLUBS_WAVE_ANIM.durationMin,
+    durationMax: CLUBS_WAVE_ANIM.durationMax,
+    yAmp: CLUBS_WAVE_ANIM.yAmp,
+    xAmp: CLUBS_WAVE_ANIM.xAmp,
+  },
+];

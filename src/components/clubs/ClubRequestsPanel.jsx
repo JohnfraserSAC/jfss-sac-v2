@@ -115,8 +115,8 @@ export function ClubRequestsPanel({
         <h2>Announcement request</h2>
         <p className="muted">
           Use announcements for club news and events. Every request needs a
-          Toronto posting date. Approval schedules the post for that date — it
-          does not go live immediately.
+          Toronto posting date. Choose today to request publish now once
+          approved, or a future date to schedule midnight go-live.
         </p>
 
         {!operationsAllowed && !isStaff ? (

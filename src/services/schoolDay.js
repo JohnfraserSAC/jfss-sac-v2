@@ -41,3 +41,29 @@ export async function clearSchoolDayOverride() {
 
   return data;
 }
+
+export async function setHalfDayOverride() {
+  const { data, error } = await supabase.rpc("set_half_day_override");
+
+  if (error) {
+    logServiceError("setHalfDayOverride", error);
+    throw new Error(
+      getErrorMessage(error, "Could not set today’s half-day schedule."),
+    );
+  }
+
+  return data;
+}
+
+export async function clearSchoolScheduleOverride() {
+  const { data, error } = await supabase.rpc("clear_school_schedule_override");
+
+  if (error) {
+    logServiceError("clearSchoolScheduleOverride", error);
+    throw new Error(
+      getErrorMessage(error, "Could not clear today’s half-day schedule."),
+    );
+  }
+
+  return data;
+}

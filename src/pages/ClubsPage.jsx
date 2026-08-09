@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ClubCard } from "../components/clubs/ClubCard";
 import { ClubGridSkeleton } from "../components/clubs/ClubGridSkeleton";
-import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { TextInput } from "../components/ui/TextInput";
@@ -85,22 +84,9 @@ export function ClubsPage() {
 
   return (
     <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Clubs</p>
-          <h1>Explore</h1>
-          <p className="lede">
-            Browse officially approved clubs at John Fraser Secondary School.
-          </p>
-        </div>
-      </header>
-
-      <ClubsSubnav />
-
       <div className="toolbar">
         <TextInput
           id="club-search"
-          label="Search clubs"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search by club name"

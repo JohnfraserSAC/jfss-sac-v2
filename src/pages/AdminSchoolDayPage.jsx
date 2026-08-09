@@ -7,7 +7,9 @@ import { PermissionNotice } from "../components/ui/PermissionNotice";
 import { Spinner } from "../components/ui/Spinner";
 import {
   clearSchoolDayOverride,
+  clearSchoolScheduleOverride,
   getEffectiveSchoolDay,
+  setHalfDayOverride,
   setSchoolDayOverride,
 } from "../services/schoolDay";
 import { formatDate } from "../utils/format";
@@ -65,7 +67,7 @@ export function AdminSchoolDayPage({ embedded = false }) {
     }
   }
 
-  async function clearOverride() {
+  async function clearDayOverride() {
     if (!canMutate || busy) return;
     setBusy(true);
     setError("");
@@ -73,10 +75,46 @@ export function AdminSchoolDayPage({ embedded = false }) {
     try {
       const next = await clearSchoolDayOverride();
       setData(next);
-      setSuccess("Override cleared. Automatic day is in effect again.");
+      setSuccess("Day override cleared. Automatic day is in effect again.");
     } catch (actionError) {
       setError(
         getErrorMessage(actionError, "Could not clear the school day override."),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function applyHalfDay() {
+    if (!canMutate || busy) return;
+    setBusy(true);
+    setError("");
+    setSuccess("");
+    try {
+      const next = await setHalfDayOverride();
+      setData(next);
+      setSuccess("Half-day schedule is active for today.");
+    } catch (actionError) {
+      setError(
+        getErrorMessage(actionError, "Could not set the half-day schedule."),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function clearHalfDay() {
+    if (!canMutate || busy) return;
+    setBusy(true);
+    setError("");
+    setSuccess("");
+    try {
+      const next = await clearSchoolScheduleOverride();
+      setData(next);
+      setSuccess("Half-day cleared. Regular period times are in effect.");
+    } catch (actionError) {
+      setError(
+        getErrorMessage(actionError, "Could not clear the half-day schedule."),
       );
     } finally {
       setBusy(false);
@@ -98,6 +136,7 @@ export function AdminSchoolDayPage({ embedded = false }) {
 
   const automaticLabel = schoolDayLabel(data?.automatic_day);
   const effectiveLabel = schoolDayLabel(data?.effective_day);
+  const isHalfDay = Boolean(data?.is_half_day || data?.schedule_override_active);
 
   return (
     <div className={embedded ? "exec-section" : "page"}>
@@ -111,14 +150,17 @@ export function AdminSchoolDayPage({ embedded = false }) {
 
       <p className="lede">
         The automatic day uses the Toronto calendar date: odd dates are Day 1,
-        even dates are Day 2. Overrides apply only to today&apos;s Toronto date
-        and clear automatically at midnight.
+        even dates are Day 2. Day 1 runs Periods 1 → 2 → lunch → 3 → 4. Day 2
+        runs Periods 2 → 1 → lunch → 4 → 3. Use half day for the shortened
+        four-period schedule. Overrides apply only to today&apos;s Toronto date
+        and clear automatically at midnight. Period times are shown on the
+        homepage.
       </p>
 
       {isSacExec && !isSacAdmin ? (
         <PermissionNotice title="Limited exception">
-          SAC Executives may change today&apos;s school day override only. All
-          other Exec Dashboard mutations remain read-only.
+          SAC Executives may change today&apos;s school day and half-day
+          overrides only. All other Exec Dashboard mutations remain read-only.
         </PermissionNotice>
       ) : null}
 
@@ -152,25 +194,27 @@ export function AdminSchoolDayPage({ embedded = false }) {
               </dd>
             </div>
             <div>
-              <dt>Override status</dt>
+              <dt>Day override</dt>
               <dd>
                 {data.override_active
                   ? `Active (${schoolDayLabel(data.override_day)})`
                   : "Not active — using automatic day"}
               </dd>
             </div>
+            <div>
+              <dt>Schedule</dt>
+              <dd>{isHalfDay ? "Half day" : "Regular day"}</dd>
+            </div>
             {data.updated_at ? (
               <div>
-                <dt>Last changed</dt>
+                <dt>Day last changed</dt>
                 <dd>{formatDate(data.updated_at)}</dd>
               </div>
             ) : null}
-            {data.updated_by ? (
+            {data.schedule_updated_at ? (
               <div>
-                <dt>Changed by</dt>
-                <dd>
-                  <code>{data.updated_by}</code>
-                </dd>
+                <dt>Schedule last changed</dt>
+                <dd>{formatDate(data.schedule_updated_at)}</dd>
               </div>
             ) : null}
           </dl>
@@ -202,9 +246,29 @@ export function AdminSchoolDayPage({ embedded = false }) {
               type="button"
               className="button button--secondary"
               disabled={busy || !data.override_active}
-              onClick={clearOverride}
+              onClick={clearDayOverride}
             >
-              Clear today&apos;s override
+              Clear today&apos;s day override
+            </button>
+          </div>
+
+          <div className="button-row">
+            <button
+              type="button"
+              className="button button--primary"
+              disabled={busy || isHalfDay}
+              onClick={applyHalfDay}
+            >
+              {busy ? <Spinner size="sm" /> : null}
+              Set half day
+            </button>
+            <button
+              type="button"
+              className="button button--secondary"
+              disabled={busy || !isHalfDay}
+              onClick={clearHalfDay}
+            >
+              Clear half day
             </button>
           </div>
         </section>

@@ -37,11 +37,15 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  max-width: 100%;
+  overflow-x: clip;
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.5;
@@ -51,6 +55,8 @@ body {
 
 #root {
   min-height: 100svh;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 a {
@@ -112,8 +118,10 @@ select {
 
 .app-shell {
   min-height: 100svh;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
 }
 
 .site-header {
@@ -122,6 +130,8 @@ select {
   z-index: 40;
   background: var(--bg);
   border-bottom: 1px solid #d7e2ec;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .site-header__inner {
@@ -129,11 +139,11 @@ select {
   width: min(100% - 1.5rem, var(--max-width));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(4.5rem, 1fr) auto minmax(4.5rem, 1fr);
+  grid-template-columns: minmax(5.5rem, 1fr) auto minmax(5.5rem, 1fr);
   align-items: center;
   gap: 0.75rem 1rem;
-  padding: 0.45rem 0;
-  min-height: 3.75rem;
+  padding: 0.3rem 0;
+  min-height: 4.75rem;
 }
 
 .site-header__slot--left {
@@ -162,9 +172,9 @@ select {
 
 .brand-logo__image {
   display: block;
-  height: 3.35rem;
+  height: 4.5rem;
   width: auto;
-  max-width: 11rem;
+  max-width: 14rem;
   object-fit: contain;
 }
 
@@ -206,7 +216,7 @@ select {
 
 .menu-toggle:focus-visible,
 .nav-link:focus-visible,
-.nav-avatar:focus-visible,
+.nav-profile:focus-visible,
 .button:focus-visible,
 .input:focus-visible,
 .textarea:focus-visible,
@@ -238,6 +248,7 @@ summary:focus-visible {
 }
 
 .nav-link {
+  position: relative;
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 0.55rem;
@@ -249,10 +260,24 @@ summary:focus-visible {
   white-space: nowrap;
   line-height: 1.2;
   border: 0;
-  border-bottom: 2px solid transparent;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.45rem;
+  right: 0.45rem;
+  bottom: 0.12rem;
+  height: 2px;
+  border-radius: 999px;
+  background: #2f6fbf;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.28s ease;
+  pointer-events: none;
 }
 
 .nav-link:hover {
@@ -261,40 +286,117 @@ summary:focus-visible {
 }
 
 .nav-link--active {
-  color: #0b3d7a;
-  border-bottom-color: #2f6fbf;
+  color: #2f6fbf;
   background: transparent;
+}
+
+.nav-link--active::after {
+  transform: scaleX(1);
 }
 
 .nav-link--login {
   border: 1px solid #c5d3e0;
   border-radius: 999px;
   padding: 0.4rem 0.85rem;
-  border-bottom-width: 1px;
+}
+
+.nav-link--login::after {
+  display: none;
 }
 
 .nav-link--login.nav-link--active {
   border-color: #2f6fbf;
-  border-bottom-color: #2f6fbf;
+}
+
+.nav-profile {
+  --nav-avatar-size: 2.55rem;
+  --nav-role-staff: #f6ae2d;
+  --nav-role-student: #72429a;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  text-decoration: none;
+  color: var(--text-strong);
+  border-radius: 999px;
+  padding: 0.22rem 0.65rem 0.22rem 0.22rem;
+  background: #ffffff;
+  border: 1px solid #e6ebf1;
+  box-shadow: 0 2px 8px rgba(15, 28, 46, 0.08);
+  transition: opacity 0.15s ease;
+}
+
+.nav-profile:hover,
+.nav-profile--active {
+  opacity: 0.94;
+  background: #ffffff;
+}
+
+.nav-profile__meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 0;
+  min-height: calc(var(--nav-avatar-size) - 0.2rem);
+  padding: 0;
+  line-height: 1.05;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.nav-profile__student-number,
+.nav-profile__role {
+  display: block;
+  min-width: 0;
+  max-width: 9.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-profile__student-number {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+}
+
+.nav-profile__role {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nav-profile__meta--staff .nav-profile__role {
+  color: var(--nav-role-staff);
+}
+
+.nav-profile__meta--student .nav-profile__role {
+  color: var(--nav-role-student);
 }
 
 .nav-avatar {
   display: inline-flex;
-  width: 2.55rem;
-  height: 2.55rem;
+  width: var(--nav-avatar-size);
+  height: var(--nav-avatar-size);
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid #c5d3e0;
   background: #d9e6f2;
   text-decoration: none;
   flex-shrink: 0;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
-.nav-avatar:hover,
-.nav-avatar--active {
+.nav-profile:hover .nav-avatar,
+.nav-profile--active .nav-avatar {
   border-color: #2f6fbf;
 }
 
@@ -324,6 +426,7 @@ summary:focus-visible {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--bg-elevated);
+  overflow: visible;
 }
 
 .subtabs--nested {
@@ -332,31 +435,58 @@ summary:focus-visible {
 }
 
 .subtab {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 0.55rem 0.95rem;
+  padding: 0.55rem 0.95rem 0.7rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   background: transparent;
   text-decoration: none;
-  color: var(--text);
+  color: #0f2340;
   font: inherit;
   font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  white-space: nowrap;
   cursor: pointer;
+  overflow: visible;
+}
+
+.subtab::after {
+  content: "";
+  position: absolute;
+  left: 0.65rem;
+  right: 0.65rem;
+  bottom: 0.28rem;
+  height: 2px;
+  border-radius: 999px;
+  background: #2f6fbf;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.28s ease;
+  pointer-events: none;
+  will-change: transform;
 }
 
 .subtab:hover {
-  background: var(--bg-muted);
+  color: #164e9b;
+  background: transparent;
 }
 
 .subtab--active {
-  background: var(--primary-soft);
-  color: var(--primary);
+  color: #2f6fbf;
+  background: transparent;
+}
+
+.subtab--active::after {
+  transform: scaleX(1);
 }
 
 .subtab:focus-visible {
   outline: none;
   box-shadow: var(--focus);
+  border-radius: 8px;
 }
 
 .exec-section {
@@ -460,9 +590,24 @@ summary:focus-visible {
 
 .site-main {
   flex: 1;
-  width: min(100% - 2rem, var(--max-width));
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   padding: 2rem 0 3rem;
+  overflow-x: clip;
+}
+
+/* Constrain route content; banner pages opt out and constrain children instead. */
+.site-main > * {
+  width: min(100% - 2rem, var(--max-width));
+  margin-inline: auto;
+}
+
+.site-main > .home-page,
+.site-main > .clubs-page {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
 }
 
 .site-footer {
@@ -483,14 +628,34 @@ summary:focus-visible {
   gap: 1.25rem;
 }
 
+.clubs-page {
+  gap: 1.25rem;
+}
+
+.home-page > *:not(.home-banner),
+.clubs-page > *:not(.home-banner) {
+  width: min(100% - 2rem, var(--max-width));
+  max-width: 100%;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+.clubs-page__content {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.clubs-page__content > .page {
+  display: contents;
+}
+
 .home-banner {
   position: relative;
   overflow: hidden;
-  width: 100vw;
-  max-width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  margin-top: -2rem;
+  width: 100%;
+  max-width: 100%;
+  margin: -2rem 0 0;
   background: #213659;
   color: #ffffff;
   border: 0;
@@ -539,7 +704,7 @@ summary:focus-visible {
   margin: 0;
   font-family: var(--font-sans);
   font-size: clamp(2.35rem, 5.6vw, 4rem);
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.05;
   letter-spacing: -0.02em;
   color: #ffffff;
@@ -554,6 +719,15 @@ summary:focus-visible {
   font-style: italic;
   font-weight: 700;
   color: #6eb6ff;
+}
+
+.home-banner__description {
+  margin: 0.9rem 0 0;
+  max-width: 32rem;
+  font-size: clamp(0.98rem, 1.7vw, 1.12rem);
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(226, 238, 255, 0.86);
 }
 
 .narrow-page {
@@ -649,17 +823,22 @@ summary:focus-visible {
   gap: 1rem;
   padding: 1.1rem;
   height: 100%;
+  max-height: 16.5rem;
   min-width: 0;
+  overflow: hidden;
 }
 
 .club-card__body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .club-card__body .text-link {
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 .club-card__logo,
@@ -686,6 +865,12 @@ summary:focus-visible {
 
 .club-card h2 {
   margin-bottom: 0.4rem;
+  flex-shrink: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
   overflow-wrap: anywhere;
 }
 
@@ -699,7 +884,31 @@ summary:focus-visible {
 
 .club-card__summary {
   margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
   overflow-wrap: anywhere;
+}
+
+.club-card .meta-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  gap: 0.4rem;
+  overflow: hidden;
+}
+
+.club-card .meta-list > div {
+  min-width: 0;
+}
+
+.club-card .meta-list dd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .club-card--skeleton {
@@ -1289,11 +1498,12 @@ summary:focus-visible {
   gap: 1rem;
   grid-template-columns: 1fr;
   align-items: stretch;
+  margin-top: 0.75rem;
 }
 
 .announcement-card {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: 112px minmax(0, 1fr);
   gap: 1rem;
   padding: 1.1rem;
   height: 100%;
@@ -1305,8 +1515,8 @@ summary:focus-visible {
 }
 
 .announcement-card__image {
-  width: 96px;
-  height: 96px;
+  width: 112px;
+  height: 112px;
   object-fit: cover;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
@@ -1314,8 +1524,8 @@ summary:focus-visible {
 }
 
 .announcement-card__image--fallback {
-  width: 96px;
-  height: 96px;
+  width: 112px;
+  height: 112px;
   background:
     linear-gradient(135deg, rgba(11, 79, 108, 0.2), rgba(180, 83, 9, 0.15)),
     var(--bg-muted);
@@ -1324,24 +1534,71 @@ summary:focus-visible {
 .announcement-card__body {
   display: flex;
   flex-direction: column;
+  gap: 0.4rem;
   min-width: 0;
 }
 
-.announcement-card__body .button-row {
-  margin-top: auto;
+.announcement-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
 }
 
-.announcement-card h2 {
-  margin: 0.35rem 0;
-  font-size: 1.2rem;
+.announcement-card__title {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.25;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.announcement-card h2 a {
+.announcement-card__title a {
   text-decoration: none;
+  color: var(--text-strong);
 }
 
-.announcement-card h2 a:hover {
+.announcement-card__title a:hover {
   color: var(--primary);
+}
+
+.announcement-card__date {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.announcement-card__excerpt {
+  margin: 0;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.announcement-card__club {
+  margin: auto 0 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.announcement-card__club .text-link {
+  color: inherit;
+}
+
+.announcement-card__actions {
+  margin-top: 0.35rem;
 }
 
 .announcement-detail__image {
@@ -1360,6 +1617,68 @@ summary:focus-visible {
 
 .homepage-announcements {
   margin-top: 0.25rem;
+}
+
+.homepage-announcements .section-heading {
+  margin-bottom: 1.5rem;
+}
+
+.school-schedule-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.school-schedule {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.school-schedule--active {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary-soft) 55%, var(--bg-elevated));
+}
+
+.school-schedule h3 {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+}
+
+.school-schedule__list {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-strong);
+}
+
+.school-schedule-editor {
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border);
+}
+
+.school-schedule-editor__row {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.school-schedule-editor__label {
+  margin: 0;
+}
+
+.school-schedule-editor__times {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 700px) {
+  .school-schedule-grid,
+  .school-schedule-editor__times {
+    grid-template-columns: 1fr;
+  }
 }
 
 .danger-zone {
@@ -1670,18 +1989,28 @@ summary:focus-visible {
   .nav-link {
     width: 100%;
     justify-content: flex-start;
-    border-bottom: 0;
     border-radius: 8px;
     padding: 0.7rem 0.75rem;
   }
 
+  .nav-link::after {
+    left: 0.75rem;
+    right: auto;
+    bottom: 0.55rem;
+    width: 1.65rem;
+    transform-origin: left center;
+  }
+
   .nav-link--active {
     background: rgba(47, 111, 191, 0.12);
-    border-bottom-color: transparent;
   }
 
   .nav-link--login {
     width: auto;
+  }
+
+  .nav-link--login::after {
+    display: none;
   }
 
   .club-card,
@@ -1696,6 +2025,7 @@ summary:focus-visible {
   .club-card {
     display: flex;
     flex-direction: column;
+    max-height: 22rem;
   }
 
   .club-card__media {
@@ -1851,6 +2181,77 @@ summary:focus-visible {
   font-size: 0.92rem;
 }
 
+.home-info-card--school-day {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 0.85rem 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.home-info-card__school-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.home-info-card--school-day .home-info-card__value {
+  margin-top: 0.2rem;
+  font-size: 1.3rem;
+  gap: 0.4rem;
+}
+
+.home-info-card--school-day .home-info-card__condition {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+}
+
+.home-info-card--school-day .home-info-card__meta {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+}
+
+.home-info-card__periods {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  list-style: none;
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-muted) 70%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.home-info-card__periods li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.home-info-card__period-label {
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.home-info-card__period-time {
+  color: var(--text-strong);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .home-info-card__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1875,6 +2276,15 @@ summary:focus-visible {
 @media (max-width: 720px) {
   .home-info-strip {
     grid-template-columns: 1fr;
+  }
+
+  .home-info-card--school-day {
+    grid-template-columns: 1fr;
+  }
+
+  .home-info-card__periods {
+    border-left: 0;
+    border-top: 1px solid var(--border);
   }
 
   .home-info-card__stats {

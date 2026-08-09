@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ClubInvitationsPanel } from "../components/clubs/ClubInvitationsPanel";
 import { ClubRoleBadge } from "../components/clubs/ClubRoleBadge";
-import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
@@ -55,20 +54,6 @@ export function MyClubsPage() {
 
   return (
     <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Clubs</p>
-          <h1>My Clubs</h1>
-          <p className="lede">
-            Clubs where you are an active owner, executive, or member, plus any
-            pending membership invitations. Archived clubs no longer appear
-            here.
-          </p>
-        </div>
-      </header>
-
-      <ClubsSubnav />
-
       {notice ? (
         <div className="alert alert--success" role="status">
           <strong>Success</strong>

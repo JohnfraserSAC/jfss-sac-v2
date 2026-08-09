@@ -1,5 +1,5 @@
 import {
-  getTorontoTomorrowYmd,
+  getTorontoTodayYmd,
   isValidFutureTorontoPostingDate,
 } from "./torontoDate";
 
@@ -178,7 +178,7 @@ export function validateAnnouncementForm(
       errors.scheduledPostingDate = "Announcement posting date is required.";
     } else if (!isValidFutureTorontoPostingDate(postingDateRaw)) {
       errors.scheduledPostingDate =
-        "Choose a date after today in America/Toronto (earliest: tomorrow).";
+        "Choose today or a future date in America/Toronto.";
     } else {
       scheduledPostingDate = postingDateRaw;
     }
@@ -195,14 +195,14 @@ export function validateAnnouncementForm(
       clubId,
       scheduledPostingDate,
     },
-    minPostingDate: getTorontoTomorrowYmd(),
+    minPostingDate: getTorontoTodayYmd(),
   };
 }
 
-export function announcementExcerpt(announcement, maxLength = 160) {
+export function announcementExcerpt(announcement, maxLength = 180) {
   const source =
-    announcement?.summary?.trim() ||
     announcement?.body?.trim() ||
+    announcement?.summary?.trim() ||
     "";
   if (source.length <= maxLength) return source;
   return `${source.slice(0, maxLength - 1).trimEnd()}…`;

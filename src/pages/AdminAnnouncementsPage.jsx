@@ -15,7 +15,7 @@ import {
   reviewAnnouncement,
 } from "../services/announcements";
 import { formatDate } from "../utils/format";
-import { formatDateOnly, getPostingUrgency } from "../utils/torontoDate";
+import { formatDateOnly, getPostingUrgency, getTorontoTodayYmd } from "../utils/torontoDate";
 import { getErrorMessage } from "../utils/errors";
 
 export function AdminAnnouncementsPage({ embedded = false }) {
@@ -67,7 +67,10 @@ export function AdminAnnouncementsPage({ embedded = false }) {
       );
       setSuccess(
         reviewDialog.action === "PUBLISH"
-          ? `Approved “${reviewDialog.announcement.title}”. It will appear on the public board on its Toronto posting date.`
+          ? reviewDialog.announcement.scheduled_posting_date ===
+            getTorontoTodayYmd()
+            ? `Approved “${reviewDialog.announcement.title}”. It is live on the public board now.`
+            : `Approved “${reviewDialog.announcement.title}”. It will appear on the public board on its Toronto posting date.`
           : `Updated “${reviewDialog.announcement.title}” to ${reviewDialog.action}.`,
       );
       setReviewDialog(null);
@@ -91,8 +94,9 @@ export function AdminAnnouncementsPage({ embedded = false }) {
             <p className="eyebrow">Administration</p>
             <h1>Announcement review queue</h1>
             <p className="lede">
-              Review submissions sorted by scheduled Toronto posting date. Approve
-              schedules the post for that date — it does not publish immediately.
+              Review submissions sorted by scheduled Toronto posting date.
+              Approving a same-day request publishes it immediately; future
+              dates go live at midnight America/Toronto on that day.
             </p>
           </div>
         </header>
@@ -107,9 +111,9 @@ export function AdminAnnouncementsPage({ embedded = false }) {
         </PermissionNotice>
       ) : (
         <PermissionNotice title="Scheduled posting">
-          Approval keeps the announcement hidden until 12:00 a.m.
-          America/Toronto on its posting date. Requests not approved before
-          that day begin are cancelled automatically.
+          Choose today to publish when approved, or a future Toronto date to
+          schedule midnight go-live. Unapproved requests are cancelled after
+          their posting day ends.
         </PermissionNotice>
       )}
 

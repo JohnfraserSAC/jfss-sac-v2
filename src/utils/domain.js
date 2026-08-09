@@ -17,3 +17,14 @@ export function isAllowedEmailDomain(email) {
 
   return getEmailDomain(email) === ALLOWED_EMAIL_DOMAIN;
 }
+
+/** Student number from the PDSB email local-part (leading digits). */
+export function getStudentNumberFromEmail(email) {
+  const local = String(email || "")
+    .trim()
+    .toLowerCase()
+    .split("@")[0];
+  if (!local) return "";
+  const match = local.match(/^(\d+)/);
+  return match?.[1] || "";
+}

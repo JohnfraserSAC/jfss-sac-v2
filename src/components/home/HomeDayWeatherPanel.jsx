@@ -1,3 +1,5 @@
+import { buildDaySchedule, formatBellTime } from "../../utils/schoolSchedule";
+
 function WeatherGlyph({ iconKey }) {
   const common = {
     viewBox: "0 0 24 24",
@@ -94,34 +96,81 @@ export function HomeDayWeatherPanel({
         ? "Day 2"
         : null;
 
+  const isHalfDay = Boolean(
+    schoolDay?.is_half_day || schoolDay?.schedule_override_active,
+  );
+
+  const periods =
+    schoolDay?.effective_day
+      ? buildDaySchedule(schoolDay.effective_day, { halfDay: isHalfDay })
+      : [];
+
   return (
     <section
       className="home-info-strip"
       aria-label="School day and Mississauga weather"
     >
-      <article className="home-info-card" aria-live="polite">
-        <div className="home-info-card__icon" aria-hidden="true">
-          <CalendarGlyph />
-        </div>
-        <div className="home-info-card__body">
-          <p className="home-info-card__eyebrow">School day</p>
-          {schoolDayLoading && !schoolDay ? (
-            <p className="muted">Loading school day…</p>
-          ) : schoolDayError && !schoolDay ? (
-            <p className="form-error" role="status">
-              School day unavailable
-            </p>
-          ) : (
-            <>
-              <p className="home-info-card__value">{dayLabel}</p>
-              <p className="home-info-card__meta">
-                {schoolDay?.override_active
-                  ? "Manual override active for today"
-                  : "regular day schedule"}
+      <article className="home-info-card home-info-card--school-day" aria-live="polite">
+        {schoolDayLoading && !schoolDay ? (
+          <>
+            <div className="home-info-card__icon" aria-hidden="true">
+              <CalendarGlyph />
+            </div>
+            <div className="home-info-card__body">
+              <p className="home-info-card__eyebrow">School day</p>
+              <p className="muted">Loading school day…</p>
+            </div>
+          </>
+        ) : schoolDayError && !schoolDay ? (
+          <>
+            <div className="home-info-card__icon" aria-hidden="true">
+              <CalendarGlyph />
+            </div>
+            <div className="home-info-card__body">
+              <p className="home-info-card__eyebrow">School day</p>
+              <p className="form-error" role="status">
+                School day unavailable
               </p>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="home-info-card__school-main">
+              <div className="home-info-card__icon" aria-hidden="true">
+                <CalendarGlyph />
+              </div>
+              <div className="home-info-card__body">
+                <p className="home-info-card__eyebrow">School day</p>
+                <p className="home-info-card__value">
+                  {dayLabel}
+                  {isHalfDay ? (
+                    <span className="home-info-card__condition">Half day</span>
+                  ) : null}
+                </p>
+                <p className="home-info-card__meta">
+                  {schoolDay?.override_active
+                    ? "Manual day override"
+                    : "Automatic schedule"}
+                </p>
+              </div>
+            </div>
+
+            {periods.length > 0 ? (
+              <ol className="home-info-card__periods" aria-label="Period times">
+                {periods.map((period) => (
+                  <li key={`${period.label}-${period.start}`}>
+                    <span className="home-info-card__period-label">
+                      {period.label}
+                    </span>
+                    <span className="home-info-card__period-time">
+                      {formatBellTime(period.start)} – {formatBellTime(period.end)}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+          </>
+        )}
       </article>
 
       <article className="home-info-card" aria-live="polite">

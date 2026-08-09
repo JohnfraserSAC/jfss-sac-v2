@@ -55,12 +55,15 @@ export function getPostingDaysRemaining(scheduledYmd, now = new Date()) {
 
 export function getPostingUrgency(scheduledYmd, now = new Date()) {
   const days = getPostingDaysRemaining(scheduledYmd, now);
-  if (days == null || days <= 0) {
+  if (days == null || days < 0) {
     return {
       days,
       tone: "danger",
-      label: days === 0 ? "Due today" : "Past due",
+      label: "Past due",
     };
+  }
+  if (days === 0) {
+    return { days, tone: "danger", label: "Publish now" };
   }
   if (days === 1) {
     return { days, tone: "danger", label: "Posts tomorrow" };
@@ -98,9 +101,10 @@ export function formatDateOnly(ymd) {
   }
 }
 
+/** True when ymd is today or a future America/Toronto calendar date. */
 export function isValidFutureTorontoPostingDate(ymd, now = new Date()) {
   if (!YMD_PATTERN.test(String(ymd || "").trim())) return false;
-  return diffCalendarDaysYmd(getTorontoTodayYmd(now), ymd) >= 1;
+  return diffCalendarDaysYmd(getTorontoTodayYmd(now), ymd) >= 0;
 }
 
 export function getAutomaticSchoolDay(ymd, now = new Date()) {

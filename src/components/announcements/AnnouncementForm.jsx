@@ -5,7 +5,7 @@ import { TextArea } from "../ui/TextArea";
 import { TextInput } from "../ui/TextInput";
 import { Spinner } from "../ui/Spinner";
 import { AnnouncementStatusBadge } from "./AnnouncementStatusBadge";
-import { getTorontoTomorrowYmd } from "../../utils/torontoDate";
+import { getTorontoTodayYmd } from "../../utils/torontoDate";
 
 export function AnnouncementForm({
   mode = "create",
@@ -21,7 +21,10 @@ export function AnnouncementForm({
   onSubmitAction,
   error = "",
 }) {
-  const minPostingDate = getTorontoTomorrowYmd();
+  const minPostingDate = getTorontoTodayYmd();
+  const isPublishNow =
+    Boolean(values.scheduledPostingDate) &&
+    values.scheduledPostingDate === minPostingDate;
   const [announcementType, setAnnouncementType] = useState(
     values.clubId ? "CLUB" : "GENERAL",
   );
@@ -126,17 +129,6 @@ export function AnnouncementForm({
       />
 
       <TextArea
-        id="summary"
-        name="summary"
-        label="Summary"
-        value={values.summary}
-        onChange={updateField}
-        error={fieldErrors.summary}
-        rows={3}
-        hint="Optional. Shown on cards and the homepage."
-      />
-
-      <TextArea
         id="body"
         name="body"
         label="Body"
@@ -167,7 +159,11 @@ export function AnnouncementForm({
         onChange={updateField}
         error={fieldErrors.scheduledPostingDate}
         min={minPostingDate}
-        hint="Required to submit. America/Toronto calendar date. Earliest selectable date is tomorrow."
+        hint={
+          isPublishNow
+            ? "Today selected — once approved, this announcement publishes immediately."
+            : "Required to submit. America/Toronto calendar date. Choose today to request publish now, or a future day to schedule."
+        }
       />
 
       {error ? (

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ClubLiaisonContacts } from "../components/clubs/ClubLiaisonContacts";
 import { TeacherSupervisorFormSection } from "../components/clubs/TeacherSupervisorFormSection";
-import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { TextArea } from "../components/ui/TextArea";
 import { TextInput } from "../components/ui/TextInput";
@@ -142,20 +141,6 @@ export function ClubApplyPage() {
 
   return (
     <div className="page narrow-page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Clubs · {CLUB_APPLICATION_SCHOOL_YEAR}</p>
-          <h1>Club Application Form 2026–2027</h1>
-          <p className="lede">
-            Hey Jags! Have an idea for a new club? We&apos;d love to hear it!
-            Complete the form below with as much detail as possible and make
-            sure to read every section carefully before submitting.
-          </p>
-        </div>
-      </header>
-
-      <ClubsSubnav />
-
       <section className="panel">
         <p>
           Please note that submitting a proposal does not guarantee approval.

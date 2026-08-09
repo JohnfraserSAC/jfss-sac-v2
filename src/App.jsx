@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { AppShell } from "./components/layout/AppShell";
+import { ClubsLayout } from "./components/layout/ClubsLayout";
 import { ExecDashboardLayout } from "./components/layout/ExecDashboardLayout";
 import { ExecApplicationsLayout } from "./components/layout/ExecApplicationsLayout";
 import { ExecRequestsLayout } from "./components/layout/ExecRequestsLayout";
@@ -50,52 +51,54 @@ export default function App() {
             <Route index element={<HomePage />} />
             <Route path="login" element={<LoginPage />} />
 
-            <Route path="clubs" element={<ClubsPage />} />
-            <Route
-              path="clubs/my-clubs"
-              element={
-                <ProtectedRoute>
-                  <MyClubsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="clubs/apply"
-              element={
-                <ProtectedRoute>
-                  <ClubApplyPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="clubs/reapply"
-              element={
-                <ProtectedRoute>
-                  <ClubReapplyPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="clubs/register"
-              element={<Navigate to="/clubs/apply" replace />}
-            />
-            <Route path="clubs/:slug" element={<ClubDetailPage />} />
-            <Route
-              path="clubs/:slug/manage"
-              element={
-                <ProtectedRoute>
-                  <ClubManagePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="clubs/:slug/manage/funding"
-              element={
-                <ProtectedRoute>
-                  <ClubFundingPlaceholderPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="clubs" element={<ClubsLayout />}>
+              <Route index element={<ClubsPage />} />
+              <Route
+                path="my-clubs"
+                element={
+                  <ProtectedRoute>
+                    <MyClubsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="apply"
+                element={
+                  <ProtectedRoute>
+                    <ClubApplyPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="reapply"
+                element={
+                  <ProtectedRoute>
+                    <ClubReapplyPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="register"
+                element={<Navigate to="/clubs/apply" replace />}
+              />
+              <Route path=":slug" element={<ClubDetailPage />} />
+              <Route
+                path=":slug/manage"
+                element={
+                  <ProtectedRoute>
+                    <ClubManagePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":slug/manage/funding"
+                element={
+                  <ProtectedRoute>
+                    <ClubFundingPlaceholderPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
 
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="events" element={<EventsPage />} />

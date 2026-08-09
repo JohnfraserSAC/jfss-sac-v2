@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { getStudentNumberFromEmail } from "../../utils/domain";
 import { displayName } from "../../utils/format";
 
 const navLinks = [
@@ -20,22 +21,46 @@ function getAvatarUrl(profile, user) {
 }
 
 function getInitials(name) {
-  const parts = String(name || "")
+  const letters = String(name || "")
     .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    .replace(/[^a-zA-Z]/g, "")
+    .slice(0, 2)
+    .toUpperCase();
+  return letters || "?";
+}
+
+/** Primary navbar role label from system roles. */
+function getNavRoleLabel({ isSacAdmin, isSacExec, isFacultyAdvisor }) {
+  if (isSacAdmin) return "SAC ADMIN";
+  if (isSacExec) return "SAC EXEC";
+  if (isFacultyAdvisor) return "FACULTY";
+  return "STUDENT";
 }
 
 export function AppShell() {
-  const { user, profile, isAuthenticated, canAccessExecDashboard } = useAuth();
+  const {
+    user,
+    profile,
+    isAuthenticated,
+    canAccessExecDashboard,
+    isSacAdmin,
+    isSacExec,
+    isFacultyAdvisor,
+  } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
 
   const name = displayName(profile, user);
   const avatarUrl = getAvatarUrl(profile, user);
+  const studentNumber = getStudentNumberFromEmail(
+    profile?.email || user?.email,
+  );
+  const roleLabel = getNavRoleLabel({
+    isSacAdmin,
+    isSacExec,
+    isFacultyAdvisor,
+  });
+  const roleTone = roleLabel === "STUDENT" ? "student" : "staff";
 
   useEffect(() => {
     setAvatarFailed(false);
@@ -98,20 +123,6 @@ export function AppShell() {
                 </li>
               ))}
 
-              {isAuthenticated && canAccessExecDashboard ? (
-                <li>
-                  <NavLink
-                    to="/exec-dashboard"
-                    className={({ isActive }) =>
-                      isActive ? "nav-link nav-link--active" : "nav-link"
-                    }
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Exec Dashboard
-                  </NavLink>
-                </li>
-              ) : null}
-
               {isAuthenticated ? (
                 <li>
                   <NavLink
@@ -122,6 +133,19 @@ export function AppShell() {
                     onClick={() => setMenuOpen(false)}
                   >
                     My Requests
+                  </NavLink>
+                </li>
+              ) : null}
+              {isAuthenticated && canAccessExecDashboard ? (
+                <li>
+                  <NavLink
+                    to="/exec-dashboard"
+                    className={({ isActive }) =>
+                      isActive ? "nav-link nav-link--active" : "nav-link"
+                    }
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Exec Dashboard
                   </NavLink>
                 </li>
               ) : null}
@@ -148,26 +172,41 @@ export function AppShell() {
               <NavLink
                 to="/dashboard"
                 className={({ isActive }) =>
-                  isActive ? "nav-avatar nav-avatar--active" : "nav-avatar"
+                  isActive ? "nav-profile nav-profile--active" : "nav-profile"
                 }
                 onClick={() => setMenuOpen(false)}
-                aria-label={`${name} profile`}
-                title={name}
+                aria-label={
+                  studentNumber
+                    ? `${name} profile, ${roleLabel}, student number ${studentNumber}`
+                    : `${name} profile, ${roleLabel}`
+                }
+                title={`${name} · ${roleLabel}`}
               >
-                {avatarUrl && !avatarFailed ? (
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    className="nav-avatar__image"
-                    width={40}
-                    height={40}
-                    onError={() => setAvatarFailed(true)}
-                  />
-                ) : (
-                  <span className="nav-avatar__fallback" aria-hidden="true">
-                    {getInitials(name)}
+                <span className="nav-avatar" aria-hidden="true">
+                  {avatarUrl && !avatarFailed ? (
+                    <img
+                      src={avatarUrl}
+                      alt=""
+                      className="nav-avatar__image"
+                      width={40}
+                      height={40}
+                      onError={() => setAvatarFailed(true)}
+                    />
+                  ) : (
+                    <span className="nav-avatar__fallback">
+                      {getInitials(name)}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`nav-profile__meta nav-profile__meta--${roleTone}`}
+                  aria-hidden="true"
+                >
+                  <span className="nav-profile__student-number">
+                    {studentNumber || "\u00a0"}
                   </span>
-                )}
+                  <span className="nav-profile__role">{roleLabel}</span>
+                </span>
               </NavLink>
             ) : (
               <NavLink

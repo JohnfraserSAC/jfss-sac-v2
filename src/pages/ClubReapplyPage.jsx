@@ -2,7 +2,6 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LocalFilePreview } from "../components/ui/LocalFilePreview";
-import { ClubsSubnav } from "../components/clubs/ClubsSubnav";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { FilePicker } from "../components/ui/FilePicker";
 import { Select } from "../components/ui/Select";
@@ -345,20 +344,10 @@ export function ClubReapplyPage() {
   if (successId) {
     return (
       <div className="page">
-        <header className="page-header">
-          <div>
-            <p className="eyebrow">Clubs</p>
-            <h1>Re-application submitted</h1>
-            <p className="lede">
-              Your Club Re-Application for {CLUB_APPLICATION_SCHOOL_YEAR} was
-              received. Submission does not guarantee approval.
-            </p>
-          </div>
-        </header>
-        <ClubsSubnav />
         <div className="alert alert--success" role="status">
           <p>
-            Track status on{" "}
+            Your Club Re-Application for {CLUB_APPLICATION_SCHOOL_YEAR} was
+            received. Submission does not guarantee approval. Track status on{" "}
             <Link to="/my-requests">My Requests</Link>. If approved, you become
             an OWNER of the existing club record.
           </p>
@@ -369,21 +358,6 @@ export function ClubReapplyPage() {
 
   return (
     <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Clubs</p>
-          <h1>Club Re-Application Form {CLUB_APPLICATION_SCHOOL_YEAR.replace("-", "–")}</h1>
-          <p className="lede">
-            Use this form for an existing past John Fraser club. Submission does
-            not guarantee approval. If approved, your authenticated account
-            becomes an OWNER. Additional OWNERs and EXECs can be added after
-            approval. A club may have at most three active OWNERs.
-          </p>
-        </div>
-      </header>
-
-      <ClubsSubnav />
-
       {error ? <ErrorMessage message={error} /> : null}
 
       <form className="stack form-card" onSubmit={handleSubmit} noValidate>
