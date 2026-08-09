@@ -1500,6 +1500,41 @@ summary:focus-visible {
   gap: 0.65rem;
 }
 
+.login-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.login-dialog__header .eyebrow {
+  margin: 0;
+}
+
+.login-dialog__close {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.35rem;
+}
+
+.login-dialog__close:hover:not(:disabled) {
+  color: var(--text-strong);
+}
+
+.login-dialog__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.nav-link {
+  font: inherit;
+  cursor: pointer;
+}
+
 .badge--published {
   background: var(--success-soft);
   border-color: #bbf7d0;

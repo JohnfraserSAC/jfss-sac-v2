@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { LoginModalProvider } from "./context/LoginModalContext";
 import { AppShell } from "./components/layout/AppShell";
 import { ClubsLayout } from "./components/layout/ClubsLayout";
 import { ExecDashboardLayout } from "./components/layout/ExecDashboardLayout";
@@ -12,9 +13,9 @@ import { ExecRequestsIndexRedirect } from "./components/layout/ExecRequestsIndex
 import { ExecArchivedIndexRedirect } from "./components/layout/ExecArchivedIndexRedirect";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleRoute } from "./components/auth/RoleRoute";
+import { LoginRedirect } from "./components/auth/LoginRedirect";
 import { EXEC_DASHBOARD_ROLES } from "./utils/execPermissions";
 import { HomePage } from "./pages/HomePage";
-import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ClubsPage } from "./pages/ClubsPage";
 import { ClubDetailPage } from "./pages/ClubDetailPage";
@@ -51,10 +52,11 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
+        <LoginModalProvider>
+          <Routes>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
-            <Route path="login" element={<LoginPage />} />
+            <Route path="login" element={<LoginRedirect />} />
 
             <Route path="clubs" element={<ClubsLayout />}>
               <Route index element={<ClubsPage />} />
@@ -338,7 +340,8 @@ export default function App() {
             <Route path="home" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-        </Routes>
+          </Routes>
+        </LoginModalProvider>
       </BrowserRouter>
     </AuthProvider>
   );

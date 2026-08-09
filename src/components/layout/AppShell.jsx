@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { SiteBanner } from "../banners/SiteBanner";
 import { useAuth } from "../../context/AuthContext";
+import { useLoginModal } from "../../context/LoginModalContext";
 import { resolvePageBanner } from "../../config/pageBanners";
 import { getStudentNumberFromEmail } from "../../utils/domain";
 import { displayName } from "../../utils/format";
@@ -49,6 +50,7 @@ export function AppShell() {
     isSacExec,
     isFacultyAdvisor,
   } = useAuth();
+  const { openLoginModal } = useLoginModal();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
@@ -214,17 +216,16 @@ export function AppShell() {
                 </span>
               </NavLink>
             ) : (
-              <NavLink
-                to="/login"
-                className={({ isActive }) =>
-                  isActive
-                    ? "nav-link nav-link--active nav-link--login"
-                    : "nav-link nav-link--login"
-                }
-                onClick={() => setMenuOpen(false)}
+              <button
+                type="button"
+                className="nav-link nav-link--login"
+                onClick={() => {
+                  setMenuOpen(false);
+                  openLoginModal();
+                }}
               >
                 Login
-              </NavLink>
+              </button>
             )}
           </div>
         </div>

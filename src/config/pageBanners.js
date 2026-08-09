@@ -4,14 +4,6 @@
  */
 const PAGE_BANNERS = [
   {
-    match: (path) => path === "/login" || path.startsWith("/login/"),
-    ariaLabel: "Sign in",
-    eyebrow: "\u2014 Account",
-    title: "Sign in.",
-    description:
-      "Use your Google account to access clubs, announcements, and your dashboard.",
-  },
-  {
     match: (path) => path === "/dashboard" || path.startsWith("/dashboard/"),
     ariaLabel: "Dashboard",
     eyebrow: "\u2014 Account",
