@@ -12,6 +12,7 @@ const navLinks = [
   { to: "/schedule", label: "Schedule" },
   { to: "/sports", label: "Sports" },
   { to: "/student-resources", label: "Student Resources" },
+  { to: "/our-team", label: "Our Team" },
 ];
 
 function getAvatarUrl(profile, user) {

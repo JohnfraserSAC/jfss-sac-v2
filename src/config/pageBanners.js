@@ -78,6 +78,14 @@ const PAGE_BANNERS = [
     description:
       "Helpful links and student resources will appear here in a future update.",
   },
+  {
+    match: (path) => path === "/our-team" || path.startsWith("/our-team/"),
+    ariaLabel: "Our Team",
+    eyebrow: "\u2014 2026\u20132027",
+    title: "Our Team.",
+    description:
+      "Meet the SAC Executive Team and Honouraries leading clubs and events this year.",
+  },
 ];
 
 const FALLBACK_BANNER = {
