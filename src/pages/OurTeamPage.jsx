@@ -19,6 +19,13 @@ const execTeam = [
   { name: "Alissa Roy", role: "Promotions Officer", grade: "Grade 10", initials: "AR", color: "#2f4b9e", photo: null },
 ];
 
+const gradeRepresentatives = [
+  { name: "Person 1", role: "Grade Rep", grade: "Grade 9", initials: "P1", color: "#1e2a4a", photo: null },
+  { name: "Person 2", role: "Grade Rep", grade: "Grade 10", initials: "P2", color: "#2c5eb0", photo: null },
+  { name: "Person 3", role: "Grade Rep", grade: "Grade 11", initials: "P3", color: "#1a7a5e", photo: null },
+  { name: "Person 4", role: "Grade Rep", grade: "Grade 12", initials: "P4", color: "#6b3fa0", photo: null },
+]
+
 const generalMembers = [
   { name: "Aaliya Noor", role: "Honourary", grade: "Grade 11", initials: "AN", color: "#1e2a4a", photo: null },
   { name: "Ben Kowalski", role: "Honourary", grade: "Grade 11", initials: "BK", color: "#2c5eb0", photo: null },
@@ -59,7 +66,7 @@ export function OurTeamPage() {
       <div className="team-header">
         <h1 className="team-title">SAC Executive Team</h1>
         <p className="team-subtitle">
-          This year's exec leads school-wide events, club oversight, and this platform.
+          Working closely with SAC staff advisors, the Executive Team oversees SAC and mentors members. The team is selected each May through an application or election process.
         </p>
       </div>
 
@@ -70,10 +77,22 @@ export function OurTeamPage() {
       </div>
 
       <div className="team-header">
+        <h1 className="team-title">Grade Representatives</h1>
+        <p className="team-subtitle">
+          Grade Representatives voice the opinions of their grade and help engage their peers. They are selected each September for the new school year.
+        </p>
+      </div>
+
+      <div className="member-grid">
+        {gradeRepresentatives.map((member) => (
+          <MemberCard key={member.name} member={member} />
+        ))}
+      </div>
+
+      <div className="team-header">
         <h1 className="team-title">Honouraries</h1>
         <p className="team-subtitle">
-          Honoraries support exec on events, run clubs day-to-day, and are first
-          to volunteer when something needs doing.
+          Honorary Members make up most of SAC. They are student leaders who help plan, execute, and promote SAC events. Positions are selected at the start of the year and can be found here.
         </p>
       </div>
 

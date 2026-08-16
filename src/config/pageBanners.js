@@ -73,18 +73,18 @@ const PAGE_BANNERS = [
     match: (path) =>
       path === "/student-resources" || path.startsWith("/student-resources/"),
     ariaLabel: "Student Resources",
-    eyebrow: "\u2014 Coming soon",
-    title: "Student Resources.",
+    eyebrow: "\u2014 Student Resources",
+    title: "Your Resources Hub.",
     description:
-      "Helpful links and student resources will appear here in a future update.",
+      "Guidance, support, and essential resources to help you stay informed, supported, and on track.",
   },
   {
     match: (path) => path === "/our-team" || path.startsWith("/our-team/"),
     ariaLabel: "Our Team",
-    eyebrow: "\u2014 2026\u20132027",
-    title: "Our Team.",
+    eyebrow: "\u2014 Our Team",
+    title: "Meet Your Student Council.",
     description:
-      "Meet the SAC Executive Team and Honouraries leading clubs and events this year.",
+      "Meet the SAC Executive Team, Grade Reps and Honouraries leading clubs and events this year.",
   },
 ];
 

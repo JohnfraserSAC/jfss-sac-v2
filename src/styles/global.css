@@ -791,6 +791,7 @@ summary:focus-visible {
 .panel,
 .stat-card,
 .club-card,
+.counsellor-card,
 .request-card,
 .empty-state,
 .loading-screen,
@@ -825,6 +826,7 @@ summary:focus-visible {
 
 .stat-grid,
 .club-grid,
+.counsellor-grid,
 .quick-links,
 .toolbar--split {
   display: grid;
@@ -936,6 +938,112 @@ summary:focus-visible {
 
 .club-card--skeleton {
   pointer-events: none;
+}
+
+.counsellor-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.counsellor-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.15rem 1.3rem;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.counsellor-card:hover,
+.counsellor-card:focus-visible {
+  transform: translateY(-3px) scale(1.015);
+  border-color: var(--primary);
+  box-shadow: 0 18px 36px rgba(15, 28, 46, 0.16);
+}
+
+.counsellor-card:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--focus),
+    0 18px 36px rgba(15, 28, 46, 0.16);
+}
+
+.counsellor-card__top {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.counsellor-card__avatar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+.counsellor-card__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.counsellor-card__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.counsellor-card__range {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.counsellor-card__arrow {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translate(-3px, 3px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    color 0.16s ease;
+}
+
+.counsellor-card:hover .counsellor-card__arrow,
+.counsellor-card:focus-visible .counsellor-card__arrow {
+  opacity: 1;
+  transform: translate(0, 0);
+  color: var(--primary);
+}
+
+.counsellor-card__email {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.counsellor-hint {
+  align-self: flex-end;
+  margin: 0;
+  font-size: 0.88rem;
+  white-space: nowrap;
 }
 
 .skeleton {
@@ -2113,6 +2221,10 @@ button.nav-link {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .counsellor-grid {
+    grid-template-columns: 1fr;
+  }
+
   .menu-toggle {
     display: inline-flex;
   }
@@ -2544,7 +2656,6 @@ button.nav-link {
   }
 }
 
-/* ===== Our Team page ===== */
 .team-page {
   max-width: 1200px;
   margin: 0 auto;
@@ -2638,4 +2749,155 @@ button.nav-link {
   color: #9ca3af;
   font-size: 0.85rem;
   margin: 0;
+}
+
+/* ===== Officer names + Meet the Team button ===== */
+.officer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-top: 1px solid #e5e9f0;
+  padding-top: 24px;
+}
+
+.officer-list {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.officer-list__item {
+  min-width: 140px;
+}
+
+.officer-list__name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e2a4a;
+  margin: 0 0 2px;
+}
+
+.officer-list__role {
+  color: #2c5eb0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.btn-meet-team {
+  flex-shrink: 0;
+  background: #1e2a4a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 999px;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-meet-team:hover {
+  background: #2c5eb0;
+}
+
+.who-we-are__top {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 700px) {
+  .who-we-are__top {
+    grid-template-columns: 1fr;
+  }
+}
+
+.who-we-are__photo {
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+}
+
+.who-we-are__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.who-we-are__photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef1f6;
+  border: 1px dashed #c7cdd8;
+  border-radius: 16px;
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 16px;
+}
+
+/* ===== Officer names + Meet the Team button ===== */
+.officer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-top: 1px solid #e5e9f0;
+  padding-top: 24px;
+}
+
+.officer-list {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.officer-list__item {
+  min-width: 140px;
+}
+
+.officer-list__name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e2a4a;
+  margin: 0 0 2px;
+}
+
+.officer-list__role {
+  color: #2c5eb0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.btn-meet-team {
+  flex-shrink: 0;
+  background: #1e2a4a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 999px;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-meet-team:hover {
+  background: #2c5eb0;
 }
