@@ -11,6 +11,7 @@ import {
   getTorontoTodayYmd,
   msUntilNextTorontoMidnight,
 } from "../utils/torontoDate";
+import { HomeWhoWeAre } from "./WhoWeAreHomePage";
 
 export function HomePage() {
   const { accessDenied, authError } = useAuth();
@@ -133,6 +134,8 @@ export function HomePage() {
         weatherLoading={weatherLoading}
         weatherError={weatherError}
       />
+
+      <HomeWhoWeAre />
 
       <HomepageAnnouncements limit={5} />
     </div>
