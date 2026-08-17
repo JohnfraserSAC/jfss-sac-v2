@@ -23,7 +23,7 @@ export function HomeWhoWeAre() {
 
         <div className="who-we-are__intro">
           <p className="eyebrow">Who we are</p>
-          <h2 id="who-we-are-heading">Who We Are</h2>
+          <h2 id="who-we-are-heading">About SAC</h2>
           <p className="lede">
             SAC stands for Student Activity Council. We're a team of John
             Fraser students committed to enhancing your high school

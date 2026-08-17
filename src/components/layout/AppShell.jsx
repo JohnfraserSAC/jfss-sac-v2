@@ -11,6 +11,7 @@ const navLinks = [
   { to: "/clubs", label: "Clubs" },
   { to: "/schedule", label: "Schedule" },
   { to: "/sports", label: "Sports" },
+  { to: "/sac-events", label: "Events" },
   { to: "/student-resources", label: "Student Resources" },
   { to: "/our-team", label: "Our Team" },
 ];
