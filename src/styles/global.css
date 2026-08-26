@@ -874,7 +874,15 @@ summary:focus-visible {
   margin-top: auto;
   background: transparent;
   color: var(--text);
-  border-top: 1px dotted var(--border-strong);
+  border-top: none;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--border-strong) 0 12px,
+    transparent 12px 24px
+  );
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
 }
 
 .site-footer__inner {
