@@ -48,6 +48,7 @@ import { SportsPage } from "./pages/SportsPage";
 import { StudentResourcesPage } from "./pages/StudentResourcesPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { OurTeamPage } from "./pages/OurTeamPage";
+import { EventsPage } from "./pages/EventsPage";
 
 export default function App() {
   return (
@@ -114,6 +115,7 @@ export default function App() {
               path="events"
               element={<Navigate to="/sports" replace />}
             />
+            <Route path="sac-events" element={<EventsPage />} />
             <Route path="student-resources" element={<StudentResourcesPage />} />
             <Route path="our-team" element={<OurTeamPage />} />
 

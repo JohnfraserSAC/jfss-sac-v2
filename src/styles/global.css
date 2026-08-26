@@ -2668,7 +2668,7 @@ button.nav-link {
   margin-bottom: 32px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -2900,4 +2900,195 @@ button.nav-link {
 
 .btn-meet-team:hover {
   background: #2c5eb0;
+}
+
+/* ===== Sports teams ===== */
+.sport-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .sport-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .sport-grid { grid-template-columns: 1fr; }
+}
+
+.sport-card {
+  background: #fff;
+  border: 1px solid #e5e9f0;
+  border-radius: 12px;
+  padding: 28px 24px;
+}
+
+.sport-card__icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.sport-card__name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e2a4a;
+  margin: 0 0 8px;
+}
+
+.sport-card__description {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ===== Section sub-headers (Athlete of the Month / Our Teams) ===== */
+.section-header {
+  margin: 40px 0 20px;
+}
+
+.section-header__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e2a4a;
+  margin: 0 0 4px;
+}
+
+.section-header__subtitle {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ===== Athlete of the Month ===== */
+.athlete-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1000px) {
+  .athlete-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 620px) {
+  .athlete-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.athlete-card {
+  background: #fff;
+  border: 1px solid #e5e9f0;
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.athlete-card__photo {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  margin: 0 0 14px;
+  object-fit: cover;
+  display: block;
+}
+
+.athlete-card__photo--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 2.2rem;
+}
+
+.athlete-card__name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e2a4a;
+  margin: 0 0 2px;
+}
+
+.athlete-card__sport {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ===== Events ===== */
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.event-card {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 40px;
+  background: #fff;
+  border: 1px solid #e5e9f0;
+  border-radius: 16px;
+  padding: 32px;
+}
+
+@media (max-width: 900px) {
+  .event-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+.event-card__photo {
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.event-card__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.event-card__photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef1f6;
+  border: 1px dashed #c7cdd8;
+  border-radius: 12px;
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.event-card__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.event-card__date {
+  color: #2c5eb0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+
+.event-card__title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e2a4a;
+  margin: 0 0 16px;
+}
+
+.event-card__description {
+  color: #6b7280;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin: 0;
 }

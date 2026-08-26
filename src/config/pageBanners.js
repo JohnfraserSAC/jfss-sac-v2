@@ -64,10 +64,10 @@ const PAGE_BANNERS = [
   {
     match: (path) => path === "/sports" || path.startsWith("/sports/"),
     ariaLabel: "Sports",
-    eyebrow: "\u2014 Coming soon",
-    title: "Sports.",
+    eyebrow: "\u2014 Fraser Athletics",
+    title: "Your Sports Hub.",
     description:
-      "Sports schedules, scores, and updates will appear here in a future update.",
+      "A look at every competitive tean John Fraser has to offer, all in one place.",
   },
   {
     match: (path) =>
@@ -85,6 +85,13 @@ const PAGE_BANNERS = [
     title: "Meet Your Student Council.",
     description:
       "Meet the SAC Executive Team, Grade Reps and Honouraries leading clubs and events this year.",
+  },
+  {
+    match: (path) => path === "/sac-events" || path.startsWith("/sac-events/"),
+    ariaLabel: "Events",
+    eyebrow: "\u2014 SAC Events",
+    title: "Your Events Hub.",
+    description: "Details on the events organized and delivered by SAC.",
   },
 ];
 
