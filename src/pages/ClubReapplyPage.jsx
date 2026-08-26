@@ -169,6 +169,9 @@ export function ClubReapplyPage() {
     if (!isValidEmail(values.public_email)) {
       errors.public_email = "Enter a valid public club email.";
     }
+    if (!values.instagram_handle.trim()) {
+      errors.instagram_handle = "Enter the club Instagram handle.";
+    }
     if (logoFile) {
       if (!REAPP_LOGO_ALLOWED_TYPES.includes(logoFile.type)) {
         errors.logo = "Logo must be JPEG, PNG, or WebP.";
@@ -288,7 +291,7 @@ export function ClubReapplyPage() {
         shortDescription: deriveShortDescription(description),
         description,
         publicEmail: values.public_email.trim().toLowerCase(),
-        instagramHandle: values.instagram_handle.trim() || null,
+        instagramHandle: values.instagram_handle.trim().replace(/^@+/, ""),
         meetingFrequency:
           values.meeting_days.length > 0 ? "Weekly" : "Other",
         meetingDays: values.meeting_days,
@@ -489,10 +492,11 @@ export function ClubReapplyPage() {
           id="instagram_handle"
           name="instagram_handle"
           label="Instagram handle"
+          required
           value={values.instagram_handle}
           onChange={updateField}
+          error={fieldErrors.instagram_handle}
           disabled={submitting}
-          hint="Optional"
         />
 
         <fieldset
