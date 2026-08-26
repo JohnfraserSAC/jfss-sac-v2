@@ -6,8 +6,6 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { PermissionNotice } from "../components/ui/PermissionNotice";
-import { Select } from "../components/ui/Select";
-import { TextInput } from "../components/ui/TextInput";
 import { getAdminClubRequestQueue } from "../services/clubRequests";
 import { getErrorMessage } from "../utils/errors";
 
@@ -16,8 +14,6 @@ export function AdminClubRequestsPage({ embedded = false }) {
   const { canMutateReviews } = useAuth();
   const readOnly = !canMutateReviews;
   const [requests, setRequests] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionSuccess, setActionSuccess] = useState("");
@@ -37,24 +33,17 @@ export function AdminClubRequestsPage({ embedded = false }) {
     setError("");
 
     try {
-      const data = await getAdminClubRequestQueue({
-        status: statusFilter,
-        search,
-      });
+      const data = await getAdminClubRequestQueue();
       setRequests(data);
     } catch (loadError) {
       setError(getErrorMessage(loadError, "Could not load the request queue."));
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, search]);
+  }, []);
 
   useEffect(() => {
-    const handle = window.setTimeout(() => {
-      loadQueue();
-    }, 250);
-
-    return () => window.clearTimeout(handle);
+    loadQueue();
   }, [loadQueue]);
 
   if (loading && requests.length === 0) {
@@ -84,28 +73,6 @@ export function AdminClubRequestsPage({ embedded = false }) {
         </PermissionNotice>
       ) : null}
 
-      <div className="toolbar toolbar--split">
-        <Select
-          id="status-filter"
-          label="Filter by status"
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
-        >
-          <option value="ALL">Pending queue</option>
-          <option value="SUBMITTED">Submitted</option>
-          <option value="UNDER_REVIEW">Under review</option>
-          <option value="CHANGES_REQUESTED">Changes requested</option>
-        </Select>
-
-        <TextInput
-          id="queue-search"
-          label="Search by proposed name"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search club name"
-        />
-      </div>
-
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       {actionSuccess ? (
@@ -127,7 +94,7 @@ export function AdminClubRequestsPage({ embedded = false }) {
 
       {!error && requests.length === 0 ? (
         <EmptyState title="Queue is empty">
-          There are no club registration requests matching this filter.
+          There are no pending club registration requests.
         </EmptyState>
       ) : (
         <div className="exec-queue-list">

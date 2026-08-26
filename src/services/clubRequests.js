@@ -181,28 +181,13 @@ export async function deleteDraftClubRequest(requestId) {
   }
 }
 
-export async function getAdminClubRequestQueue({
-  status = "ALL",
-  search = "",
-} = {}) {
-  let query = supabase
+export async function getAdminClubRequestQueue() {
+  const { data, error } = await supabase
     .from("club_registration_requests")
     .select(REQUEST_FIELDS)
+    .in("status", ADMIN_QUEUE_STATUSES)
     .order("submitted_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
-
-  if (status === "ALL") {
-    query = query.in("status", ADMIN_QUEUE_STATUSES);
-  } else {
-    query = query.eq("status", status);
-  }
-
-  const trimmedSearch = search.trim();
-  if (trimmedSearch) {
-    query = query.ilike("proposed_name", `%${trimmedSearch}%`);
-  }
-
-  const { data, error } = await query;
 
   if (error) {
     logServiceError("getAdminClubRequestQueue", error);

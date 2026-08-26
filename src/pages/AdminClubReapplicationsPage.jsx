@@ -6,8 +6,6 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { PermissionNotice } from "../components/ui/PermissionNotice";
-import { Select } from "../components/ui/Select";
-import { TextInput } from "../components/ui/TextInput";
 import { getAdminClubReapplicationQueue } from "../services/clubReapplications";
 import { getErrorMessage } from "../utils/errors";
 
@@ -17,8 +15,6 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
   const canView = isSacAdmin || isSacExec;
 
   const [requests, setRequests] = useState([]);
-  const [status, setStatus] = useState("ALL");
-  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -35,7 +31,7 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
     setLoading(true);
     setError("");
     try {
-      const data = await getAdminClubReapplicationQueue({ status, search });
+      const data = await getAdminClubReapplicationQueue();
       setRequests(data);
     } catch (loadError) {
       setError(
@@ -44,12 +40,11 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
     } finally {
       setLoading(false);
     }
-  }, [status, search]);
+  }, []);
 
   useEffect(() => {
     if (!canView) return;
-    const handle = window.setTimeout(loadQueue, 250);
-    return () => window.clearTimeout(handle);
+    loadQueue();
   }, [loadQueue, canView]);
 
   if (!canView) {
@@ -89,33 +84,10 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
         </div>
       ) : null}
 
-      <div className="toolbar grid-2">
-        <Select
-          id="reapp-status"
-          label="Status"
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-        >
-          <option value="ALL">Open queue</option>
-          <option value="SUBMITTED">Submitted</option>
-          <option value="UNDER_REVIEW">Under review</option>
-          <option value="CHANGES_REQUESTED">Changes requested</option>
-          <option value="APPROVED">Approved</option>
-          <option value="REJECTED">Rejected</option>
-          <option value="WITHDRAWN">Withdrawn</option>
-        </Select>
-        <TextInput
-          id="reapp-search"
-          label="Search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </div>
-
       {requests.length === 0 ? (
         <EmptyState
           title="No re-applications"
-          description="Nothing matches this filter."
+          description="There are no pending re-applications."
         />
       ) : (
         <div className="exec-queue-list">

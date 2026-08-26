@@ -159,35 +159,14 @@ export async function getClubReapplicationById(requestId) {
   return data;
 }
 
-export async function getAdminClubReapplicationQueue({
-  status = "ALL",
-  search = "",
-} = {}) {
-  let query = supabase
+export async function getAdminClubReapplicationQueue() {
+  const { data, error } = await supabase
     .from("club_reapplication_requests")
     .select(
       `${REAPP_FIELDS}, club_reapplication_supervisors (*), club_reapplication_attachments (*)`,
     )
+    .in("status", ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"])
     .order("submitted_at", { ascending: false });
-
-  if (status === "ALL") {
-    query = query.in("status", [
-      "SUBMITTED",
-      "UNDER_REVIEW",
-      "CHANGES_REQUESTED",
-    ]);
-  } else {
-    query = query.eq("status", status);
-  }
-
-  const trimmed = search.trim();
-  if (trimmed) {
-    query = query.or(
-      `short_description.ilike.%${trimmed}%,public_email.ilike.%${trimmed}%,applicant_email.ilike.%${trimmed}%`,
-    );
-  }
-
-  const { data, error } = await query;
 
   if (error) {
     logServiceError("getAdminClubReapplicationQueue", error);
