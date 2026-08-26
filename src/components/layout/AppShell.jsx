@@ -77,6 +77,10 @@ export function AppShell() {
   }, [avatarUrl]);
 
   useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
     if (!menuOpen) return;
 
     function handleKeyDown(event) {

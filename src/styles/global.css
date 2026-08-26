@@ -131,7 +131,6 @@ select {
   background: var(--bg);
   border-bottom: 1px solid #d7e2ec;
   max-width: 100%;
-  overflow-x: clip;
 }
 
 .site-header__inner {
@@ -2629,27 +2628,39 @@ button.nav-link {
 
   .menu-toggle {
     display: inline-flex;
+    position: relative;
+    z-index: 2;
   }
 
   .site-header__inner {
     grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+  }
+
+  .site-header__slot--left {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .site-header__slot--right {
+    grid-column: 3;
+    grid-row: 1;
   }
 
   .main-nav {
     display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
+    grid-column: 1 / -1;
+    grid-row: 2;
     flex-direction: column;
     align-items: stretch;
     gap: 0.35rem;
+    width: 100%;
     max-height: min(70vh, 28rem);
     overflow: auto;
-    padding: 0.75rem 1rem 1rem;
+    padding: 0.75rem 0 0.85rem;
     background: var(--bg);
-    border-bottom: 1px solid #d7e2ec;
-    box-shadow: var(--shadow);
+    border-top: 1px solid #d7e2ec;
   }
 
   .main-nav--open {
