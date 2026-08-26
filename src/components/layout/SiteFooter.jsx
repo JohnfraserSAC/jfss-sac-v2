@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 const CONTACT_EMAIL = "johnfraserstudentcouncil@gmail.com";
-const CLUBS_EMAIL = "info@johnfrasersac.com";
+const CLUBS_EMAIL = "Johnfrasersupercouncil@gmail.com";
 const INSTAGRAM_HANDLE = "johnfrasersac";
 const INSTAGRAM_URL = `https://instagram.com/${INSTAGRAM_HANDLE}`;
 
@@ -11,7 +11,11 @@ export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
-        <Link to="/" className="site-footer__brand" aria-label="John Fraser SAC home">
+        <Link
+          to="/"
+          className="site-footer__brand"
+          aria-label="John Fraser SAC home"
+        >
           <img
             src="/images/SAC-LOGO.png"
             alt="John Fraser SAC"
@@ -31,8 +35,7 @@ export function SiteFooter() {
             on Instagram.
           </p>
           <p className="site-footer__line site-footer__copy site-footer__copy--short">
-            Questions?{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`}>Email us</a> or{" "}
+            Questions? <a href={`mailto:${CONTACT_EMAIL}`}>Email us</a> or{" "}
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
               DM @{INSTAGRAM_HANDLE}
             </a>
@@ -44,8 +47,7 @@ export function SiteFooter() {
             <a href={`mailto:${CLUBS_EMAIL}`}>{CLUBS_EMAIL}</a>.
           </p>
           <p className="site-footer__line site-footer__copy site-footer__copy--short">
-            Club inquiries?{" "}
-            <a href={`mailto:${CLUBS_EMAIL}`}>Email us</a>.
+            Club inquiries? <a href={`mailto:${CLUBS_EMAIL}`}>Email us</a>.
           </p>
 
           <p className="site-footer__line site-footer__line--meta">
