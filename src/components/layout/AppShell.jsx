@@ -2,14 +2,13 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { SiteBanner } from "../banners/SiteBanner";
 import { useAuth } from "../../context/AuthContext";
-import { useLoginModal } from "../../context/LoginModalContext";
 import { resolvePageBanner } from "../../config/pageBanners";
 import { getStudentNumberFromEmail } from "../../utils/domain";
 import { displayName } from "../../utils/format";
+import { rememberAuthReturnTo } from "../../utils/authRedirect";
 
 const navLinks = [
   { to: "/clubs", label: "Clubs" },
-  { to: "/schedule", label: "Schedule" },
   { to: "/sports", label: "Sports" },
   { to: "/sac-events", label: "Events" },
   { to: "/student-resources", label: "Student Resources" },
@@ -52,12 +51,13 @@ export function AppShell() {
     isSacExec,
     isFacultyAdvisor,
   } = useAuth();
-  const { openLoginModal } = useLoginModal();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
   const isHome = pathname === "/" || pathname === "";
-  const pageBanner = resolvePageBanner(pathname);
+  const isLogin = pathname === "/login";
+  const pageBanner = isLogin ? null : resolvePageBanner(pathname);
 
   const name = displayName(profile, user);
   const avatarUrl = getAvatarUrl(profile, user);
@@ -218,16 +218,18 @@ export function AppShell() {
                 </span>
               </NavLink>
             ) : (
-              <button
-                type="button"
+              <NavLink
+                to="/login"
                 className="nav-link nav-link--login"
                 onClick={() => {
                   setMenuOpen(false);
-                  openLoginModal();
+                  rememberAuthReturnTo(
+                    `${location.pathname}${location.search}${location.hash}`,
+                  );
                 }}
               >
                 Login
-              </button>
+              </NavLink>
             )}
           </div>
         </div>

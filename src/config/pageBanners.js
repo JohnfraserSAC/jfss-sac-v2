@@ -54,14 +54,6 @@ const PAGE_BANNERS = [
     description: "Draft, track, and manage announcements you have submitted.",
   },
   {
-    match: (path) => path === "/schedule" || path.startsWith("/schedule/"),
-    ariaLabel: "Schedule",
-    eyebrow: "\u2014 Coming soon",
-    title: "Schedule.",
-    description:
-      "School and SAC schedule information will appear here in a future update.",
-  },
-  {
     match: (path) => path === "/sports" || path.startsWith("/sports/"),
     ariaLabel: "Sports",
     eyebrow: "\u2014 Fraser Athletics",

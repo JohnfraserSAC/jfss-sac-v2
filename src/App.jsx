@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import { LoginModalProvider } from "./context/LoginModalContext";
+import { AuthRedirectProvider } from "./context/AuthRedirectContext";
 import { AppShell } from "./components/layout/AppShell";
 import { ClubsLayout } from "./components/layout/ClubsLayout";
 import { ExecDashboardLayout } from "./components/layout/ExecDashboardLayout";
@@ -13,9 +13,9 @@ import { ExecRequestsIndexRedirect } from "./components/layout/ExecRequestsIndex
 import { ExecArchivedIndexRedirect } from "./components/layout/ExecArchivedIndexRedirect";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleRoute } from "./components/auth/RoleRoute";
-import { LoginRedirect } from "./components/auth/LoginRedirect";
 import { EXEC_DASHBOARD_ROLES } from "./utils/execPermissions";
 import { HomePage } from "./pages/HomePage";
+import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ClubsPage } from "./pages/ClubsPage";
 import { ClubDetailPage } from "./pages/ClubDetailPage";
@@ -43,7 +43,6 @@ import { CreateAnnouncementPage } from "./pages/CreateAnnouncementPage";
 import { EditAnnouncementPage } from "./pages/EditAnnouncementPage";
 import { MyAnnouncementsPage } from "./pages/MyAnnouncementsPage";
 import { AdminAnnouncementsPage } from "./pages/AdminAnnouncementsPage";
-import { SchedulePage } from "./pages/SchedulePage";
 import { SportsPage } from "./pages/SportsPage";
 import { StudentResourcesPage } from "./pages/StudentResourcesPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -54,11 +53,11 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <LoginModalProvider>
+        <AuthRedirectProvider>
           <Routes>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
-            <Route path="login" element={<LoginRedirect />} />
+            <Route path="login" element={<LoginPage />} />
 
             <Route path="clubs" element={<ClubsLayout />}>
               <Route index element={<ClubsPage />} />
@@ -109,7 +108,6 @@ export default function App() {
               />
             </Route>
 
-            <Route path="schedule" element={<SchedulePage />} />
             <Route path="sports" element={<SportsPage />} />
             <Route
               path="events"
@@ -345,7 +343,7 @@ export default function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
           </Routes>
-        </LoginModalProvider>
+        </AuthRedirectProvider>
       </BrowserRouter>
     </AuthProvider>
   );
