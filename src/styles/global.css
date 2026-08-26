@@ -1888,6 +1888,66 @@ summary:focus-visible {
   margin: 1rem 0;
 }
 
+.exec-queue-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.exec-queue-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.3rem;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.exec-queue-card:hover,
+.exec-queue-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 14px 28px rgba(15, 28, 46, 0.12);
+}
+
+.exec-queue-card:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--focus),
+    0 14px 28px rgba(15, 28, 46, 0.12);
+}
+
+.exec-queue-card__main {
+  min-width: 0;
+}
+
+.exec-queue-card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.exec-queue-card__submitter {
+  margin: 0.25rem 0 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.exec-detail-back {
+  margin: 0 0 1rem;
+}
+
 .diagnostics summary {
   cursor: pointer;
   font-weight: 700;

@@ -214,6 +214,23 @@ export async function getAdminClubRequestQueue({
   return data ?? [];
 }
 
+export async function getAdminClubRequestById(requestId) {
+  const { data, error } = await supabase
+    .from("club_registration_requests")
+    .select(REQUEST_FIELDS)
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (error) {
+    logServiceError("getAdminClubRequestById", error);
+    throw new Error(
+      getErrorMessage(error, "Could not load this club request."),
+    );
+  }
+
+  return data;
+}
+
 export async function updateClubRequestReview({
   requestId,
   status,

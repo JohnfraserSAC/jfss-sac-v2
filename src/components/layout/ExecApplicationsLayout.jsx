@@ -1,8 +1,9 @@
-import { NavLink, Navigate, Outlet } from "react-router-dom";
+import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export function ExecApplicationsLayout() {
   const { isSacAdmin, isSacExec, isFacultyAdvisor } = useAuth();
+  const { pathname } = useLocation();
   const canViewApps = isSacAdmin || isSacExec || isFacultyAdvisor;
   const canViewReapps = isSacAdmin || isSacExec;
 
@@ -29,9 +30,10 @@ export function ExecApplicationsLayout() {
           <NavLink
             key={tab.to}
             to={tab.to}
-            end
-            className={({ isActive }) =>
-              isActive ? "subtab subtab--active" : "subtab"
+            className={() =>
+              pathname === tab.to || pathname.startsWith(`${tab.to}/`)
+                ? "subtab subtab--active"
+                : "subtab"
             }
           >
             {tab.label}

@@ -31,7 +31,9 @@ import { MyClubsPage } from "./pages/MyClubsPage";
 import { MyRequestsLayout } from "./components/layout/MyRequestsLayout";
 import { MyRequestsIndexRedirect } from "./components/layout/MyRequestsIndexRedirect";
 import { AdminClubRequestsPage } from "./pages/AdminClubRequestsPage";
+import { AdminClubRequestDetailPage } from "./pages/AdminClubRequestDetailPage";
 import { AdminClubReapplicationsPage } from "./pages/AdminClubReapplicationsPage";
+import { AdminClubReapplicationDetailPage } from "./pages/AdminClubReapplicationDetailPage";
 import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
 import { AdminArchivedAnnouncementsPage } from "./pages/AdminArchivedAnnouncementsPage";
 import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage";
@@ -199,8 +201,16 @@ export default function App() {
                   element={<AdminClubRequestsPage embedded />}
                 />
                 <Route
+                  path="new/:requestId"
+                  element={<AdminClubRequestDetailPage embedded />}
+                />
+                <Route
                   path="reapplications"
                   element={<AdminClubReapplicationsPage embedded />}
+                />
+                <Route
+                  path="reapplications/:requestId"
+                  element={<AdminClubReapplicationDetailPage embedded />}
                 />
               </Route>
 

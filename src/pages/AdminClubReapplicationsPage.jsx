@@ -1,33 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AttachmentPreview } from "../components/ui/AttachmentPreview";
-import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { ExecReviewQueueCard } from "../components/exec/ExecReviewQueueCard";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { PermissionNotice } from "../components/ui/PermissionNotice";
 import { Select } from "../components/ui/Select";
-import { TextArea } from "../components/ui/TextArea";
 import { TextInput } from "../components/ui/TextInput";
-import { StatusBadge } from "../components/ui/StatusBadge";
-import { Spinner } from "../components/ui/Spinner";
-import { createSignedClubDocumentUrl } from "../services/clubDocuments";
-import {
-  approveClubReapplication,
-  getAdminClubReapplicationQueue,
-  reviewClubReapplication,
-} from "../services/clubReapplications";
-import {
-  defaultSupervisorDeadlineLocalValue,
-  localDateTimeValueToIso,
-} from "../services/clubSupervisors";
-import { formatDate } from "../utils/format";
+import { getAdminClubReapplicationQueue } from "../services/clubReapplications";
 import { getErrorMessage } from "../utils/errors";
 
 export function AdminClubReapplicationsPage({ embedded = false }) {
+  const location = useLocation();
   const { isSacAdmin, isSacExec } = useAuth();
   const canView = isSacAdmin || isSacExec;
-  const canMutate = isSacAdmin;
 
   const [requests, setRequests] = useState([]);
   const [status, setStatus] = useState("ALL");
@@ -35,13 +22,14 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [busyId, setBusyId] = useState(null);
-  const [notesById, setNotesById] = useState({});
-  const [confirmAction, setConfirmAction] = useState(null);
-  const [hasSupervisor, setHasSupervisor] = useState("YES");
-  const [supervisorDueLocal, setSupervisorDueLocal] = useState(
-    defaultSupervisorDeadlineLocalValue(),
-  );
+
+  useEffect(() => {
+    const state = location.state;
+    if (state?.success) {
+      setSuccess(state.success);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const loadQueue = useCallback(async () => {
     setLoading(true);
@@ -73,67 +61,6 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
     );
   }
 
-  function openApproveConfirm(request) {
-    const listed =
-      (request.club_reapplication_supervisors || []).length > 0 &&
-      !request.is_seeking_teacher_supervisor;
-    setHasSupervisor(listed ? "YES" : "NO");
-    setSupervisorDueLocal(defaultSupervisorDeadlineLocalValue());
-    setConfirmAction({ request, action: "APPROVED" });
-  }
-
-  async function runAction(request, action, requireNotes) {
-    const notes = (notesById[request.id] || "").trim();
-    if (requireNotes && !notes) {
-      setError("Review notes are required for this action.");
-      return;
-    }
-    setBusyId(request.id);
-    setError("");
-    setSuccess("");
-    try {
-      if (action === "APPROVED") {
-        const withSupervisor = hasSupervisor === "YES";
-        const dueIso = withSupervisor
-          ? null
-          : localDateTimeValueToIso(supervisorDueLocal);
-        if (!withSupervisor && !dueIso) {
-          setError("Choose a valid supervisor deadline.");
-          setBusyId(null);
-          return;
-        }
-        await approveClubReapplication({
-          requestId: request.id,
-          reviewNotes: notes || null,
-          hasTeacherSupervisor: withSupervisor,
-          supervisorDueAt: dueIso,
-        });
-      } else {
-        await reviewClubReapplication({
-          requestId: request.id,
-          action,
-          reviewNotes: notes || null,
-        });
-      }
-      const clubName = request.clubs?.name || "Club";
-      if (action === "APPROVED") {
-        setSuccess(
-          hasSupervisor === "YES"
-            ? `${clubName} was approved and is now public on Explore.`
-            : `${clubName} was approved as Pending Teacher Supervisor.`,
-        );
-      } else {
-        setSuccess(`Updated ${clubName} to ${action}.`);
-      }
-      setConfirmAction(null);
-      await loadQueue();
-    } catch (actionError) {
-      setError(getErrorMessage(actionError, "Could not update the request."));
-    } finally {
-      setBusyId(null);
-    }
-  }
-
   if (loading && requests.length === 0) {
     return <LoadingScreen message="Loading re-applications…" />;
   }
@@ -146,8 +73,8 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
         </header>
       ) : (
         <div className="section-heading-row">
-          <h2>Pending Reapplications</h2>
-          {!canMutate ? (
+          <h2 className="exec-section__title">Pending Reapplications</h2>
+          {!isSacAdmin ? (
             <span className="badge badge--role badge--role-sac-exec">
               Read only
             </span>
@@ -191,213 +118,21 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
           description="Nothing matches this filter."
         />
       ) : (
-        <ul className="stack card-list">
+        <div className="exec-queue-list">
           {requests.map((request) => {
             const clubName = request.clubs?.name || "Unknown club";
             return (
-              <li key={request.id} className="card">
-                <div className="card__header">
-                  <h3>{clubName}</h3>
-                  <StatusBadge status={request.status} />
-                </div>
-                <dl className="detail-list">
-                  <div>
-                    <dt>Applicant</dt>
-                    <dd>{request.applicant_email}</dd>
-                  </div>
-                  <div>
-                    <dt>Submitted</dt>
-                    <dd>{formatDate(request.submitted_at)}</dd>
-                  </div>
-                  <div>
-                    <dt>School year</dt>
-                    <dd>{request.school_year}</dd>
-                  </div>
-                  <div>
-                    <dt>Short description</dt>
-                    <dd>{request.short_description}</dd>
-                  </div>
-                  <div>
-                    <dt>Full description</dt>
-                    <dd>{request.description}</dd>
-                  </div>
-                  <div>
-                    <dt>Public email</dt>
-                    <dd>{request.public_email}</dd>
-                  </div>
-                  <div>
-                    <dt>Instagram</dt>
-                    <dd>{request.instagram_handle || "—"}</dd>
-                  </div>
-                  <div>
-                    <dt>Meeting</dt>
-                    <dd>
-                      {request.meeting_frequency}
-                      {request.meeting_days?.length
-                        ? ` · ${request.meeting_days.join(", ")}`
-                        : ""}
-                      {request.meeting_time_details
-                        ? ` · ${request.meeting_time_details}`
-                        : ""}
-                      {request.meeting_location
-                        ? ` · ${request.meeting_location}`
-                        : ""}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Seeking supervisor</dt>
-                    <dd>
-                      {request.is_seeking_teacher_supervisor ? "Yes" : "No"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Supervisors</dt>
-                    <dd>
-                      {(request.club_reapplication_supervisors || []).length ===
-                      0
-                        ? "None"
-                        : request.club_reapplication_supervisors
-                            .map(
-                              (s) =>
-                                `${s.supervisor_name} <${s.supervisor_email}>`,
-                            )
-                            .join("; ")}
-                    </dd>
-                  </div>
-                  {request.review_notes ? (
-                    <div>
-                      <dt>Review notes</dt>
-                      <dd>{request.review_notes}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-
-                {(request.club_reapplication_attachments || []).map((att) => (
-                  <AttachmentPreview
-                    key={att.id}
-                    path={att.storage_path}
-                    getSignedUrl={createSignedClubDocumentUrl}
-                    mimeType={att.mime_type}
-                    filename={att.original_filename}
-                    alt={
-                      att.original_filename ||
-                      "Re-application attachment"
-                    }
-                  />
-                ))}
-
-                {canMutate &&
-                ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(
-                  request.status,
-                ) ? (
-                  <>
-                    <TextArea
-                      id={`notes-${request.id}`}
-                      label="Review notes"
-                      value={notesById[request.id] || ""}
-                      onChange={(event) =>
-                        setNotesById((current) => ({
-                          ...current,
-                          [request.id]: event.target.value,
-                        }))
-                      }
-                      hint="Required when rejecting. Optional when approving."
-                    />
-                    <div className="button-row">
-                      <button
-                        type="button"
-                        className="button"
-                        disabled={busyId === request.id}
-                        onClick={() => openApproveConfirm(request)}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        disabled={busyId === request.id}
-                        onClick={() => {
-                          if (!(notesById[request.id] || "").trim()) {
-                            setError(
-                              "Review notes are required when rejecting.",
-                            );
-                            return;
-                          }
-                          setConfirmAction({ request, action: "REJECTED" });
-                        }}
-                      >
-                        Reject
-                      </button>
-                      {busyId === request.id ? <Spinner /> : null}
-                    </div>
-                  </>
-                ) : null}
-              </li>
+              <ExecReviewQueueCard
+                key={request.id}
+                to={`/exec-dashboard/applications/reapplications/${request.id}`}
+                title={clubName}
+                submitter={request.applicant_email || "Unknown submitter"}
+                status={request.status}
+              />
             );
           })}
-        </ul>
+        </div>
       )}
-
-      {confirmAction ? (
-        <ConfirmDialog
-          open
-          title={
-            confirmAction.action === "APPROVED"
-              ? "Approve re-application?"
-              : "Reject re-application?"
-          }
-          confirmLabel={
-            confirmAction.action === "APPROVED" ? "Approve" : "Reject"
-          }
-          destructive={confirmAction.action === "REJECTED"}
-          busy={busyId === confirmAction.request.id}
-          onCancel={() => setConfirmAction(null)}
-          onConfirm={() =>
-            runAction(
-              confirmAction.request,
-              confirmAction.action,
-              confirmAction.action === "REJECTED",
-            )
-          }
-        >
-          {confirmAction.action === "APPROVED" ? (
-            <>
-              <p>
-                Approving replaces the club profile, clears prior memberships,
-                and assigns the applicant as OWNER.
-              </p>
-              <Select
-                id="has-teacher-supervisor"
-                label="Does this club currently have a teacher supervisor?"
-                value={hasSupervisor}
-                onChange={(event) => setHasSupervisor(event.target.value)}
-              >
-                <option value="YES">YES — approve as ACTIVE / public</option>
-                <option value="NO">
-                  NO — approve as Pending Teacher Supervisor
-                </option>
-              </Select>
-              {hasSupervisor === "NO" ? (
-                <TextInput
-                  id="supervisor-due-at"
-                  label="Supervisor deadline (defaults to 7 days)"
-                  type="datetime-local"
-                  value={supervisorDueLocal}
-                  onChange={(event) =>
-                    setSupervisorDueLocal(event.target.value)
-                  }
-                  required
-                />
-              ) : null}
-            </>
-          ) : (
-            <p>
-              This will reject the request. The club can be re-selected later
-              subject to the daily quota.
-            </p>
-          )}
-        </ConfirmDialog>
-      ) : null}
     </div>
   );
 }
