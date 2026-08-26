@@ -169,9 +169,6 @@ export function ClubReapplyPage() {
     if (!isValidEmail(values.public_email)) {
       errors.public_email = "Enter a valid public club email.";
     }
-    if (values.meeting_days.length < 1) {
-      errors.meeting_days = "Select at least one meeting day.";
-    }
     if (logoFile) {
       if (!REAPP_LOGO_ALLOWED_TYPES.includes(logoFile.type)) {
         errors.logo = "Logo must be JPEG, PNG, or WebP.";
@@ -292,8 +289,8 @@ export function ClubReapplyPage() {
         description,
         publicEmail: values.public_email.trim().toLowerCase(),
         instagramHandle: values.instagram_handle.trim() || null,
-        // Day picker replaced the frequency control; Weekly matches selected days.
-        meetingFrequency: "Weekly",
+        meetingFrequency:
+          values.meeting_days.length > 0 ? "Weekly" : "Other",
         meetingDays: values.meeting_days,
         meetingTimeDetails: values.meeting_time_details.trim() || null,
         meetingLocation: values.meeting_location.trim() || null,
@@ -505,7 +502,7 @@ export function ClubReapplyPage() {
         >
           <legend>
             Meeting days
-            <span className="required-mark"> *</span>
+            <span className="muted"> (optional)</span>
           </legend>
           <div className="meeting-day-picker__row" role="group">
             {MEETING_DAYS.map((day) => {

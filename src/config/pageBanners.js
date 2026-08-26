@@ -76,7 +76,7 @@ const PAGE_BANNERS = [
     eyebrow: "\u2014 Our Team",
     title: "Meet Your Student Council.",
     description:
-      "Meet the SAC Executive Team, Grade Reps and Honouraries leading clubs and events this year.",
+      "Meet the SAC Executive Team and Grade Reps leading clubs and events this year.",
   },
   {
     match: (path) => path === "/sac-events" || path.startsWith("/sac-events/"),

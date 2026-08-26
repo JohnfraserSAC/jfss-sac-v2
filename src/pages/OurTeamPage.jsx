@@ -26,23 +26,6 @@ const gradeRepresentatives = [
   { name: "Person 4", role: "Grade Rep", grade: "Grade 12", initials: "P4", color: "#6b3fa0", photo: null },
 ]
 
-const generalMembers = [
-  { name: "Aaliya Noor", role: "Honourary", grade: "Grade 11", initials: "AN", color: "#1e2a4a", photo: null },
-  { name: "Ben Kowalski", role: "Honourary", grade: "Grade 11", initials: "BK", color: "#2c5eb0", photo: null },
-  { name: "Chloe Yuen", role: "Honourary", grade: "Grade 10", initials: "CY", color: "#1a7a5e", photo: null },
-  { name: "Dmitri Sousa", role: "Honourary", grade: "Grade 11", initials: "DS", color: "#6b3fa0", photo: null },
-  { name: "Elena Patel", role: "Honourary", grade: "Grade 10", initials: "EP", color: "#2d6b8f", photo: null },
-  { name: "Finn McLaren", role: "Honourary", grade: "Grade 11", initials: "FM", color: "#b5651d", photo: null },
-  { name: "Grace Ito", role: "Honourary", grade: "Grade 10", initials: "GI", color: "#2f4b9e", photo: null },
-  { name: "Haruto Chen", role: "Honourary", grade: "Grade 11", initials: "HC", color: "#1e2a4a", photo: null },
-  { name: "Isabel Reyes", role: "Honourary", grade: "Grade 10", initials: "IR", color: "#5c2d82", photo: null },
-  { name: "Jonas Kim", role: "Honourary", grade: "Grade 11", initials: "JK", color: "#2c5eb0", photo: null },
-  { name: "Kira Okonkwo", role: "Honourary", grade: "Grade 10", initials: "KO", color: "#1a7a5e", photo: null },
-  { name: "Lena Braun", role: "Honourary", grade: "Grade 11", initials: "LB", color: "#6b3fa0", photo: null },
-  { name: "Mihail Popescu", role: "Honourary", grade: "Grade 10", initials: "MP", color: "#2d6b8f", photo: null },
-  { name: "Nour Khalil", role: "Honourary", grade: "Grade 11", initials: "NK", color: "#b5651d", photo: null },
-];
-
 function MemberCard({ member }) {
   return (
     <div className="member-card">
@@ -85,19 +68,6 @@ export function OurTeamPage() {
 
       <div className="member-grid">
         {gradeRepresentatives.map((member) => (
-          <MemberCard key={member.name} member={member} />
-        ))}
-      </div>
-
-      <div className="team-header">
-        <h1 className="team-title">Honouraries</h1>
-        <p className="team-subtitle">
-          Honorary Members make up most of SAC. They are student leaders who help plan, execute, and promote SAC events. Positions are selected at the start of the year and can be found here.
-        </p>
-      </div>
-
-      <div className="member-grid">
-        {generalMembers.map((member) => (
           <MemberCard key={member.name} member={member} />
         ))}
       </div>
