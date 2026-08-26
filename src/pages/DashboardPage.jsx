@@ -4,11 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { ClubRoleBadge } from "../components/clubs/ClubRoleBadge";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
-import { RequestCard } from "../components/clubs/RequestCard";
 import { RoleBadge } from "../components/ui/RoleBadge";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { getDashboardSummary } from "../services/clubRequests";
-import { getClubById } from "../services/clubs";
 import { getMyClubMemberships } from "../services/memberships";
 import { formatClubScopedRole } from "../utils/clubPermissions";
 import { displayName, formatDate } from "../utils/format";
@@ -21,15 +18,12 @@ export function DashboardPage() {
     systemRoles,
     canAccessExecDashboard,
     authError,
-    refreshRoles,
     refreshProfile,
+    refreshRoles,
     signOut,
   } = useAuth();
-  const [summary, setSummary] = useState(null);
   const [memberships, setMemberships] = useState([]);
   const [membershipsError, setMembershipsError] = useState("");
-  const [clubSlugs, setClubSlugs] = useState({});
-  const [missingClubs, setMissingClubs] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [signingOut, setSigningOut] = useState(false);
@@ -48,9 +42,8 @@ export function DashboardPage() {
           refreshRoles(user.id).catch(() => null),
         ]);
 
-        const [nextSummary, nextMemberships] = await Promise.all([
-          getDashboardSummary(user.id),
-          getMyClubMemberships(user.id).catch((membershipError) => {
+        const nextMemberships = await getMyClubMemberships(user.id).catch(
+          (membershipError) => {
             setMembershipsError(
               getErrorMessage(
                 membershipError,
@@ -58,38 +51,11 @@ export function DashboardPage() {
               ),
             );
             return [];
-          }),
-        ]);
+          },
+        );
 
         if (!active) return;
-
-        setSummary(nextSummary);
         setMemberships(nextMemberships);
-
-        const approved = (nextSummary.recentRequests || []).filter(
-          (request) => request.created_club_id,
-        );
-
-        const slugEntries = await Promise.all(
-          approved.map(async (request) => {
-            try {
-              const club = await getClubById(request.created_club_id);
-              return [request.created_club_id, club?.slug ?? null, !club];
-            } catch {
-              return [request.created_club_id, null, true];
-            }
-          }),
-        );
-
-        if (!active) return;
-        setClubSlugs(
-          Object.fromEntries(slugEntries.map(([id, slug]) => [id, slug])),
-        );
-        setMissingClubs(
-          Object.fromEntries(
-            slugEntries.map(([id, , missing]) => [id, Boolean(missing)]),
-          ),
-        );
       } catch (loadError) {
         if (!active) return;
         setError(getErrorMessage(loadError, "Could not load your dashboard."));
@@ -124,8 +90,8 @@ export function DashboardPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h2 className="page-header__name">{displayName(profile, user)}</h2>
-          <p className="lede">Your profile, roles, requests, and memberships.</p>
+          <h1 className="page-header__name">{displayName(profile, user)}</h1>
+          <p className="lede">Your profile and roles.</p>
         </div>
         <button
           type="button"
@@ -261,54 +227,6 @@ export function DashboardPage() {
             </ul>
           ) : null}
         </div>
-      </section>
-
-      <section className="stat-grid">
-        <div className="stat-card">
-          <h2>Club requests</h2>
-          {summary?.errors?.requests ? (
-            <ErrorMessage>{summary.errors.requests}</ErrorMessage>
-          ) : (
-            <p className="stat-value">{summary?.requestCount ?? 0}</p>
-          )}
-        </div>
-        <div className="stat-card">
-          <h2>Active memberships</h2>
-          {summary?.errors?.memberships ? (
-            <ErrorMessage>{summary.errors.memberships}</ErrorMessage>
-          ) : (
-            <p className="stat-value">{summary?.activeMembershipCount ?? 0}</p>
-          )}
-        </div>
-      </section>
-
-      <section className="panel">
-        <div className="section-heading">
-          <h2>Recent requests</h2>
-          <Link className="text-link" to="/my-requests">
-            View all
-          </Link>
-        </div>
-
-        {summary?.errors?.requests ? (
-          <ErrorMessage>{summary.errors.requests}</ErrorMessage>
-        ) : summary?.recentRequests?.length ? (
-          <div className="stack">
-            {summary.recentRequests.map((request) => (
-              <RequestCard
-                key={request.id}
-                request={request}
-                createdClubSlug={clubSlugs[request.created_club_id]}
-                createdClubMissing={
-                  !request.created_club_id ||
-                  Boolean(missingClubs[request.created_club_id])
-                }
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="muted">You have not submitted any club requests yet.</p>
-        )}
       </section>
 
       <section className="panel">
