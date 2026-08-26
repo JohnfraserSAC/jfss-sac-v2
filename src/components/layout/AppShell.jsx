@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { SiteBanner } from "../banners/SiteBanner";
+import { SiteFooter } from "./SiteFooter";
 import { useAuth } from "../../context/AuthContext";
 import { resolvePageBanner } from "../../config/pageBanners";
 import { getStudentNumberFromEmail } from "../../utils/domain";
@@ -254,9 +255,7 @@ export function AppShell() {
         </div>
       </main>
 
-      <footer className="site-footer">
-        <p>John Fraser Student Activity Council portal</p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
