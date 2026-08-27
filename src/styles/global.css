@@ -620,7 +620,7 @@ summary:focus-visible {
   margin-inline: 0;
 }
 
-/* Signed-out gate: blur only this section, lock scroll/interaction */
+/* Signed-out gate: blur this section; page scroll still works over it */
 .auth-gate {
   position: relative;
   isolation: isolate;
@@ -629,8 +629,6 @@ summary:focus-visible {
   min-height: 28rem;
   max-height: calc(100svh - 9rem);
   overflow: hidden;
-  overscroll-behavior: none;
-  touch-action: none;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: #eef1f4;

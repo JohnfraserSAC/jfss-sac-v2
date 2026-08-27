@@ -3,8 +3,8 @@ import { rememberAuthReturnTo } from "../../utils/authRedirect";
 
 /**
  * Locked section gate for signed-out users.
- * Blurs only this content area, blocks interaction/scroll, and offers a
- * button that navigates to the dedicated /login page.
+ * Blurs this content area, blocks interaction (except Sign in), and still
+ * allows page scroll when the pointer is over the gate.
  */
 export function AuthGate({
   returnTo,
