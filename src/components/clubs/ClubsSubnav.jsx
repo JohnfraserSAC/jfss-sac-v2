@@ -3,8 +3,8 @@ import { NavLink } from "react-router-dom";
 const TABS = [
   { to: "/clubs", label: "Explore", end: true },
   { to: "/clubs/my-clubs", label: "My Clubs", end: true },
-  { to: "/clubs/apply", label: "Apply for a New Club", end: true },
-  { to: "/clubs/reapply", label: "Re-Apply a Past Club", end: true },
+  { to: "/clubs/apply", label: "Create a New Club", end: true },
+  { to: "/clubs/reapply", label: "Re-register a club", end: true },
 ];
 
 export function ClubsSubnav() {

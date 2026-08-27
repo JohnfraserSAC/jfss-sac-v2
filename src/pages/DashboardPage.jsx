@@ -233,7 +233,7 @@ export function DashboardPage() {
         <h2>Quick actions</h2>
         <div className="button-row">
           <Link to="/clubs/apply" className="button button--primary">
-            Apply for a club
+            Create a new club
           </Link>
           <Link to="/clubs/my-clubs" className="button button--secondary">
             My clubs

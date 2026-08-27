@@ -12,7 +12,7 @@ function shouldShowClubsSubnav(pathname) {
 
 /**
  * Shared Clubs section shell — hub subnav mounts once and persists
- * across Explore / My Clubs / Apply / Re-Apply so underline transitions run.
+ * across Explore / My Clubs / Create / Re-register so underline transitions run.
  * Section banner is rendered by AppShell.
  */
 export function ClubsLayout() {

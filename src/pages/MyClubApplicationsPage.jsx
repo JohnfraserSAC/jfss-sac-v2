@@ -93,7 +93,7 @@ export function MyClubApplicationsPage() {
     <div className="stack">
       <header className="page-header">
         <Link className="button button--secondary" to="/clubs/apply">
-          Apply for a new club
+          Create a new club
         </Link>
       </header>
 
