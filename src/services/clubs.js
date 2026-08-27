@@ -200,6 +200,7 @@ export async function getClubById(clubId) {
 
 /**
  * Owner (or SAC_ADMIN) profile update. Preserves club UUID and slug.
+ * Validation matches the create-club application form for shared fields.
  */
 export async function updateOwnedClubProfile(clubId, values) {
   const name = String(values?.name ?? "").trim();
@@ -207,19 +208,25 @@ export async function updateOwnedClubProfile(clubId, values) {
   const contactEmail = String(values?.contactEmail ?? "").trim() || null;
   const leaderContactInformation =
     String(values?.leaderContactInformation ?? "").trim() || null;
-  const shortDescription =
-    String(values?.shortDescription ?? "").trim() || null;
   const logoUrl =
     values?.logoUrl === undefined || values?.logoUrl === null
       ? undefined
       : String(values.logoUrl).trim() || null;
 
-  if (name.length < 2 || name.length > 100) {
-    throw new Error("Club name must be between 2 and 100 characters.");
+  if (name.length < 2) {
+    throw new Error("Enter your club name.");
   }
 
-  if (description.length < 10 || description.length > 10000) {
-    throw new Error("Description must be between 10 and 10,000 characters.");
+  if (description.length < 10) {
+    throw new Error(
+      "Provide a detailed club description (at least 10 characters).",
+    );
+  }
+
+  if (!contactEmail || contactEmail.length < 3) {
+    throw new Error(
+      "Provide club contact information such as email or Instagram.",
+    );
   }
 
   const rpcArgs = {
@@ -228,7 +235,6 @@ export async function updateOwnedClubProfile(clubId, values) {
     p_description: description,
     p_contact_email: contactEmail,
     p_leader_contact_information: leaderContactInformation,
-    p_short_description: shortDescription,
   };
 
   if (logoUrl !== undefined) {

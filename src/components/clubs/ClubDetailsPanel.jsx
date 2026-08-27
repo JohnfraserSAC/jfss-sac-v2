@@ -25,9 +25,26 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     club?.leader_contact_information || "",
   );
   const [logoFile, setLogoFile] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  function validate() {
+    const errors = {};
+    if (name.trim().length < 2) {
+      errors.name = "Enter your club name.";
+    }
+    if (description.trim().length < 10) {
+      errors.description =
+        "Provide a detailed club description (at least 10 characters).";
+    }
+    if (contactEmail.trim().length < 3) {
+      errors.contactEmail =
+        "Provide club contact information such as email or Instagram.";
+    }
+    return errors;
+  }
 
   async function handleSave(event) {
     event.preventDefault();
@@ -35,6 +52,14 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
 
     setError("");
     setSuccess("");
+
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setError("Please fix the highlighted fields before saving.");
+      return;
+    }
+
     setBusy(true);
 
     try {
@@ -44,7 +69,6 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
         description,
         contactEmail,
         leaderContactInformation: leaderContact,
-        shortDescription: club.short_description,
       });
 
       if (logoFile) {
@@ -61,7 +85,6 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           description,
           contactEmail,
           leaderContactInformation: leaderContact,
-          shortDescription: club.short_description,
           logoUrl,
         });
         setLogoFile(null);
@@ -70,6 +93,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
         setSuccess("Club details saved.");
       }
 
+      setFieldErrors({});
       onClubUpdated?.(updated);
     } catch (saveError) {
       setError(getErrorMessage(saveError, "Could not save club details."));
@@ -100,6 +124,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           label="Club name"
           value={name}
           onChange={(event) => setName(event.target.value)}
+          error={fieldErrors.name}
           required
           disabled={!canEdit || busy}
         />
@@ -108,17 +133,20 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           label="Description"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
+          error={fieldErrors.description}
           rows={6}
           required
           disabled={!canEdit || busy}
+          hint="Pitch your club and how it benefits students at JFSS."
         />
         <TextInput
           id="club-contact"
-          type="email"
           label="Club contact"
           value={contactEmail}
           onChange={(event) => setContactEmail(event.target.value)}
-          hint="Public club contact email shown on the club page."
+          error={fieldErrors.contactEmail}
+          hint="Club email or Instagram account. Shown on the club page."
+          required
           disabled={!canEdit || busy}
         />
         <TextInput
@@ -126,7 +154,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           label="Club leader contact"
           value={leaderContact}
           onChange={(event) => setLeaderContact(event.target.value)}
-          hint="Public leader contact (email, Instagram, or other). Visible on the club page."
+          hint="Optional. Leader email, Instagram, or other contact. Visible on the club page."
           disabled={!canEdit || busy}
         />
 

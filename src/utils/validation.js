@@ -47,9 +47,9 @@ export function validateClubRequestForm(values) {
     errors.proposed_name = "Club name must be between 2 and 100 characters.";
   }
 
-  if (data.description.length < 10 || data.description.length > 10000) {
+  if (data.description.length < 10) {
     errors.description =
-      "Description must be between 10 and 10,000 characters.";
+      "Provide a detailed club description (at least 10 characters).";
   }
 
   if (data.purpose.length < 10 || data.purpose.length > 5000) {
