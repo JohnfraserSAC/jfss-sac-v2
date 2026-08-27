@@ -209,6 +209,10 @@ export async function updateOwnedClubProfile(clubId, values) {
     String(values?.leaderContactInformation ?? "").trim() || null;
   const shortDescription =
     String(values?.shortDescription ?? "").trim() || null;
+  const logoUrl =
+    values?.logoUrl === undefined || values?.logoUrl === null
+      ? undefined
+      : String(values.logoUrl).trim() || null;
 
   if (name.length < 2 || name.length > 100) {
     throw new Error("Club name must be between 2 and 100 characters.");
@@ -218,14 +222,23 @@ export async function updateOwnedClubProfile(clubId, values) {
     throw new Error("Description must be between 10 and 10,000 characters.");
   }
 
-  const { data, error } = await supabase.rpc("update_owned_club_profile", {
+  const rpcArgs = {
     p_club_id: clubId,
     p_name: name,
     p_description: description,
     p_contact_email: contactEmail,
     p_leader_contact_information: leaderContactInformation,
     p_short_description: shortDescription,
-  });
+  };
+
+  if (logoUrl !== undefined) {
+    rpcArgs.p_logo_url = logoUrl;
+  }
+
+  const { data, error } = await supabase.rpc(
+    "update_owned_club_profile",
+    rpcArgs,
+  );
 
   if (error) {
     logServiceError("updateOwnedClubProfile", error);

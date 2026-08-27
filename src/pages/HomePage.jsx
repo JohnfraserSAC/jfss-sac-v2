@@ -122,9 +122,9 @@ export function HomePage() {
     <div className="page home-page">
       <HomeBanner />
 
-      {(accessDenied || authError) && (
+      {accessDenied && authError ? (
         <ErrorMessage title="Access denied">{authError}</ErrorMessage>
-      )}
+      ) : null}
 
       <HomeDayWeatherPanel
         schoolDay={schoolDay}

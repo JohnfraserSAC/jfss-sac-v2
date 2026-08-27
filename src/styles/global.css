@@ -2601,6 +2601,11 @@ button.nav-link {
   line-height: 0;
 }
 
+.club-details-photo-heading {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
 .checkbox-row {
   display: flex;
   gap: 0.65rem;

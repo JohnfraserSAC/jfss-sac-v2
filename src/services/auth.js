@@ -36,6 +36,15 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   if (error) {
+    const message = String(error.message || "").toLowerCase();
+    // No session is the normal signed-out state — not an auth failure.
+    if (
+      message.includes("auth session missing") ||
+      error.name === "AuthSessionMissingError"
+    ) {
+      return null;
+    }
+
     logServiceError("getCurrentUser", error);
     throw new Error(getErrorMessage(error, "Could not load the current user."));
   }

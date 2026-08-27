@@ -75,6 +75,8 @@ export function AuthProvider({ children }) {
     async (currentUser) => {
       if (!currentUser) {
         clearSessionState();
+        setAccessDenied(false);
+        setAuthError("");
         setIsLoading(false);
         return;
       }

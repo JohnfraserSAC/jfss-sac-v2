@@ -1,21 +1,7 @@
 import { useState } from "react";
 import { LocalFilePreview } from "../ui/LocalFilePreview";
 import { FilePicker } from "../ui/FilePicker";
-import {
-  REAPP_LOGO_ALLOWED_TYPES,
-  REAPP_LOGO_MAX_BYTES,
-} from "../../config/clubApplications";
-
-function validateClubLogoFile(file) {
-  if (!file) return "Choose a club logo image.";
-  if (!REAPP_LOGO_ALLOWED_TYPES.includes(file.type)) {
-    return "Logo must be JPEG, PNG, or WebP.";
-  }
-  if (file.size > REAPP_LOGO_MAX_BYTES) {
-    return "Logo must be 5 MB or smaller.";
-  }
-  return null;
-}
+import { validateClubLogoFile } from "../../services/clubLogos";
 
 /** Club logo uploader styled like the signed teacher-supervisor form control. */
 export function ClubLogoUpload({
@@ -26,6 +12,7 @@ export function ClubLogoUpload({
   error,
   disabled = false,
   required = false,
+  currentUrl = null,
 }) {
   const [localError, setLocalError] = useState("");
 
@@ -62,6 +49,15 @@ export function ClubLogoUpload({
               setLocalError("");
               onChange?.(null);
             }}
+          />
+        </div>
+      ) : currentUrl ? (
+        <div className="signed-form-preview">
+          <p className="muted">Current club photo</p>
+          <img
+            src={currentUrl}
+            alt="Current club logo"
+            className="logo-preview"
           />
         </div>
       ) : null}

@@ -3,9 +3,11 @@ import { TextArea } from "../ui/TextArea";
 import { TextInput } from "../ui/TextInput";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { Spinner } from "../ui/Spinner";
+import { ClubLogoUpload } from "./ClubLogoUpload";
 import { ClubSupervisorSubmitForm } from "./ClubSupervisorSubmitForm";
 import { StatusBadge } from "../ui/StatusBadge";
 import { updateOwnedClubProfile } from "../../services/clubs";
+import { uploadClubLogo } from "../../services/clubLogos";
 import {
   getActiveClubAdvisors,
   getClubSupervisorRequests,
@@ -20,6 +22,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
   const [leaderContact, setLeaderContact] = useState(
     club?.leader_contact_information || "",
   );
+  const [logoFile, setLogoFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -33,14 +36,23 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     setBusy(true);
 
     try {
+      let logoUrl;
+      if (logoFile) {
+        logoUrl = await uploadClubLogo({ clubId: club.id, file: logoFile });
+      }
+
       const updated = await updateOwnedClubProfile(club.id, {
         name,
         description,
         contactEmail,
         leaderContactInformation: leaderContact,
         shortDescription: club.short_description,
+        ...(logoUrl ? { logoUrl } : {}),
       });
-      setSuccess("Club details saved.");
+      setLogoFile(null);
+      setSuccess(
+        logoUrl ? "Club details and photo saved." : "Club details saved.",
+      );
       onClubUpdated?.(updated);
     } catch (saveError) {
       setError(getErrorMessage(saveError, "Could not save club details."));
@@ -100,6 +112,22 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           hint="Public leader contact (email, Instagram, or other). Visible on the club page."
           disabled={!canEdit || busy}
         />
+
+        <div className="stack">
+          <h3 className="club-details-photo-heading">Club photo</h3>
+          <p className="muted">
+            This image appears on Explore and the club page. Choose a new image
+            to replace the current photo.
+          </p>
+          <ClubLogoUpload
+            id="club-manage-logo"
+            label="Club photo"
+            file={logoFile}
+            onChange={setLogoFile}
+            currentUrl={club?.logo_url || null}
+            disabled={!canEdit || busy}
+          />
+        </div>
 
         {canEdit ? (
           <div className="button-row">
