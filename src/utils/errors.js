@@ -34,6 +34,13 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
     return "Club approval is unavailable. The approval function is missing on the server.";
   }
 
+  if (
+    lower.includes("only an active club owner") ||
+    lower.includes("club details can only be edited while")
+  ) {
+    return message;
+  }
+
   if (lower.includes("only sac or site administrators") ||
     lower.includes("only sac administrators") ||
     lower.includes("only a club owner") ||

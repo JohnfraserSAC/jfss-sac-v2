@@ -1,8 +1,7 @@
--- Allow club owners to update club logo via manage profile + storage path.
--- Storage path mirrors reapply: club-profile-logos/{user_id}/{club_id}/...
--- Ownership is enforced in update_owned_club_profile (not only storage RLS).
+-- Fix club profile logo storage policies if an earlier revision used
+-- has_club_role() inside storage RLS (often fails for owners).
+-- Path must be: club-profile-logos/{auth.uid()}/{club_id}/...
 
--- 1. Storage policies (user-scoped path; same pattern as reapplication-logos)
 drop policy if exists "club_logos_insert_profile_owner" on storage.objects;
 drop policy if exists "club_logos_update_profile_owner" on storage.objects;
 drop policy if exists "club_logos_delete_profile_owner" on storage.objects;
@@ -40,15 +39,6 @@ using (
   bucket_id = 'club-logos'
   and (storage.foldername(name))[1] = 'club-profile-logos'
   and (storage.foldername(name))[2] = (select auth.uid())::text
-);
-
--- 2. Extend owner profile update to optionally set logo_url (storage path).
-drop function if exists public.update_owned_club_profile(
-  uuid, text, text, text, text, text
-);
-
-drop function if exists public.update_owned_club_profile(
-  uuid, text, text, text, text, text, text
 );
 
 create or replace function public.update_owned_club_profile(
@@ -156,15 +146,6 @@ begin
     raise exception 'Club not found';
   end if;
 
-  -- UUID and slug are intentionally not updated.
   return v_row;
 end;
 $$;
-
-revoke all on function public.update_owned_club_profile(
-  uuid, text, text, text, text, text, text
-) from public, anon;
-
-grant execute on function public.update_owned_club_profile(
-  uuid, text, text, text, text, text, text
-) to authenticated;

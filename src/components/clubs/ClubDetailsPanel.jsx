@@ -6,6 +6,7 @@ import { Spinner } from "../ui/Spinner";
 import { ClubLogoUpload } from "./ClubLogoUpload";
 import { ClubSupervisorSubmitForm } from "./ClubSupervisorSubmitForm";
 import { StatusBadge } from "../ui/StatusBadge";
+import { useAuth } from "../../context/AuthContext";
 import { updateOwnedClubProfile } from "../../services/clubs";
 import { uploadClubLogo } from "../../services/clubLogos";
 import {
@@ -16,6 +17,7 @@ import { isClubOwner } from "../../utils/clubPermissions";
 import { getErrorMessage } from "../../utils/errors";
 
 function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
+  const { user } = useAuth();
   const [name, setName] = useState(club?.name || "");
   const [description, setDescription] = useState(club?.description || "");
   const [contactEmail, setContactEmail] = useState(club?.contact_email || "");
@@ -36,23 +38,38 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     setBusy(true);
 
     try {
-      let logoUrl;
-      if (logoFile) {
-        logoUrl = await uploadClubLogo({ clubId: club.id, file: logoFile });
-      }
-
-      const updated = await updateOwnedClubProfile(club.id, {
+      // Save text fields first so photo-upload issues don't block edits.
+      let updated = await updateOwnedClubProfile(club.id, {
         name,
         description,
         contactEmail,
         leaderContactInformation: leaderContact,
         shortDescription: club.short_description,
-        ...(logoUrl ? { logoUrl } : {}),
       });
-      setLogoFile(null);
-      setSuccess(
-        logoUrl ? "Club details and photo saved." : "Club details saved.",
-      );
+
+      if (logoFile) {
+        if (!user?.id) {
+          throw new Error("Sign in again to upload a club photo.");
+        }
+        const logoUrl = await uploadClubLogo({
+          userId: user.id,
+          clubId: club.id,
+          file: logoFile,
+        });
+        updated = await updateOwnedClubProfile(club.id, {
+          name,
+          description,
+          contactEmail,
+          leaderContactInformation: leaderContact,
+          shortDescription: club.short_description,
+          logoUrl,
+        });
+        setLogoFile(null);
+        setSuccess("Club details and photo saved.");
+      } else {
+        setSuccess("Club details saved.");
+      }
+
       onClubUpdated?.(updated);
     } catch (saveError) {
       setError(getErrorMessage(saveError, "Could not save club details."));
@@ -160,7 +177,9 @@ export function ClubDetailsPanel({
   canWithdrawPending,
   onOpenWithdraw,
 }) {
-  const canEdit = isSacAdmin || isClubOwner(membership?.role);
+  const canEdit =
+    isSacAdmin ||
+    (isClubOwner(membership?.role) && membership?.status === "ACTIVE");
   const canSubmitSupervisor =
     isClubOwner(membership?.role) &&
     membership?.status === "ACTIVE" &&
