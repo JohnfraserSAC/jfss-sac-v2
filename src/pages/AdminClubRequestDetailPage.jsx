@@ -16,6 +16,7 @@ import {
 } from "../services/clubRequests";
 import { createSignedClubDocumentUrl } from "../services/clubDocuments";
 import { getClubById } from "../services/clubs";
+import { resolveClubLogoUrl } from "../utils/clubMedia";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 import { slugifyClubName } from "../utils/slug";
@@ -278,6 +279,28 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
               <strong>Club contact:</strong> {request.club_contact_information}
             </p>
           ) : null}
+          {request.instagram_handle ? (
+            <p>
+              <strong>Instagram:</strong> {request.instagram_handle}
+            </p>
+          ) : null}
+          {request.meeting_days?.length ? (
+            <p>
+              <strong>Meeting days:</strong>{" "}
+              {request.meeting_days.join(", ")}
+            </p>
+          ) : null}
+          {request.meeting_time_details ? (
+            <p>
+              <strong>Meeting time / details:</strong>{" "}
+              {request.meeting_time_details}
+            </p>
+          ) : null}
+          {request.meeting_location ? (
+            <p>
+              <strong>Meeting location:</strong> {request.meeting_location}
+            </p>
+          ) : null}
           {(request.teacher_supervisor_emails || []).length > 0 ? (
             <p>
               <strong>Teacher supervisors:</strong>{" "}
@@ -322,6 +345,16 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
             filename="signed-teacher-supervisor-form"
             alt="Signed teacher supervisor form"
           />
+        ) : null}
+        {request.logo_storage_path ? (
+          <div className="signed-form-preview">
+            <p className="muted">Proposed club logo</p>
+            <img
+              src={resolveClubLogoUrl(request.logo_storage_path)}
+              alt="Proposed club logo"
+              className="logo-preview"
+            />
+          </div>
         ) : null}
 
         {canReview ? (

@@ -2,17 +2,25 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ClubApplyNotice } from "../components/clubs/ClubApplyNotice";
+import { ClubLogoUpload } from "../components/clubs/ClubLogoUpload";
 import { TeacherSupervisorSection } from "../components/clubs/TeacherSupervisorSection";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { TextArea } from "../components/ui/TextArea";
 import { TextInput } from "../components/ui/TextInput";
 import { Spinner } from "../components/ui/Spinner";
-import { CLUB_APPLICATION_SCHOOL_YEAR } from "../config/clubApplications";
+import {
+  CLUB_APPLICATION_SCHOOL_YEAR,
+  MEETING_DAYS,
+} from "../config/clubApplications";
 import { supabase } from "../lib/supabase";
 import {
   deleteClubApplicationDocument,
   uploadClubApplicationDocument,
 } from "../services/clubDocuments";
+import {
+  deleteClubLogo,
+  uploadNewClubLogo,
+} from "../services/clubLogos";
 import { submitClubRegistrationApplication } from "../services/clubRequests";
 import { isValidPdsbEmail, normalizePdsbEmail } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
@@ -22,10 +30,17 @@ const INITIAL = {
   description: "",
   student_benefit: "",
   leader_details: "",
-  club_contact_information: "",
+  public_email: "",
+  instagram_handle: "",
+  meeting_days: [],
+  meeting_time_details: "",
+  meeting_location: "",
   potential_event_ideas: "",
-  leader_contact_information: "",
 };
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
 
 export function ClubApplyPage() {
   const { user, profile } = useAuth();
@@ -33,6 +48,7 @@ export function ClubApplyPage() {
   const [supervisorName, setSupervisorName] = useState("");
   const [supervisorEmail, setSupervisorEmail] = useState("");
   const [file, setFile] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -43,6 +59,18 @@ export function ClubApplyPage() {
   function updateField(event) {
     const { name, value } = event.target;
     setValues((current) => ({ ...current, [name]: value }));
+  }
+
+  function toggleMeetingDay(day) {
+    setValues((current) => {
+      const selected = current.meeting_days.includes(day);
+      return {
+        ...current,
+        meeting_days: selected
+          ? current.meeting_days.filter((item) => item !== day)
+          : [...current.meeting_days, day],
+      };
+    });
   }
 
   function validate() {
@@ -61,9 +89,11 @@ export function ClubApplyPage() {
     if (values.leader_details.trim().length < 5) {
       errors.leader_details = "Include each leader’s full name and grade.";
     }
-    if (values.club_contact_information.trim().length < 3) {
-      errors.club_contact_information =
-        "Provide club contact information such as email or Instagram.";
+    if (!isValidEmail(values.public_email)) {
+      errors.public_email = "Enter a valid public club email.";
+    }
+    if (!values.instagram_handle.trim()) {
+      errors.instagram_handle = "Enter the club Instagram handle.";
     }
 
     if (supervisorName.trim().length < 2) {
@@ -97,6 +127,7 @@ export function ClubApplyPage() {
 
     const requestId = crypto.randomUUID();
     let uploadedPath = null;
+    let uploadedLogoPath = null;
     setSubmitting(true);
 
     try {
@@ -107,6 +138,14 @@ export function ClubApplyPage() {
         file,
       });
 
+      if (logoFile) {
+        uploadedLogoPath = await uploadNewClubLogo({
+          userId: user.id,
+          requestId,
+          file: logoFile,
+        });
+      }
+
       await submitClubRegistrationApplication({
         requestId,
         proposedName: values.proposed_name,
@@ -114,10 +153,14 @@ export function ClubApplyPage() {
         studentBenefit: values.student_benefit,
         leaderDetails: values.leader_details,
         teacherSupervisorEmails: [email],
-        clubContactInformation: values.club_contact_information,
+        clubContactInformation: values.public_email.trim().toLowerCase(),
+        instagramHandle: values.instagram_handle.trim().replace(/^@+/, ""),
+        meetingDays: values.meeting_days,
+        meetingTimeDetails: values.meeting_time_details,
+        meetingLocation: values.meeting_location,
+        logoStoragePath: uploadedLogoPath,
         teacherSupervisorFormStoragePath: uploadedPath,
         potentialEventIdeas: values.potential_event_ideas,
-        leaderContactInformation: values.leader_contact_information,
         schoolYear: CLUB_APPLICATION_SCHOOL_YEAR,
       });
 
@@ -135,10 +178,14 @@ export function ClubApplyPage() {
       setSupervisorName("");
       setSupervisorEmail("");
       setFile(null);
+      setLogoFile(null);
       setFieldErrors({});
     } catch (submitError) {
       if (uploadedPath) {
         await deleteClubApplicationDocument(uploadedPath);
+      }
+      if (uploadedLogoPath) {
+        await deleteClubLogo(uploadedLogoPath);
       }
       setError(
         getErrorMessage(submitError, "Could not submit your club application."),
@@ -217,13 +264,79 @@ export function ClubApplyPage() {
           />
 
           <TextInput
-            id="club_contact_information"
-            name="club_contact_information"
-            label="How can we contact your club? For example, provide your club email or Instagram account."
-            value={values.club_contact_information}
+            id="public_email"
+            name="public_email"
+            type="email"
+            label="Public club email"
+            value={values.public_email}
             onChange={updateField}
-            error={fieldErrors.club_contact_information}
+            error={fieldErrors.public_email}
             required
+            disabled={submitting}
+          />
+
+          <TextInput
+            id="instagram_handle"
+            name="instagram_handle"
+            label="Instagram handle"
+            value={values.instagram_handle}
+            onChange={updateField}
+            error={fieldErrors.instagram_handle}
+            required
+            disabled={submitting}
+          />
+
+          <fieldset className="form-field meeting-day-picker">
+            <legend>
+              Meeting days <span className="muted">(optional)</span>
+            </legend>
+            <div className="meeting-day-picker__row" role="group">
+              {MEETING_DAYS.map((day) => {
+                const selected = values.meeting_days.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    className={
+                      selected
+                        ? "meeting-day-picker__day meeting-day-picker__day--selected"
+                        : "meeting-day-picker__day"
+                    }
+                    aria-pressed={selected}
+                    disabled={submitting}
+                    onClick={() => toggleMeetingDay(day)}
+                  >
+                    {day.slice(0, 3)}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <TextInput
+            id="meeting_time_details"
+            name="meeting_time_details"
+            label="Meeting time / details"
+            placeholder="e.g. lunch, before school, after school"
+            value={values.meeting_time_details}
+            onChange={updateField}
+            disabled={submitting}
+            hint="Optional"
+          />
+
+          <TextInput
+            id="meeting_location"
+            name="meeting_location"
+            label="Meeting location"
+            value={values.meeting_location}
+            onChange={updateField}
+            disabled={submitting}
+            hint="Optional"
+          />
+
+          <ClubLogoUpload
+            file={logoFile}
+            onChange={setLogoFile}
             disabled={submitting}
           />
 
@@ -238,16 +351,6 @@ export function ClubApplyPage() {
             hint="Optional"
           />
 
-          <TextArea
-            id="leader_contact_information"
-            name="leader_contact_information"
-            label="Please provide your club leader contact information, such as email or Instagram."
-            value={values.leader_contact_information}
-            onChange={updateField}
-            rows={3}
-            disabled={submitting}
-            hint="Optional"
-          />
         </div>
 
         <TeacherSupervisorSection

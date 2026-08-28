@@ -7,6 +7,7 @@ import { ClubLogoUpload } from "./ClubLogoUpload";
 import { ClubSupervisorSubmitForm } from "./ClubSupervisorSubmitForm";
 import { StatusBadge } from "../ui/StatusBadge";
 import { useAuth } from "../../context/AuthContext";
+import { MEETING_DAYS } from "../../config/clubApplications";
 import { updateOwnedClubProfile } from "../../services/clubs";
 import { uploadClubLogo } from "../../services/clubLogos";
 import {
@@ -20,9 +21,16 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
   const { user } = useAuth();
   const [name, setName] = useState(club?.name || "");
   const [description, setDescription] = useState(club?.description || "");
-  const [contactEmail, setContactEmail] = useState(club?.contact_email || "");
-  const [leaderContact, setLeaderContact] = useState(
-    club?.leader_contact_information || "",
+  const [publicEmail, setPublicEmail] = useState(club?.contact_email || "");
+  const [instagramHandle, setInstagramHandle] = useState(
+    club?.instagram_handle || "",
+  );
+  const [meetingDays, setMeetingDays] = useState(club?.meeting_days || []);
+  const [meetingTimeDetails, setMeetingTimeDetails] = useState(
+    club?.meeting_time_details || "",
+  );
+  const [meetingLocation, setMeetingLocation] = useState(
+    club?.meeting_location || "",
   );
   const [logoFile, setLogoFile] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -39,9 +47,11 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
       errors.description =
         "Provide a detailed club description (at least 10 characters).";
     }
-    if (contactEmail.trim().length < 3) {
-      errors.contactEmail =
-        "Provide club contact information such as email or Instagram.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(publicEmail.trim())) {
+      errors.publicEmail = "Enter a valid public club email.";
+    }
+    if (!instagramHandle.trim()) {
+      errors.instagramHandle = "Enter the club Instagram handle.";
     }
     return errors;
   }
@@ -67,8 +77,11 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
       let updated = await updateOwnedClubProfile(club.id, {
         name,
         description,
-        contactEmail,
-        leaderContactInformation: leaderContact,
+        contactEmail: publicEmail,
+        instagramHandle: instagramHandle.replace(/^@+/, ""),
+        meetingDays,
+        meetingTimeDetails,
+        meetingLocation,
       });
 
       if (logoFile) {
@@ -83,8 +96,11 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
         updated = await updateOwnedClubProfile(club.id, {
           name,
           description,
-          contactEmail,
-          leaderContactInformation: leaderContact,
+          contactEmail: publicEmail,
+          instagramHandle: instagramHandle.replace(/^@+/, ""),
+          meetingDays,
+          meetingTimeDetails,
+          meetingLocation,
           logoUrl,
         });
         setLogoFile(null);
@@ -106,8 +122,8 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     <section className="panel">
       <h2>Club details</h2>
       <p className="muted">
-        Public club contact and leader contact appear on the club page. The club
-        URL slug stays <code>{club.slug}</code> when you rename the club.
+        These details appear on the public club page. The club URL slug stays{" "}
+        <code>{club.slug}</code> when you rename the club.
       </p>
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
@@ -140,39 +156,84 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           hint="Pitch your club and how it benefits students at JFSS."
         />
         <TextInput
-          id="club-contact"
-          label="Club contact"
-          value={contactEmail}
-          onChange={(event) => setContactEmail(event.target.value)}
-          error={fieldErrors.contactEmail}
-          hint="Club email or Instagram account. Shown on the club page."
+          id="club-public-email"
+          type="email"
+          label="Public club email"
+          value={publicEmail}
+          onChange={(event) => setPublicEmail(event.target.value)}
+          error={fieldErrors.publicEmail}
           required
           disabled={!canEdit || busy}
         />
         <TextInput
-          id="club-leader-contact"
-          label="Club leader contact"
-          value={leaderContact}
-          onChange={(event) => setLeaderContact(event.target.value)}
-          hint="Optional. Leader email, Instagram, or other contact. Visible on the club page."
+          id="club-instagram"
+          label="Instagram handle"
+          value={instagramHandle}
+          onChange={(event) => setInstagramHandle(event.target.value)}
+          error={fieldErrors.instagramHandle}
+          required
           disabled={!canEdit || busy}
         />
 
-        <div className="stack">
-          <h3 className="club-details-photo-heading">Club photo</h3>
-          <p className="muted">
-            This image appears on Explore and the club page. Choose a new image
-            to replace the current photo.
-          </p>
-          <ClubLogoUpload
-            id="club-manage-logo"
-            label="Club photo"
-            file={logoFile}
-            onChange={setLogoFile}
-            currentUrl={club?.logo_url || null}
-            disabled={!canEdit || busy}
-          />
-        </div>
+        <fieldset className="form-field meeting-day-picker">
+          <legend>
+            Meeting days <span className="muted">(optional)</span>
+          </legend>
+          <div className="meeting-day-picker__row" role="group">
+            {MEETING_DAYS.map((day) => {
+              const selected = meetingDays.includes(day);
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  className={
+                    selected
+                      ? "meeting-day-picker__day meeting-day-picker__day--selected"
+                      : "meeting-day-picker__day"
+                  }
+                  aria-pressed={selected}
+                  disabled={!canEdit || busy}
+                  onClick={() =>
+                    setMeetingDays((current) =>
+                      selected
+                        ? current.filter((item) => item !== day)
+                        : [...current, day],
+                    )
+                  }
+                >
+                  {day.slice(0, 3)}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <TextInput
+          id="club-meeting-time"
+          label="Meeting time / details"
+          placeholder="e.g. lunch, before school, after school"
+          value={meetingTimeDetails}
+          onChange={(event) => setMeetingTimeDetails(event.target.value)}
+          disabled={!canEdit || busy}
+          hint="Optional"
+        />
+
+        <TextInput
+          id="club-meeting-location"
+          label="Meeting location"
+          value={meetingLocation}
+          onChange={(event) => setMeetingLocation(event.target.value)}
+          disabled={!canEdit || busy}
+          hint="Optional"
+        />
+
+        <ClubLogoUpload
+          id="club-manage-logo"
+          file={logoFile}
+          onChange={setLogoFile}
+          currentUrl={club?.logo_url || null}
+          disabled={!canEdit || busy}
+        />
 
         {canEdit ? (
           <div className="button-row">

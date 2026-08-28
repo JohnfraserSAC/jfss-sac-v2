@@ -1865,6 +1865,49 @@ summary:focus-visible {
   margin-top: -2.5rem;
 }
 
+.club-hero__owners {
+  margin: 0.45rem 0 0;
+  color: var(--text-muted);
+}
+
+.club-details-panel {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.club-details-panel h2 {
+  margin: 0;
+}
+
+.club-details-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.club-detail-item {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-muted) 38%, var(--bg-elevated));
+}
+
+.club-detail-item dt {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.club-detail-item dd {
+  margin: 0;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
 .prose {
   white-space: pre-wrap;
 }
@@ -2733,6 +2776,10 @@ button.nav-link {
   .skeleton--logo {
     width: 72px;
     height: 72px;
+  }
+
+  .club-details-grid {
+    grid-template-columns: 1fr;
   }
 }
 

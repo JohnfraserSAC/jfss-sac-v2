@@ -23,6 +23,7 @@ import {
   submitClubReapplication,
   validateSupervisorEntries,
 } from "../services/clubReapplications";
+import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
 import { getErrorMessage } from "../utils/errors";
 
 const INITIAL = {
@@ -110,6 +111,9 @@ export function ClubReapplyPage() {
     if (!selectedClub) return "";
     return selectedClub.name;
   }, [selectedClub]);
+  const historicalMeetingSchedule = getVisibleMeetingSchedule(
+    selectedClub?.historical_meeting_schedule,
+  );
 
   function updateField(event) {
     const { name, value, type, checked } = event.target;
@@ -441,10 +445,10 @@ export function ClubReapplyPage() {
               <p>
                 Selected <strong>{selectedLabel}</strong>
               </p>
-              {selectedClub.historical_meeting_schedule ? (
+              {historicalMeetingSchedule ? (
                 <p className="muted">
                   Historical schedule:{" "}
-                  {selectedClub.historical_meeting_schedule}
+                  {historicalMeetingSchedule}
                 </p>
               ) : null}
               <button

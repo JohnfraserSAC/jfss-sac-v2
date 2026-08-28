@@ -48,7 +48,6 @@ export const REAPP_LOGO_ALLOWED_TYPES = [
 
 export const MEETING_FREQUENCIES = [
   "Weekly",
-  "Biweekly",
   "Monthly",
   "Event-Based",
   "Irregular",

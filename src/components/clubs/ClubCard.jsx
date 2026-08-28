@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import { getVisibleMeetingSchedule } from "../../utils/clubSchedule";
 
 export function ClubCard({ club }) {
   const initial = club.name?.charAt(0)?.toUpperCase() || "C";
+  const meetingSchedule = getVisibleMeetingSchedule(club.meeting_schedule);
 
   return (
     <article className="club-card">
@@ -32,10 +34,10 @@ export function ClubCard({ club }) {
         )}
 
         <dl className="meta-list">
-          {club.meeting_schedule ? (
+          {meetingSchedule ? (
             <div>
               <dt>Schedule</dt>
-              <dd>{club.meeting_schedule}</dd>
+              <dd>{meetingSchedule}</dd>
             </div>
           ) : null}
           {club.meeting_location ? (

@@ -70,3 +70,49 @@ export async function uploadClubLogo({ userId, clubId, file }) {
 
   return path;
 }
+
+export function buildNewClubApplicationLogoPath({ userId, requestId, file }) {
+  const ext = extensionForMime(file.type);
+  return `new-club-logos/${userId}/${requestId}/${crypto.randomUUID()}.${ext}`;
+}
+
+export async function uploadNewClubLogo({ userId, requestId, file }) {
+  const validationError = validateClubLogoFile(file);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  if (!userId || !requestId) {
+    throw new Error("Missing upload destination for club logo.");
+  }
+
+  const path = buildNewClubApplicationLogoPath({ userId, requestId, file });
+  const { error } = await supabase.storage
+    .from(CLUB_LOGOS_BUCKET)
+    .upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type,
+    });
+
+  if (error) {
+    logServiceError("uploadNewClubLogo", error);
+    throw new Error(
+      getErrorMessage(error, "Could not upload the club logo."),
+    );
+  }
+
+  return path;
+}
+
+export async function deleteClubLogo(path) {
+  if (!path) return;
+
+  const { error } = await supabase.storage
+    .from(CLUB_LOGOS_BUCKET)
+    .remove([path]);
+
+  if (error) {
+    logServiceError("deleteClubLogo", error);
+  }
+}

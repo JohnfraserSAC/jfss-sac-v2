@@ -6,18 +6,20 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { getClubBySlug } from "../services/clubs";
+import { getClubBySlug, getPublicClubOwners } from "../services/clubs";
 import { getMyMembershipForClub } from "../services/memberships";
 import {
   canManageClubMembers,
   getClubRoleLabel,
 } from "../utils/clubPermissions";
+import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
 import { getErrorMessage } from "../utils/errors";
 
 export function ClubDetailPage() {
   const { slug } = useParams();
   const { user, isAuthenticated, isAdmin } = useAuth();
   const [club, setClub] = useState(null);
+  const [owners, setOwners] = useState([]);
   const [membership, setMembership] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,6 +31,7 @@ export function ClubDetailPage() {
       setLoading(true);
       setError("");
       setMembership(null);
+      setOwners([]);
 
       try {
         const nextClub = await getClubBySlug(slug);
@@ -42,6 +45,14 @@ export function ClubDetailPage() {
         }
 
         setClub(nextClub);
+
+        try {
+          const ownerRows = await getPublicClubOwners(nextClub.id);
+          if (!active) return;
+          setOwners(ownerRows);
+        } catch (ownersError) {
+          console.error(ownersError);
+        }
 
         if (isAuthenticated && user?.id) {
           try {
@@ -99,6 +110,7 @@ export function ClubDetailPage() {
   }
 
   const initial = club.name?.charAt(0)?.toUpperCase() || "C";
+  const meetingSchedule = getVisibleMeetingSchedule(club.meeting_schedule);
   const showStatus = isAdmin || club.status !== "APPROVED";
   const canManage = canManageClubMembers({
     clubRole: membership?.role,
@@ -128,8 +140,10 @@ export function ClubDetailPage() {
           <div>
             <p className="eyebrow">Club</p>
             <h1>{club.name}</h1>
-            {club.short_description ? (
-              <p className="lede">{club.short_description}</p>
+            {owners.length > 0 ? (
+              <p className="club-hero__owners">
+                • {owners.map((owner) => owner.owner_email).join(", ")}
+              </p>
             ) : null}
             <div className="badge-row">
               {showStatus ? <StatusBadge status={club.status} /> : null}
@@ -144,27 +158,31 @@ export function ClubDetailPage() {
         <p className="prose">{club.description}</p>
       </section>
 
-      <section className="panel">
+      <section className="panel club-details-panel">
         <h2>Details</h2>
-        <dl className="meta-list">
-          <div>
+        <dl className="meta-list club-details-grid">
+          <div className="club-detail-item">
             <dt>Club contact</dt>
             <dd>{club.contact_email || "Not provided"}</dd>
           </div>
-          <div>
-            <dt>Leader contact</dt>
-            <dd>{club.leader_contact_information || "Not provided"}</dd>
+          <div className="club-detail-item">
+            <dt>Owner contact</dt>
+            <dd>
+              {owners.length > 0
+                ? owners.map((owner) => owner.owner_email).join(", ")
+                : "Not provided"}
+            </dd>
           </div>
-          <div>
+          <div className="club-detail-item">
             <dt>Meeting schedule</dt>
-            <dd>{club.meeting_schedule || "Not provided"}</dd>
+            <dd>{meetingSchedule || "Not provided"}</dd>
           </div>
-          <div>
+          <div className="club-detail-item">
             <dt>Meeting location</dt>
             <dd>{club.meeting_location || "Not provided"}</dd>
           </div>
           {membership ? (
-            <div>
+            <div className="club-detail-item">
               <dt>Your role in this club</dt>
               <dd>
                 {club.name} · Role: {getClubRoleLabel(membership.role)} ·{" "}

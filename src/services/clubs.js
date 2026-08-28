@@ -183,6 +183,24 @@ export async function getClubBySlug(slug) {
   return withResolvedLogo(data);
 }
 
+export async function getPublicClubOwners(clubId) {
+  const { data, error } = await supabase.rpc(
+    "get_public_club_owner_emails",
+    {
+      p_club_id: clubId,
+    },
+  );
+
+  if (error) {
+    logServiceError("getPublicClubOwners", error);
+    throw new Error(
+      getErrorMessage(error, "Could not load the club owners."),
+    );
+  }
+
+  return data ?? [];
+}
+
 export async function getClubById(clubId) {
   const { data, error } = await supabase
     .from("clubs")
@@ -205,9 +223,16 @@ export async function getClubById(clubId) {
 export async function updateOwnedClubProfile(clubId, values) {
   const name = String(values?.name ?? "").trim();
   const description = String(values?.description ?? "").trim();
-  const contactEmail = String(values?.contactEmail ?? "").trim() || null;
-  const leaderContactInformation =
-    String(values?.leaderContactInformation ?? "").trim() || null;
+  const contactEmail = String(values?.contactEmail ?? "").trim().toLowerCase();
+  const instagramHandle = String(values?.instagramHandle ?? "")
+    .trim()
+    .replace(/^@+/, "");
+  const meetingDays = Array.isArray(values?.meetingDays)
+    ? values.meetingDays
+    : [];
+  const meetingTimeDetails =
+    String(values?.meetingTimeDetails ?? "").trim() || null;
+  const meetingLocation = String(values?.meetingLocation ?? "").trim() || null;
   const logoUrl =
     values?.logoUrl === undefined || values?.logoUrl === null
       ? undefined
@@ -223,10 +248,12 @@ export async function updateOwnedClubProfile(clubId, values) {
     );
   }
 
-  if (!contactEmail || contactEmail.length < 3) {
-    throw new Error(
-      "Provide club contact information such as email or Instagram.",
-    );
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+    throw new Error("Enter a valid public club email.");
+  }
+
+  if (!instagramHandle) {
+    throw new Error("Enter the club Instagram handle.");
   }
 
   const rpcArgs = {
@@ -234,7 +261,10 @@ export async function updateOwnedClubProfile(clubId, values) {
     p_name: name,
     p_description: description,
     p_contact_email: contactEmail,
-    p_leader_contact_information: leaderContactInformation,
+    p_instagram_handle: instagramHandle,
+    p_meeting_days: meetingDays,
+    p_meeting_time_details: meetingTimeDetails,
+    p_meeting_location: meetingLocation,
   };
 
   if (logoUrl !== undefined) {
