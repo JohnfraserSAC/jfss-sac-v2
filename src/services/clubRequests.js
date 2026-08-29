@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { CLUB_APPLICATION_SCHOOL_YEAR } from "../config/clubApplications";
 import { getErrorMessage, logServiceError } from "../utils/errors";
-import { validateClubRequestForm, validateClubSlug } from "../utils/validation";
+import { validateClubSlug } from "../utils/validation";
 
 const REQUEST_FIELDS = `
   id,
@@ -85,63 +85,6 @@ export async function submitClubRegistrationApplication(payload) {
     throw new Error(
       getErrorMessage(error, "Could not submit your club application."),
     );
-  }
-
-  return data;
-}
-
-export async function submitClubRequest(userId, formValues) {
-  const { data: normalized, errors, isValid } =
-    validateClubRequestForm(formValues);
-
-  if (!isValid) {
-    const firstError = Object.values(errors)[0];
-    const error = new Error(firstError);
-    error.fieldErrors = errors;
-    throw error;
-  }
-
-  const payload = {
-    ...normalized,
-    requested_by: userId,
-    status: "SUBMITTED",
-  };
-
-  const { data, error } = await supabase
-    .from("club_registration_requests")
-    .insert(payload)
-    .select(REQUEST_FIELDS)
-    .single();
-
-  if (error) {
-    logServiceError("submitClubRequest", error);
-    throw new Error(getErrorMessage(error, "Could not submit your club request."));
-  }
-
-  return data;
-}
-
-export async function updateMyClubRequest(requestId, formValues) {
-  const { data: normalized, errors, isValid } =
-    validateClubRequestForm(formValues);
-
-  if (!isValid) {
-    const firstError = Object.values(errors)[0];
-    const error = new Error(firstError);
-    error.fieldErrors = errors;
-    throw error;
-  }
-
-  const { data, error } = await supabase
-    .from("club_registration_requests")
-    .update(normalized)
-    .eq("id", requestId)
-    .select(REQUEST_FIELDS)
-    .single();
-
-  if (error) {
-    logServiceError("updateMyClubRequest", error);
-    throw new Error(getErrorMessage(error, "Could not update your club request."));
   }
 
   return data;

@@ -327,30 +327,3 @@ export function validateSupervisorEntries(
 
   return { supervisors: cleaned, error: null };
 }
-
-export function parseSupervisorEmails(raw) {
-  return String(raw ?? "")
-    .split(/[\n,;]+/)
-    .map((value) => normalizePdsbEmail(value))
-    .filter(Boolean);
-}
-
-export function validateSupervisorEmails(raw, { required = true } = {}) {
-  const emails = parseSupervisorEmails(raw);
-  if (!required && emails.length === 0) {
-    return { emails: [], error: null };
-  }
-  if (required && emails.length === 0) {
-    return {
-      emails: [],
-      error: "Enter at least one teacher supervisor @pdsb.net email.",
-    };
-  }
-  if (emails.some((email) => !isValidPdsbEmail(email))) {
-    return {
-      emails: [],
-      error: "Every teacher supervisor email must be an exact @pdsb.net address.",
-    };
-  }
-  return { emails, error: null };
-}

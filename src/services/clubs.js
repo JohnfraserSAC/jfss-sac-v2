@@ -144,21 +144,6 @@ export async function getClubAnnualState(clubId) {
   return data;
 }
 
-export async function listClubsByAnnualStatus(status) {
-  const { data, error } = await supabase.rpc("list_clubs_by_annual_status", {
-    p_status: status,
-  });
-
-  if (error) {
-    logServiceError("listClubsByAnnualStatus", error);
-    throw new Error(
-      getErrorMessage(error, "Could not load clubs for this category."),
-    );
-  }
-
-  return data ?? [];
-}
-
 export async function getCurrentClubSchoolYear() {
   const { data, error } = await supabase.rpc("get_current_club_school_year");
   if (error) {
@@ -286,15 +271,9 @@ export async function updateOwnedClubProfile(clubId, values) {
   return withResolvedLogo(data);
 }
 
-/** Soft-archive via owner RPC. Clubs can never be permanently deleted. */
-export async function archiveClub(clubId) {
-  await archiveOwnedClub(clubId);
-  return getClubById(clubId);
-}
-
 /**
- * Owner archive via secure RPC.
- * NEW_APPLICATION clubs become terminal (deleted_at); historical clubs soft-archive.
+ * Owner archive via secure RPC. Archived clubs remain available for
+ * re-registration.
  */
 export async function archiveOwnedClub(clubId) {
   const { data, error } = await supabase.rpc("archive_owned_club", {

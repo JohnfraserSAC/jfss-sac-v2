@@ -2756,12 +2756,6 @@ button.nav-link {
   color: #7f1d1d;
 }
 
-.badge--archived {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #475569;
-}
-
 @media (max-width: 860px) {
   .club-grid {
     grid-template-columns: 1fr;
@@ -3286,16 +3280,6 @@ button.nav-link {
   cursor: not-allowed;
 }
 
-.logo-preview {
-  display: block;
-  max-width: 8rem;
-  max-height: 8rem;
-  object-fit: contain;
-  margin-top: 0.75rem;
-  border: 1px solid var(--border, #ddd);
-  border-radius: 0.5rem;
-}
-
 .notice-panel {
   padding: 1rem;
   border: 1px solid var(--border, #ddd);
@@ -3702,60 +3686,6 @@ button.nav-link {
   font-size: 0.95rem;
   text-align: center;
   padding: 16px;
-}
-
-/* ===== Officer names + Meet the Team button ===== */
-.officer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 20px;
-  border-top: 1px solid #e5e9f0;
-  padding-top: 24px;
-}
-
-.officer-list {
-  display: flex;
-  gap: 40px;
-  flex-wrap: wrap;
-}
-
-.officer-list__item {
-  min-width: 140px;
-}
-
-.officer-list__name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1e2a4a;
-  margin: 0 0 2px;
-}
-
-.officer-list__role {
-  color: #2c5eb0;
-  font-weight: 600;
-  font-size: 0.85rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  margin: 0;
-}
-
-.btn-meet-team {
-  flex-shrink: 0;
-  background: #1e2a4a;
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.9rem;
-  text-decoration: none;
-  padding: 12px 24px;
-  border-radius: 999px;
-  transition: background 0.15s ease;
-  white-space: nowrap;
-}
-
-.btn-meet-team:hover {
-  background: #2c5eb0;
 }
 
 /* ===== Sports teams ===== */

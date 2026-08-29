@@ -20,14 +20,6 @@ export function formatClubScopedRole(clubName, role) {
   return `${club} ${getClubRoleLabel(role)}`;
 }
 
-export function isSacAdmin(systemRoles) {
-  return (systemRoles || []).some((role) => role.code === "SAC_ADMIN");
-}
-
-export function getMembershipRole(memberships, clubId) {
-  return getClubRole(memberships, clubId);
-}
-
 export function getClubRole(memberships, clubId) {
   const match = (memberships || []).find(
     (membership) => membership.club_id === clubId,
@@ -58,23 +50,6 @@ export function isClubExec(role) {
   return role === "EXEC";
 }
 
-export function isClubExecutive(role) {
-  return isClubExec(role);
-}
-
-export function isClubMember(role) {
-  return role === "MEMBER";
-}
-
-export function isClubLeader(role) {
-  return isClubOwner(role) || isClubExec(role);
-}
-
-export function canManageClubMembers({ clubRole }) {
-  // Manage Club is for club OWNER/EXEC membership only — not SAC admin bypass.
-  return isClubOwner(clubRole) || isClubExec(clubRole);
-}
-
 export function canSearchStudents({ clubRole, isSacAdmin = false }) {
   return isSacAdmin || isClubOwner(clubRole);
 }
@@ -101,22 +76,6 @@ export function getAddableRoles({
 
 export function getInvitableRoles(options) {
   return getAddableRoles(options);
-}
-
-export function canAddRole({
-  currentUserRole,
-  targetRole,
-  isSacAdmin = false,
-  activeOwnerCount = 0,
-  pendingOwnerInvitationCount = 0,
-}) {
-  return canAddClubRole({
-    currentUserRole,
-    newRole: targetRole,
-    isSacAdmin,
-    activeOwnerCount,
-    pendingOwnerInvitationCount,
-  });
 }
 
 export function canAddClubRole({

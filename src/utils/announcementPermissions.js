@@ -23,21 +23,6 @@ export function canPublishDirectly({
   return isSacAdmin || isFacultyAdvisor;
 }
 
-export function canReviewAnnouncements({
-  isSacAdmin = false,
-  isFacultyAdvisor = false,
-  isSacExec = false,
-}) {
-  return isSacAdmin || isFacultyAdvisor || isSacExec;
-}
-
-export function canMutateAnnouncementReviews({
-  isSacAdmin = false,
-  isFacultyAdvisor = false,
-}) {
-  return isSacAdmin || isFacultyAdvisor;
-}
-
 export function canCreateAnnouncement({
   isSacAdmin = false,
   isFacultyAdvisor = false,
@@ -97,10 +82,6 @@ export function canArchiveAnnouncement({
   if (!announcement || announcement.status !== "PUBLISHED") return false;
   if (isSacAdmin) return true;
   return isFacultyAdvisor && announcement.created_by === userId;
-}
-
-export function getAllowedCreateActions() {
-  return ["DRAFT", "SUBMIT"];
 }
 
 export function getAllowedEditActions({

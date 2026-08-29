@@ -1,7 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { getErrorMessage, logServiceError } from "../utils/errors";
 import {
-  getClubRoleLabel,
   isValidPdsbEmail,
   normalizePdsbEmail,
 } from "../utils/clubPermissions";
@@ -206,8 +205,4 @@ export async function getClubPendingInvitations(clubId) {
   }
 
   return data ?? [];
-}
-
-export function invitationRoleLabel(role) {
-  return getClubRoleLabel(role);
 }

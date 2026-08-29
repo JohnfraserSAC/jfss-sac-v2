@@ -388,31 +388,6 @@ export async function addClubMembership({ clubId, userId, role, addedBy }) {
   return data;
 }
 
-export async function leaveClubAsOwner(clubId) {
-  const { error } = await supabase.rpc("leave_club_as_owner", {
-    p_club_id: clubId,
-  });
-  if (error) {
-    logServiceError("leaveClubAsOwner", error);
-    throw new Error(getErrorMessage(error, "Could not leave as OWNER."));
-  }
-}
-
-export async function adminRemoveClubOwner(clubId, targetUserId) {
-  const { error } = await supabase.rpc("admin_remove_club_owner", {
-    p_club_id: clubId,
-    p_target_user_id: targetUserId,
-  });
-  if (error) {
-    logServiceError("adminRemoveClubOwner", error);
-    throw new Error(getErrorMessage(error, "Could not remove this OWNER."));
-  }
-}
-
-export async function reactivateClubMembership({ clubId, userId, role }) {
-  return addClubMembership({ clubId, userId, role });
-}
-
 export async function updateClubMembershipRole({ clubId, userId, role }) {
   if (role === "OWNER") {
     return addClubMembership({ clubId, userId, role });
