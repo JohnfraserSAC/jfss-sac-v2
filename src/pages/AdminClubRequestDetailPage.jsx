@@ -229,40 +229,18 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
       {actionError ? <ErrorMessage>{actionError}</ErrorMessage> : null}
 
       <article className="panel admin-request-card">
-        <dl className="meta-list">
-          <div>
-            <dt>Request ID</dt>
-            <dd>
-              <code>{request.id}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Expected members</dt>
-            <dd>{request.expected_member_count ?? "Not provided"}</dd>
-          </div>
-          <div>
-            <dt>Advisor</dt>
-            <dd>
-              {request.faculty_advisor_name || "Not provided"}
-              {request.faculty_advisor_email
-                ? ` · ${request.faculty_advisor_email}`
-                : ""}
-            </dd>
-          </div>
-        </dl>
-
         <div className="admin-request-card__details">
-          <p>
-            <strong>Description:</strong> {request.description}
-          </p>
-          {request.student_benefit ? (
+          {request.description ? (
             <p>
-              <strong>Student benefit:</strong> {request.student_benefit}
+              <strong>Description</strong> {request.description}
             </p>
           ) : null}
-          <p>
-            <strong>Purpose:</strong> {request.purpose}
-          </p>
+          {request.student_benefit ? (
+            <p className="admin-request-card__benefit">
+              <strong>How does this club benefit students at JFSS?</strong>{" "}
+              {request.student_benefit}
+            </p>
+          ) : null}
           {request.leader_details ? (
             <p>
               <strong>Leaders:</strong> {request.leader_details}
@@ -295,12 +273,6 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
               <strong>Meeting location:</strong> {request.meeting_location}
             </p>
           ) : null}
-          {(request.teacher_supervisor_emails || []).length > 0 ? (
-            <p>
-              <strong>Teacher supervisors:</strong>{" "}
-              {request.teacher_supervisor_emails.join(", ")}
-            </p>
-          ) : null}
           {request.potential_event_ideas ? (
             <p>
               <strong>Event ideas:</strong> {request.potential_event_ideas}
@@ -331,15 +303,6 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
           ) : null}
         </div>
 
-        {isSacAdmin && request.teacher_supervisor_form_storage_path ? (
-          <AttachmentPreview
-            path={request.teacher_supervisor_form_storage_path}
-            getSignedUrl={createSignedClubDocumentUrl}
-            mimeType="image/jpeg"
-            filename="signed-teacher-supervisor-form"
-            alt="Signed teacher supervisor form"
-          />
-        ) : null}
         {request.logo_storage_path ? (
           <div className="signed-form-preview">
             <p className="muted">Proposed club logo</p>
@@ -350,6 +313,33 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
             />
           </div>
         ) : null}
+
+        <section className="admin-request-subsection">
+          <h3>Teacher supervisor information</h3>
+          <div className="admin-request-subsection__grid">
+            <div>
+              <span>Supervisor</span>
+              <strong>{request.faculty_advisor_name || "Not provided"}</strong>
+            </div>
+            <div>
+              <span>Email</span>
+              <strong>
+                {(request.teacher_supervisor_emails || []).join(", ") ||
+                  request.faculty_advisor_email ||
+                  "Not provided"}
+              </strong>
+            </div>
+          </div>
+          {isSacAdmin && request.teacher_supervisor_form_storage_path ? (
+            <AttachmentPreview
+              path={request.teacher_supervisor_form_storage_path}
+              getSignedUrl={createSignedClubDocumentUrl}
+              mimeType="image/jpeg"
+              filename="signed-teacher-supervisor-form"
+              alt="Signed teacher supervisor form"
+            />
+          ) : null}
+        </section>
 
         {canReview ? (
           <div className="admin-request-review">

@@ -37,6 +37,7 @@ import { AdminClubReapplicationDetailPage } from "./pages/AdminClubReapplication
 import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
 import { AdminArchivedAnnouncementsPage } from "./pages/AdminArchivedAnnouncementsPage";
 import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage";
+import { AdminClubSupervisorRequestsDetailPage } from "./pages/AdminClubSupervisorRequestsDetailPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
 import { AdminClubFundingDetailPage } from "./pages/AdminClubFundingDetailPage";
 import { AdminSchoolDayPage } from "./pages/AdminSchoolDayPage";
@@ -232,6 +233,10 @@ export default function App() {
                 <Route
                   path="supervisor"
                   element={<AdminSupervisorRequestsPage embedded />}
+                />
+                <Route
+                  path="supervisor/:clubId"
+                  element={<AdminClubSupervisorRequestsDetailPage embedded />}
                 />
               </Route>
 

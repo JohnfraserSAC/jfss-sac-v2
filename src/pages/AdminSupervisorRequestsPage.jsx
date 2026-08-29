@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AttachmentPreview } from "../components/ui/AttachmentPreview";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
@@ -13,13 +12,11 @@ import { StatusBadge } from "../components/ui/StatusBadge";
 import { Spinner } from "../components/ui/Spinner";
 import {
   adminRejectPendingSupervisorClub,
-  createSignedSupervisorDocumentUrl,
   defaultSupervisorDeadlineLocalValue,
   extendClubSupervisorDeadline,
   getAdminSupervisorRequestQueue,
   listSupervisorWatchClubs,
   localDateTimeValueToIso,
-  reviewClubSupervisorRequest,
 } from "../services/clubSupervisors";
 import { formatDate, formatDeadlineRelative } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
@@ -47,8 +44,6 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [busyId, setBusyId] = useState(null);
-  const [notesById, setNotesById] = useState({});
-  const [confirmAction, setConfirmAction] = useState(null);
   const [extendTarget, setExtendTarget] = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [dueLocal, setDueLocal] = useState(defaultSupervisorDeadlineLocalValue());
@@ -102,6 +97,20 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
     });
   }, [pendingClubs, requests]);
 
+  const requestClubs = useMemo(() => {
+    const clubs = new Map();
+    for (const request of requests) {
+      if (!request.club_id || clubs.has(request.club_id)) continue;
+      clubs.set(request.club_id, {
+        id: request.club_id,
+        name: request.clubs?.name || "Club",
+      });
+    }
+    return [...clubs.values()].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [requests]);
+
   if (!canView) {
     return (
       <PermissionNotice title="Exec access required">
@@ -109,35 +118,6 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
         executives.
       </PermissionNotice>
     );
-  }
-
-  async function runAction(request, action) {
-    const notes = (notesById[request.id] || "").trim();
-    if (action === "REJECTED" && !notes) {
-      setError("Review notes are required when rejecting.");
-      return;
-    }
-    setBusyId(request.id);
-    setError("");
-    setSuccess("");
-    try {
-      await reviewClubSupervisorRequest({
-        requestId: request.id,
-        action,
-        reviewNotes: notes || null,
-      });
-      setSuccess(
-        action === "APPROVED"
-          ? `${request.clubs?.name || "Club"} supervisor approved. Club is now ACTIVE if at least one advisor is active.`
-          : `Updated request to ${action}.`,
-      );
-      setConfirmAction(null);
-      await load();
-    } catch (actionError) {
-      setError(getErrorMessage(actionError, "Could not update request."));
-    } finally {
-      setBusyId(null);
-    }
   }
 
   async function confirmExtend() {
@@ -241,122 +221,25 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
           className="stack supervisor-split__body supervisor-split__body--requests"
           aria-labelledby="supervisor-requests-heading"
         >
-          {requests.length === 0 ? (
+          {requestClubs.length === 0 ? (
             <EmptyState
               title="No supervisor requests"
               description="Owner-submitted teacher supervisor packages appear here."
             />
           ) : (
-            <ul className="stack card-list">
-              {requests.map((request) => (
-                <li key={request.id} className="card">
-                  <div className="card__header">
-                    <h3>{request.clubs?.name || "Club"}</h3>
-                    <StatusBadge status={request.status} />
+            <div className="exec-queue-list">
+              {requestClubs.map((club) => (
+                <Link
+                  key={club.id}
+                  className="exec-queue-card"
+                  to={`/exec-dashboard/requests/supervisor/${club.id}`}
+                >
+                  <div className="exec-queue-card__main">
+                    <h3 className="exec-queue-card__title">{club.name}</h3>
                   </div>
-                  <dl className="detail-list">
-                    <div>
-                      <dt>Requesting owner</dt>
-                      <dd>
-                        {request.submitter?.full_name ||
-                          request.submitter?.email ||
-                          "Unknown owner"}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Submitted</dt>
-                      <dd>{formatDate(request.submitted_at)}</dd>
-                    </div>
-                    {(request.club_supervisor_request_supervisors || []).map(
-                      (supervisor) => (
-                        <div key={supervisor.id || supervisor.supervisor_email}>
-                          <dt>Teacher</dt>
-                          <dd>
-                            {supervisor.supervisor_name}
-                            <br />
-                            <span className="muted">
-                              {supervisor.supervisor_email}
-                            </span>
-                          </dd>
-                        </div>
-                      ),
-                    )}
-                    {request.review_notes ? (
-                      <div>
-                        <dt>Review notes</dt>
-                        <dd>{request.review_notes}</dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                  {(request.club_supervisor_request_attachments || []).map(
-                    (att) => (
-                      <AttachmentPreview
-                        key={att.id}
-                        path={att.storage_path}
-                        getSignedUrl={createSignedSupervisorDocumentUrl}
-                        mimeType={att.mime_type}
-                        filename={att.original_filename}
-                        alt={
-                          att.original_filename ||
-                          "Teacher supervisor signature attachment"
-                        }
-                      />
-                    ),
-                  )}
-                  {canMutate &&
-                  ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(
-                    request.status,
-                  ) ? (
-                    <>
-                      <TextArea
-                        id={`sup-notes-${request.id}`}
-                        label="Review notes"
-                        value={notesById[request.id] || ""}
-                        onChange={(event) =>
-                          setNotesById((current) => ({
-                            ...current,
-                            [request.id]: event.target.value,
-                          }))
-                        }
-                        hint="Required when rejecting. Optional when approving."
-                      />
-                      <div className="button-row">
-                        <button
-                          type="button"
-                          className="button"
-                          disabled={busyId === request.id}
-                          onClick={() =>
-                            setConfirmAction({ request, action: "APPROVED" })
-                          }
-                        >
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          className="button button--danger"
-                          disabled={busyId === request.id}
-                          onClick={() => {
-                            if (!(notesById[request.id] || "").trim()) {
-                              setError(
-                                "Review notes are required when rejecting.",
-                              );
-                              return;
-                            }
-                            setConfirmAction({
-                              request,
-                              action: "REJECTED",
-                            });
-                          }}
-                        >
-                          Reject
-                        </button>
-                        {busyId === request.id ? <Spinner /> : null}
-                      </div>
-                    </>
-                  ) : null}
-                </li>
+                </Link>
               ))}
-            </ul>
+            </div>
           )}
         </section>
 
@@ -478,34 +361,6 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
           )}
         </section>
       </div>
-
-      <ConfirmDialog
-        open={Boolean(confirmAction)}
-        title={
-          confirmAction?.action === "APPROVED"
-            ? "Approve supervisor request?"
-            : "Reject supervisor request?"
-        }
-        confirmLabel={
-          confirmAction?.action === "APPROVED" ? "Approve" : "Reject"
-        }
-        destructive={confirmAction?.action === "REJECTED"}
-        busy={busyId === confirmAction?.request?.id}
-        onCancel={() => {
-          if (busyId) return;
-          setConfirmAction(null);
-        }}
-        onConfirm={() => {
-          if (!confirmAction) return;
-          void runAction(confirmAction.request, confirmAction.action);
-        }}
-      >
-        <p>
-          {confirmAction?.action === "APPROVED"
-            ? `Approve the teacher supervisor for ${confirmAction.request.clubs?.name || "this club"}?`
-            : `Reject the supervisor request for ${confirmAction?.request?.clubs?.name || "this club"}? Review notes are required.`}
-        </p>
-      </ConfirmDialog>
 
       <ConfirmDialog
         open={Boolean(extendTarget)}

@@ -264,6 +264,7 @@ export function ClubDetailsPanel({
     (annual?.status === "PENDING_SUPERVISOR" || annual?.status === "ACTIVE") &&
     club?.status === "APPROVED" &&
     !club?.deleted_at;
+  const isArchived = club?.status === "ARCHIVED";
 
   const [advisors, setAdvisors] = useState([]);
   const [requestHistory, setRequestHistory] = useState([]);
@@ -274,6 +275,11 @@ export function ClubDetailsPanel({
 
     async function loadSupervisorState() {
       if (!club?.id) return;
+      if (club.status === "ARCHIVED") {
+        setAdvisors([]);
+        setRequestHistory([]);
+        return;
+      }
       try {
         const [advisorRows, requestRows] = await Promise.all([
           getActiveClubAdvisors(club.id, annual?.school_year).catch(() => []),
@@ -293,7 +299,7 @@ export function ClubDetailsPanel({
     return () => {
       active = false;
     };
-  }, [club?.id, annual?.school_year, supervisorNotice]);
+  }, [club?.id, club?.status, annual?.school_year, supervisorNotice]);
 
   return (
     <div
@@ -309,36 +315,38 @@ export function ClubDetailsPanel({
         onClubUpdated={onClubUpdated}
       />
 
-      <section className="panel">
-        <h2>Approved teacher supervisors</h2>
-        {advisors.length > 0 ? (
-          <ul className="stack">
-            {advisors.map((advisor) => (
-              <li key={advisor.id}>
-                <strong>{advisor.supervisor_name}</strong>
-                <span className="muted"> · {advisor.supervisor_email}</span>
-                <StatusBadge status="APPROVED" />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="muted">No approved teacher supervisors yet.</p>
-        )}
+      {!isArchived ? (
+        <section className="panel">
+          <h2>Approved teacher supervisors</h2>
+          {advisors.length > 0 ? (
+            <ul className="stack">
+              {advisors.map((advisor) => (
+                <li key={advisor.id}>
+                  <strong>{advisor.supervisor_name}</strong>
+                  <span className="muted"> · {advisor.supervisor_email}</span>
+                  <StatusBadge status="APPROVED" />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted">No approved teacher supervisors yet.</p>
+          )}
 
-        {canWithdrawPending ? (
-          <div className="button-row" style={{ marginTop: "1rem" }}>
-            <button
-              type="button"
-              className="button button--secondary"
-              onClick={onOpenWithdraw}
-            >
-              Withdraw pending approval
-            </button>
-          </div>
-        ) : null}
-      </section>
+          {canWithdrawPending ? (
+            <div className="button-row" style={{ marginTop: "1rem" }}>
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={onOpenWithdraw}
+              >
+                Withdraw pending approval
+              </button>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
-      {canSubmitSupervisor || requestHistory.length > 0 ? (
+      {!isArchived && (canSubmitSupervisor || requestHistory.length > 0) ? (
         <ClubSupervisorSubmitForm
           club={club}
           canSubmit={canSubmitSupervisor}
@@ -367,10 +375,9 @@ export function ClubDetailsPanel({
               <p className="eyebrow">Danger zone</p>
               <h2 id="owner-archive-title">Archive club</h2>
               <p className="lede">
-                Archives this club for the current school year. New-club
-                applications are permanently removed from the portal.
-                Historical clubs stay inactive and may later be eligible for
-                reapplication. Clubs cannot be hard-deleted from the database.
+                Archives this club for the current school year and keeps it
+                available for re-registration. Clubs cannot be hard-deleted
+                from the database.
               </p>
             </div>
           </div>
@@ -381,7 +388,7 @@ export function ClubDetailsPanel({
                 <p>
                   Removes the club from Explore and active operations, marks
                   memberships inactive, and keeps the club available for
-                  re-application.
+                  re-registration.
                 </p>
               </div>
               <button

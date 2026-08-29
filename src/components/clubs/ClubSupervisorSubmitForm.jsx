@@ -18,15 +18,6 @@ import { isValidPdsbEmail, normalizePdsbEmail } from "../../utils/clubPermission
 import { formatDate } from "../../utils/format";
 import { getErrorMessage } from "../../utils/errors";
 
-function statusLabel(status) {
-  if (status === "SUBMITTED" || status === "UNDER_REVIEW") return "Pending";
-  if (status === "CHANGES_REQUESTED") return "Pending";
-  if (status === "APPROVED") return "Approved";
-  if (status === "REJECTED") return "Rejected";
-  if (status === "CANCELLED") return "Cancelled";
-  return status;
-}
-
 export function ClubSupervisorSubmitForm({
   club,
   canSubmit = true,
@@ -221,12 +212,13 @@ export function ClubSupervisorSubmitForm({
         ) : (
           <ul className="stack card-list">
             {history.map((row) => (
-              <li key={row.id} className="card">
-                <div className="card__header">
-                  <strong>Submitted {formatDate(row.submitted_at)}</strong>
+              <li key={row.id} className="club-supervisor-request-card">
+                <div className="club-supervisor-request-card__header">
+                  <strong>
+                    Submitted {formatDate(row.submitted_at)}
+                  </strong>
                   <StatusBadge status={row.status} />
                 </div>
-                <p className="muted">{statusLabel(row.status)}</p>
                 <p>
                   {(row.club_supervisor_request_supervisors || [])
                     .map(

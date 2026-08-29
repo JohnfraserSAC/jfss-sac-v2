@@ -6,9 +6,7 @@ import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { PermissionNotice } from "../components/ui/PermissionNotice";
-import { Select } from "../components/ui/Select";
 import { TextArea } from "../components/ui/TextArea";
-import { TextInput } from "../components/ui/TextInput";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { createSignedClubDocumentUrl } from "../services/clubDocuments";
 import {
@@ -16,10 +14,6 @@ import {
   getClubReapplicationById,
   reviewClubReapplication,
 } from "../services/clubReapplications";
-import {
-  defaultSupervisorDeadlineLocalValue,
-  localDateTimeValueToIso,
-} from "../services/clubSupervisors";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
@@ -37,10 +31,6 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
   const [busy, setBusy] = useState(false);
   const [reviewNotes, setReviewNotes] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
-  const [hasSupervisor, setHasSupervisor] = useState("YES");
-  const [supervisorDueLocal, setSupervisorDueLocal] = useState(
-    defaultSupervisorDeadlineLocalValue(),
-  );
 
   const listPath = "/exec-dashboard/applications/reapplications";
 
@@ -83,11 +73,6 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
 
   function openApproveConfirm() {
     if (!request) return;
-    const listed =
-      (request.club_reapplication_supervisors || []).length > 0 &&
-      !request.is_seeking_teacher_supervisor;
-    setHasSupervisor(listed ? "YES" : "NO");
-    setSupervisorDueLocal(defaultSupervisorDeadlineLocalValue());
     setConfirmAction("APPROVED");
   }
 
@@ -107,20 +92,14 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
       const clubName = request.clubs?.name || "Club";
 
       if (action === "APPROVED") {
-        const withSupervisor = hasSupervisor === "YES";
-        const dueIso = withSupervisor
-          ? null
-          : localDateTimeValueToIso(supervisorDueLocal);
-        if (!withSupervisor && !dueIso) {
-          setActionError("Choose a valid supervisor deadline.");
-          setBusy(false);
-          return;
-        }
+        const withSupervisor =
+          !request.is_seeking_teacher_supervisor &&
+          (request.club_reapplication_supervisors || []).length > 0;
         await approveClubReapplication({
           requestId: request.id,
           reviewNotes: notes || null,
           hasTeacherSupervisor: withSupervisor,
-          supervisorDueAt: dueIso,
+          supervisorDueAt: null,
         });
         navigate(listPath, {
           state: {
@@ -179,6 +158,9 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
     ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(
       request.status,
     );
+  const hasListedSupervisor =
+    !request.is_seeking_teacher_supervisor &&
+    (request.club_reapplication_supervisors || []).length > 0;
 
   return (
     <div className={embedded ? "exec-section" : "page"}>
@@ -245,23 +227,6 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
                 : ""}
             </dd>
           </div>
-          <div>
-            <dt>Seeking supervisor</dt>
-            <dd>{request.is_seeking_teacher_supervisor ? "Yes" : "No"}</dd>
-          </div>
-          <div>
-            <dt>Supervisors</dt>
-            <dd>
-              {(request.club_reapplication_supervisors || []).length === 0
-                ? "None"
-                : request.club_reapplication_supervisors
-                    .map(
-                      (s) =>
-                        `${s.supervisor_name} <${s.supervisor_email}>`,
-                    )
-                    .join("; ")}
-            </dd>
-          </div>
           {request.review_notes ? (
             <div>
               <dt>Review notes</dt>
@@ -269,6 +234,28 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
             </div>
           ) : null}
         </dl>
+
+        <section className="admin-request-subsection">
+          <h3>Teacher supervisor information</h3>
+          {(request.club_reapplication_supervisors || []).length > 0 ? (
+            <div className="admin-request-subsection__grid">
+              {request.club_reapplication_supervisors.map((supervisor) => (
+                <div key={supervisor.id || supervisor.supervisor_email}>
+                  <span>Supervisor</span>
+                  <strong>
+                    {supervisor.supervisor_name}
+                    <br />
+                    {supervisor.supervisor_email}
+                  </strong>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">
+              This club has not found a teacher supervisor yet.
+            </p>
+          )}
+        </section>
 
         {(request.club_reapplication_attachments || []).map((att) => (
           <AttachmentPreview
@@ -338,33 +325,24 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
         >
           {confirmAction === "APPROVED" ? (
             <>
-              <p>
+              <p className="admin-request-disclaimer">
                 Approving replaces the club profile, clears prior memberships,
                 and assigns the applicant as OWNER.
               </p>
-              <Select
-                id="has-teacher-supervisor"
-                label="Does this club currently have a teacher supervisor?"
-                value={hasSupervisor}
-                onChange={(event) => setHasSupervisor(event.target.value)}
-              >
-                <option value="YES">YES — approve as ACTIVE / public</option>
-                <option value="NO">
-                  NO — approve as Pending Teacher Supervisor
-                </option>
-              </Select>
-              {hasSupervisor === "NO" ? (
-                <TextInput
-                  id="supervisor-due-at"
-                  label="Supervisor deadline (defaults to 7 days)"
-                  type="datetime-local"
-                  value={supervisorDueLocal}
-                  onChange={(event) =>
-                    setSupervisorDueLocal(event.target.value)
-                  }
-                  required
-                />
-              ) : null}
+              {!hasListedSupervisor ? (
+                <p className="admin-request-disclaimer admin-request-disclaimer--warning">
+                  This application indicates that the club is still looking for
+                  a teacher supervisor. Approving it will mark the club as
+                  Pending Teacher Supervisor, and it will not be posted publicly
+                  until a supervisor is found.
+                </p>
+              ) : (
+                <p className="admin-request-disclaimer admin-request-disclaimer--success">
+                  This application includes teacher supervisor information.
+                  Approving it will activate the club and post it publicly on
+                  Explore.
+                </p>
+              )}
             </>
           ) : (
             <p>

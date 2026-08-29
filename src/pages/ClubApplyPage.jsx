@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ClubApplyNotice } from "../components/clubs/ClubApplyNotice";
@@ -52,6 +52,18 @@ export function ClubApplyPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successId, setSuccessId] = useState(null);
+  const successRef = useRef(null);
+
+  useEffect(() => {
+    if (successId) {
+      const notification = successRef.current;
+      if (notification) {
+        const top =
+          window.scrollY + notification.getBoundingClientRect().top - 96;
+        window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      }
+    }
+  }, [successId]);
 
   const respondentEmail = profile?.email || user?.email || "";
 
@@ -79,7 +91,7 @@ export function ClubApplyPage() {
     }
     if (values.description.trim().length < 10) {
       errors.description =
-        "Provide a detailed club description (at least 10 characters).";
+        "Provide a detailed description of your club.";
     }
     if (values.student_benefit.trim().length < 10) {
       errors.student_benefit =
@@ -193,7 +205,7 @@ export function ClubApplyPage() {
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       {successId ? (
-        <div className="alert alert--success" role="status">
+        <div ref={successRef} className="alert alert--success" role="status">
           <strong>Application submitted</strong>
           <p>
             Your new club application was submitted successfully.{" "}
@@ -220,14 +232,13 @@ export function ClubApplyPage() {
           <TextArea
             id="description"
             name="description"
-            label="Pitch a quick description of your club and how it benefits the students at JFSS."
+            label="Description"
             value={values.description}
             onChange={updateField}
             error={fieldErrors.description}
             rows={5}
             required
             disabled={submitting}
-            hint="Use this field for the main pitch. Expand the student benefit in the next question."
           />
 
           <TextArea
