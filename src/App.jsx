@@ -22,7 +22,7 @@ import { ClubDetailPage } from "./pages/ClubDetailPage";
 import { ClubManagePage } from "./pages/ClubManagePage";
 import { ClubApplyPage } from "./pages/ClubApplyPage";
 import { ClubReapplyPage } from "./pages/ClubReapplyPage";
-import { ClubFundingPlaceholderPage } from "./pages/ClubFundingPlaceholderPage";
+import { ClubFundingPage } from "./pages/ClubFundingPlaceholderPage";
 import { MyClubApplicationsPage } from "./pages/MyClubApplicationsPage";
 import { MyClubReapplicationsPage } from "./pages/MyClubReapplicationsPage";
 import { MySupervisorRequestsPage } from "./pages/MySupervisorRequestsPage";
@@ -38,6 +38,7 @@ import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
 import { AdminArchivedAnnouncementsPage } from "./pages/AdminArchivedAnnouncementsPage";
 import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
+import { AdminClubFundingDetailPage } from "./pages/AdminClubFundingDetailPage";
 import { AdminSchoolDayPage } from "./pages/AdminSchoolDayPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { AnnouncementDetailPage } from "./pages/AnnouncementDetailPage";
@@ -104,7 +105,7 @@ export default function App() {
                 path=":slug/manage/funding"
                 element={
                   <ProtectedRoute>
-                    <ClubFundingPlaceholderPage />
+                    <ClubFundingPage />
                   </ProtectedRoute>
                 }
               />
@@ -219,6 +220,10 @@ export default function App() {
                 <Route
                   path="funding"
                   element={<AdminFundingPlaceholderPage embedded />}
+                />
+                <Route
+                  path="funding/:requestId"
+                  element={<AdminClubFundingDetailPage embedded />}
                 />
                 <Route
                   path="announcements"

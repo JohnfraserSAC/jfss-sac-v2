@@ -12,7 +12,6 @@ import {
   CLUB_APPLICATION_SCHOOL_YEAR,
   MEETING_DAYS,
 } from "../config/clubApplications";
-import { supabase } from "../lib/supabase";
 import {
   deleteClubApplicationDocument,
   uploadClubApplicationDocument,
@@ -159,19 +158,11 @@ export function ClubApplyPage() {
         meetingTimeDetails: values.meeting_time_details,
         meetingLocation: values.meeting_location,
         logoStoragePath: uploadedLogoPath,
+        facultyAdvisorName: supervisorName.trim(),
         teacherSupervisorFormStoragePath: uploadedPath,
         potentialEventIdeas: values.potential_event_ideas,
         schoolYear: CLUB_APPLICATION_SCHOOL_YEAR,
       });
-
-      // Persist supervisor display name when the column is available to the applicant.
-      const { error: nameUpdateError } = await supabase
-        .from("club_registration_requests")
-        .update({ faculty_advisor_name: supervisorName.trim() })
-        .eq("id", requestId);
-      if (nameUpdateError) {
-        // Name capture is best-effort; email + form remain the required records.
-      }
 
       setSuccessId(requestId);
       setValues(INITIAL);

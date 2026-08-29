@@ -75,6 +75,7 @@ export async function submitClubRegistrationApplication(payload) {
       p_meeting_time_details: payload.meetingTimeDetails || null,
       p_meeting_location: payload.meetingLocation || null,
       p_logo_storage_path: payload.logoStoragePath || null,
+      p_faculty_advisor_name: payload.facultyAdvisorName || null,
       p_school_year: payload.schoolYear || CLUB_APPLICATION_SCHOOL_YEAR,
     },
   );

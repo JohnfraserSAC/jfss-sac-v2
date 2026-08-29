@@ -1,13 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AddClubMemberForm } from "../components/clubs/AddClubMemberForm";
 import { ArchiveClubDialog } from "../components/clubs/ArchiveClubDialog";
 import { ChangeRoleDialog } from "../components/clubs/ChangeRoleDialog";
+import { ClubAnnouncementsPanel } from "../components/clubs/ClubAnnouncementsPanel";
 import { ClubDetailsPanel } from "../components/clubs/ClubDetailsPanel";
+import { ClubFundingForm } from "../components/clubs/ClubFundingForm";
 import { ClubManageTabs } from "../components/clubs/ClubManageTabs";
 import { ClubPeoplePanel } from "../components/clubs/ClubPeoplePanel";
-import { ClubRequestsPanel } from "../components/clubs/ClubRequestsPanel";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
@@ -49,9 +56,17 @@ function annualStatusLabel(status, overdue) {
 export function ClubManagePage() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, isSacAdmin, isAdmin, isFacultyAdvisor } = useAuth();
 
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState(() => {
+    const requestedTab = searchParams.get("tab");
+    return ["details", "people", "announcements", "funding"].includes(
+      requestedTab,
+    )
+      ? requestedTab
+      : "details";
+  });
   const [club, setClub] = useState(null);
   const [annual, setAnnual] = useState(null);
   const [membership, setMembership] = useState(null);
@@ -135,7 +150,7 @@ export function ClubManagePage() {
     } finally {
       setLoading(false);
     }
-  }, [slug, user.id]);
+  }, [isSacAdmin, slug, user.id]);
 
   useEffect(() => {
     // Initial and dependency-driven page load for club management.
@@ -351,14 +366,38 @@ export function ClubManagePage() {
         />
       ) : null}
 
-      {activeTab === "requests" ? (
-        <ClubRequestsPanel
+      {activeTab === "announcements" ? (
+        <ClubAnnouncementsPanel
           club={club}
           membership={membership}
           annual={annual}
           isSacAdmin={isSacAdmin}
           isFacultyAdvisor={isFacultyAdvisor}
         />
+      ) : null}
+
+      {activeTab === "funding" ? (
+        <div
+          id="manage-panel-funding"
+          role="tabpanel"
+          aria-labelledby="manage-tab-funding"
+          className="stack"
+        >
+          <section className="panel">
+            <h2>Funding request</h2>
+            <p className="muted">
+              Request school-related materials for your club. Food, drinks,
+              and clothing are not eligible.
+            </p>
+            <ClubFundingForm
+              club={club}
+              canSubmit={
+                isClubOwner(membership?.role) &&
+                membership?.status === "ACTIVE"
+              }
+            />
+          </section>
+        </div>
       ) : null}
 
       <ArchiveClubDialog

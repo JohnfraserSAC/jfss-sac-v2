@@ -1,4 +1,4 @@
-import { isClubLeader, isClubOwner } from "./clubPermissions";
+import { isClubOwner } from "./clubPermissions";
 
 /**
  * Subtabs for My Requests — only kinds the user can submit with their roles.
@@ -15,7 +15,7 @@ export function buildMyRequestTabs({
     isClubOwner(membership.role),
   );
   const canSubmitFunding = activeMemberships.some((membership) =>
-    isClubLeader(membership.role),
+    isClubOwner(membership.role),
   );
 
   return [

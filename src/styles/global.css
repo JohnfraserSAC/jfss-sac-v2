@@ -1633,7 +1633,8 @@ summary:focus-visible {
 }
 
 .badge--changes-requested,
-.badge--suspended {
+.badge--suspended,
+.badge--warning {
   background: var(--warning-soft);
   border-color: #fed7aa;
   color: var(--warning);
@@ -1937,6 +1938,98 @@ summary:focus-visible {
 .exec-queue-list {
   display: grid;
   gap: 0.75rem;
+}
+
+.funding-queue-item {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.funding-queue-item > .badge {
+  justify-self: start;
+  margin-left: 1.3rem;
+}
+
+.funding-guidelines {
+  border-left: 4px solid var(--warning);
+}
+
+.funding-guidelines h2 {
+  margin-top: 0;
+}
+
+.funding-guidelines ul {
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.funding-cost-breakdown {
+  display: grid;
+  gap: 1rem;
+}
+
+.funding-cost-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 2fr) minmax(9rem, 1fr) minmax(7rem, 0.7fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.funding-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 1.1rem;
+}
+
+.funding-review-breakdown,
+.funding-signature-review {
+  margin-top: 1.5rem;
+}
+
+.funding-review-breakdown h3,
+.funding-signature-review h3 {
+  margin-bottom: 0.75rem;
+}
+
+.funding-review-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.funding-signature-review__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.funding-signature-review__grid h4 {
+  margin: 0 0 0.5rem;
+}
+
+.funding-request-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.funding-request-summary p {
+  margin: 0.25rem 0 0;
+}
+
+.funding-request-summary__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
 }
 
 .exec-queue-card {
@@ -3572,4 +3665,35 @@ button.nav-link {
   font-size: 1.05rem;
   line-height: 1.7;
   margin: 0;
+}
+
+@media (max-width: 720px) {
+  .funding-cost-row {
+    grid-template-columns: 1fr 1fr;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .funding-cost-row > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .funding-cost-row > button {
+    justify-self: start;
+  }
+
+  .funding-review-row,
+  .funding-request-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .funding-request-summary__meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .funding-signature-review__grid {
+    grid-template-columns: 1fr;
+  }
 }

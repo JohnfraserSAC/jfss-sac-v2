@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { AnnouncementForm } from "../announcements/AnnouncementForm";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { createAnnouncement } from "../../services/announcements";
@@ -7,7 +6,7 @@ import {
   canPublishDirectly,
   validateAnnouncementForm,
 } from "../../utils/announcementPermissions";
-import { isClubOwner, isClubLeader } from "../../utils/clubPermissions";
+import { isClubOwner } from "../../utils/clubPermissions";
 import { getErrorMessage } from "../../utils/errors";
 
 const EMPTY_ANNOUNCEMENT = {
@@ -19,7 +18,7 @@ const EMPTY_ANNOUNCEMENT = {
   scheduledPostingDate: "",
 };
 
-export function ClubRequestsPanel({
+export function ClubAnnouncementsPanel({
   club,
   membership,
   annual,
@@ -29,8 +28,6 @@ export function ClubRequestsPanel({
   const operationsAllowed = annual?.status === "ACTIVE";
   const isOwner =
     isClubOwner(membership?.role) && membership?.status === "ACTIVE";
-  const isLeader =
-    isClubLeader(membership?.role) && membership?.status === "ACTIVE";
   const isStaff = canPublishDirectly({ isSacAdmin, isFacultyAdvisor });
   const canCreateClubAnnouncement = isOwner || isStaff;
 
@@ -106,9 +103,9 @@ export function ClubRequestsPanel({
 
   return (
     <div
-      id="manage-panel-requests"
+      id="manage-panel-announcements"
       role="tabpanel"
-      aria-labelledby="manage-tab-requests"
+      aria-labelledby="manage-tab-announcements"
       className="stack"
     >
       <section className="panel">
@@ -152,19 +149,6 @@ export function ClubRequestsPanel({
             Only club owners can draft and submit announcements for this club.
           </p>
         )}
-      </section>
-
-      <section className="panel">
-        <h2>Funding request</h2>
-        <p>Club funding requests are coming soon.</p>
-        {isLeader ? (
-          <Link
-            className="button button--secondary"
-            to={`/clubs/${club.slug}/manage/funding`}
-          >
-            Open funding placeholder
-          </Link>
-        ) : null}
       </section>
     </div>
   );

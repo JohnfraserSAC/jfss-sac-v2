@@ -1,7 +1,8 @@
 const TABS = [
   { id: "details", label: "Club Details" },
   { id: "people", label: "People" },
-  { id: "requests", label: "Club Requests" },
+  { id: "announcements", label: "Announcements" },
+  { id: "funding", label: "Funding" },
 ];
 
 export function ClubManageTabs({ activeTab, onChange }) {

@@ -1,23 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ClubFundingForm } from "../components/clubs/ClubFundingForm";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { getClubBySlug } from "../services/clubs";
 import { getCurrentUserClubMembership } from "../services/memberships";
-import { isClubLeader } from "../utils/clubPermissions";
+import { isClubOwner } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
 
-export function ClubFundingPlaceholderPage() {
+export function ClubFundingPage() {
   const { slug } = useParams();
   const { user } = useAuth();
   const [club, setClub] = useState(null);
+  const [membership, setMembership] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [unauthorized, setUnauthorized] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const nextClub = await getClubBySlug(slug);
       if (!nextClub) {
@@ -25,16 +27,9 @@ export function ClubFundingPlaceholderPage() {
         return;
       }
       setClub(nextClub);
-      const membership = await getCurrentUserClubMembership(
-        nextClub.id,
-        user.id,
+      setMembership(
+        await getCurrentUserClubMembership(nextClub.id, user.id),
       );
-      if (
-        membership?.status !== "ACTIVE" ||
-        !isClubLeader(membership.role)
-      ) {
-        setUnauthorized(true);
-      }
     } catch (loadError) {
       setError(getErrorMessage(loadError, "Could not load this club."));
     } finally {
@@ -43,21 +38,25 @@ export function ClubFundingPlaceholderPage() {
   }, [slug, user.id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional async page fetch
     load();
   }, [load]);
 
   if (loading) {
-    return <LoadingScreen message="Loading…" />;
+    return <LoadingScreen message="Loading funding form…" />;
   }
 
-  if (unauthorized && club) {
-    return <Navigate to={`/clubs/${club.slug}/manage`} replace />;
+  const canSubmit =
+    membership?.status === "ACTIVE" && isClubOwner(membership.role);
+
+  if (club && !canSubmit) {
+    return <Navigate to={`/clubs/${club.slug}`} replace />;
   }
 
   if (!club) {
     return (
       <div className="page">
-        <ErrorMessage>Club not found.</ErrorMessage>
+        <ErrorMessage>{error || "Club not found."}</ErrorMessage>
       </div>
     );
   }
@@ -66,19 +65,17 @@ export function ClubFundingPlaceholderPage() {
     <div className="page narrow-page">
       <header className="page-header">
         <div>
-          <p className="eyebrow">{club.name}</p>
-          <h1>Club Funding Request</h1>
+          <p className="eyebrow">Club funding</p>
+          <h1>{club.name}</h1>
+          <p className="lede">
+            Submit a request for school-related club materials.
+          </p>
         </div>
         <Link className="text-link" to={`/clubs/${club.slug}/manage`}>
           Back to manage
         </Link>
       </header>
-
-      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
-
-      <section className="panel">
-        <p>Club funding requests are coming soon.</p>
-      </section>
+      <ClubFundingForm club={club} />
     </div>
   );
 }
