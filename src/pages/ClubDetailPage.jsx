@@ -8,10 +8,7 @@ import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { getClubBySlug, getPublicClubOwners } from "../services/clubs";
 import { getMyMembershipForClub } from "../services/memberships";
-import {
-  canManageClubMembers,
-  getClubRoleLabel,
-} from "../utils/clubPermissions";
+import { isClubOwner } from "../utils/clubPermissions";
 import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
 import { getErrorMessage } from "../utils/errors";
 
@@ -112,9 +109,7 @@ export function ClubDetailPage() {
   const initial = club.name?.charAt(0)?.toUpperCase() || "C";
   const meetingSchedule = getVisibleMeetingSchedule(club.meeting_schedule);
   const showStatus = isAdmin || club.status !== "APPROVED";
-  const canManage = canManageClubMembers({
-    clubRole: membership?.role,
-  });
+  const canManage = isAdmin || isClubOwner(membership?.role);
 
   return (
     <div className="page">
@@ -166,6 +161,10 @@ export function ClubDetailPage() {
             <dd>{club.contact_email || "Not provided"}</dd>
           </div>
           <div className="club-detail-item">
+            <dt>Instagram handle</dt>
+            <dd>{club.instagram_handle || "Not provided"}</dd>
+          </div>
+          <div className="club-detail-item">
             <dt>Owner contact</dt>
             <dd>
               {owners.length > 0
@@ -185,8 +184,7 @@ export function ClubDetailPage() {
             <div className="club-detail-item">
               <dt>Your role in this club</dt>
               <dd>
-                {club.name} · Role: {getClubRoleLabel(membership.role)} ·{" "}
-                {membership.status}
+                <ClubRoleBadge role={membership.role} />
               </dd>
             </div>
           ) : null}

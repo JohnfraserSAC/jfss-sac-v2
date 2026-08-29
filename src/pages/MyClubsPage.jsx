@@ -10,14 +10,14 @@ import { StatusBadge } from "../components/ui/StatusBadge";
 import { getMyPendingClubInvitations } from "../services/clubInvitations";
 import { getMyClubMemberships } from "../services/memberships";
 import {
-  canManageClubMembers,
   getClubRoleLabel,
+  isClubOwner,
 } from "../utils/clubPermissions";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
 export function MyClubsPage() {
-  const { user } = useAuth();
+  const { user, isSacAdmin } = useAuth();
   const location = useLocation();
   const [memberships, setMemberships] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -76,9 +76,7 @@ export function MyClubsPage() {
         <div className="stack">
           {memberships.map((membership) => {
             const club = membership.clubs;
-            const canManage = canManageClubMembers({
-              clubRole: membership.role,
-            });
+            const canManage = isSacAdmin || isClubOwner(membership.role);
 
             return (
               <article

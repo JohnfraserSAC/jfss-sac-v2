@@ -36,7 +36,6 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   function validate() {
     const errors = {};
@@ -61,7 +60,6 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     if (busy || !canEdit) return;
 
     setError("");
-    setSuccess("");
 
     const errors = validate();
     setFieldErrors(errors);
@@ -104,9 +102,6 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           logoUrl,
         });
         setLogoFile(null);
-        setSuccess("Club details and photo saved.");
-      } else {
-        setSuccess("Club details saved.");
       }
 
       setFieldErrors({});
@@ -127,12 +122,6 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
       </p>
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
-      {success ? (
-        <div className="alert alert--success" role="status">
-          <strong>Saved</strong>
-          <p>{success}</p>
-        </div>
-      ) : null}
 
       <form className="stack" onSubmit={handleSave} noValidate>
         <TextInput

@@ -29,7 +29,6 @@ import {
 } from "../services/clubInvitations";
 import {
   canArchiveOwnedClub,
-  canManageClubMembers,
   canSearchStudents,
   getAddableRoles,
   isClubOwner,
@@ -111,9 +110,8 @@ export function ClubManagePage() {
         setApprovedReappId(null);
       }
 
-      const allowed = canManageClubMembers({
-        clubRole: currentMembership?.role,
-      });
+      const allowed =
+        isSacAdmin || isClubOwner(currentMembership?.role);
 
       if (!allowed) {
         setUnauthorized(true);
@@ -289,6 +287,9 @@ export function ClubManagePage() {
           onOpenWithdraw={() => setWithdrawOpen(true)}
           onClubUpdated={(updated) => {
             setClub(updated);
+            setError("");
+            setSuccess("Changes saved successfully.");
+            window.scrollTo({ top: 0, behavior: "smooth" });
             if (updated?.slug && updated.slug !== slug) {
               navigate(`/clubs/${updated.slug}/manage`, { replace: true });
             }
