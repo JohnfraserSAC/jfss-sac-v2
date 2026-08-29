@@ -4,9 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { StatusBadge } from "../components/ui/StatusBadge";
 import { getMyFundingRequests } from "../services/clubFunding";
 import { isClubOwner } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
+import { formatDate } from "../utils/format";
 
 export function MyFundingRequestsPage() {
   const { memberships = [], tabs = [] } = useOutletContext() || {};
@@ -105,14 +107,22 @@ export function MyFundingRequestsPage() {
           <ul className="stack">
             {requests.map((request) => (
               <li key={request.id} className="funding-request-summary">
-                <div>
+                <div className="funding-request-summary__main">
+                  <div className="request-card__labels">
+                    <span className="submission-type funding-request-summary__type">
+                      Funding request
+                    </span>
+                    <StatusBadge status={request.status} prefix="Status: " />
+                  </div>
                   <strong>{request.clubs?.name || "Club funding request"}</strong>
-                  <p className="muted">
-                    Submitted {new Date(request.submitted_at).toLocaleDateString()}
-                  </p>
                 </div>
                 <div className="funding-request-summary__meta">
-                  <span className="badge badge--info">{request.status}</span>
+                  <time
+                    className="request-card__date"
+                    dateTime={request.submitted_at || request.created_at || undefined}
+                  >
+                    Submitted {formatDate(request.submitted_at || request.created_at)}
+                  </time>
                   <strong>
                     ${Number(request.total_amount || 0).toFixed(2)}
                   </strong>

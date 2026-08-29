@@ -145,23 +145,29 @@ export function MySupervisorRequestsPage() {
           <article key={request.id} className="panel">
             <div className="section-heading">
               <div>
-                <span className="submission-type">Supervisor request</span>
+                <div className="request-card__labels">
+                  <span className="submission-type">Supervisor request</span>
+                  <StatusBadge status={request.status} prefix="Status: " />
+                </div>
                 <h3>{request.clubs?.name || "Club"}</h3>
-                <StatusBadge status={request.status} />
               </div>
-              {request.clubs?.slug ? (
-                <Link
-                  className="text-link"
-                  to={`/clubs/${request.clubs.slug}/manage`}
+              <div className="request-card__aside">
+                <time
+                  className="request-card__date"
+                  dateTime={request.submitted_at || request.created_at || undefined}
                 >
-                  Manage club
-                </Link>
-              ) : null}
+                  Submitted {formatDate(request.submitted_at || request.created_at)}
+                </time>
+                {request.clubs?.slug ? (
+                  <Link
+                    className="text-link"
+                    to={`/clubs/${request.clubs.slug}/manage`}
+                  >
+                    Manage club
+                  </Link>
+                ) : null}
+              </div>
             </div>
-            <p className="muted">
-              {request.school_year} · Submitted{" "}
-              {formatDate(request.submitted_at)}
-            </p>
             {supervisors.length > 0 ? (
               <p>
                 <strong>Supervisors:</strong>{" "}

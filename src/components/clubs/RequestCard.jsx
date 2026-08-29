@@ -27,9 +27,20 @@ export function RequestCard({
     <article className="request-card">
       <div className="request-card__header">
         <div>
+          <div className="request-card__labels">
+            <span className="submission-type request-card__type">
+              New club application
+            </span>
+            <StatusBadge status={request.status} prefix="Status: " />
+          </div>
           <h2>{request.proposed_name}</h2>
-          <StatusBadge status={request.status} />
         </div>
+        <time
+          className="request-card__date"
+          dateTime={request.submitted_at || request.created_at || undefined}
+        >
+          Submitted {formatDate(request.submitted_at || request.created_at)}
+        </time>
       </div>
 
       {request.short_description ? (
@@ -37,10 +48,6 @@ export function RequestCard({
       ) : null}
 
       <dl className="meta-list">
-        <div>
-          <dt>Submitted</dt>
-          <dd>{formatDate(request.submitted_at || request.created_at)}</dd>
-        </div>
         <div>
           <dt>Updated</dt>
           <dd>{formatDate(request.updated_at)}</dd>

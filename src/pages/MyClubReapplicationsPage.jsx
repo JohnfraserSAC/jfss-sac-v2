@@ -70,6 +70,7 @@ export function MyClubReapplicationsPage() {
   }, [user.id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- load request data on mount
     loadRequests();
   }, [loadRequests]);
 
@@ -128,23 +129,31 @@ export function MyClubReapplicationsPage() {
           <article key={request.id} className="panel">
             <div className="section-heading">
               <div>
-                <span className="submission-type">Re-application</span>
-                <h3>{request.clubs?.name || "Past club"}</h3>
-                <StatusBadge status={displayStatus} />
+                <div className="request-card__labels">
+                  <span className="submission-type">Re-application</span>
+                  <StatusBadge status={displayStatus} prefix="Status: " />
+                </div>
+                <h3>
+                  {request.clubs?.name || request.club_name || "Club re-application"}
+                </h3>
               </div>
-              {showManage ? (
-                <Link
-                  className="text-link"
-                  to={`/clubs/${request.clubs.slug}/manage`}
+              <div className="request-card__aside">
+                <time
+                  className="request-card__date"
+                  dateTime={request.submitted_at || request.created_at || undefined}
                 >
-                  Manage club
-                </Link>
-              ) : null}
+                  Submitted {formatDate(request.submitted_at || request.created_at)}
+                </time>
+                {showManage ? (
+                  <Link
+                    className="text-link"
+                    to={`/clubs/${request.clubs.slug}/manage`}
+                  >
+                    Manage club
+                  </Link>
+                ) : null}
+              </div>
             </div>
-            <p className="muted">
-              {request.school_year} · Submitted{" "}
-              {formatDate(request.submitted_at)} · {request.applicant_email}
-            </p>
             {request.review_notes ? (
               <p>
                 <strong>Review notes:</strong> {request.review_notes}
@@ -158,9 +167,8 @@ export function MyClubReapplicationsPage() {
               </p>
             ) : null}
             {request.status === "REJECTED" || request.status === "WITHDRAWN" ? (
-              <p>
-                <Link to="/clubs/reapply">Create a new re-application</Link>{" "}
-                (subject to one application per Toronto calendar day).
+              <p className="request-card__new-action">
+                <Link to="/clubs/reapply">Create a new re-application</Link>.
               </p>
             ) : null}
             {canWithdraw ? (

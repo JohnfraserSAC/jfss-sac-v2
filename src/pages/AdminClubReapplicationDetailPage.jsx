@@ -68,6 +68,7 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
 
   useEffect(() => {
     if (!canView) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- load request data on mount
     loadRequest();
   }, [loadRequest, canView]);
 
@@ -171,7 +172,8 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
     return null;
   }
 
-  const clubName = request.clubs?.name || "Unknown club";
+  const clubName =
+    request.clubs?.name || request.club_name || "Unknown club";
   const canReview =
     canMutate &&
     ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(
@@ -186,40 +188,38 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
         </Link>
       </p>
 
-      <div className="section-heading-row">
-        <div>
+      <section className="admin-request-hero">
+        <p className="admin-request-hero__eyebrow">Submitted</p>
+        <div className="admin-request-hero__heading">
           <h2 className="exec-section__title">{clubName}</h2>
-          <StatusBadge status={request.status} />
+          <div className="admin-request-hero__status">
+            <StatusBadge status={request.status} />
+            {!canMutate ? (
+              <span className="badge badge--role badge--role-sac-exec">
+                Read only
+              </span>
+            ) : null}
+          </div>
         </div>
-        {!canMutate ? (
-          <span className="badge badge--role badge--role-sac-exec">
-            Read only
-          </span>
-        ) : null}
-      </div>
+        <div className="admin-request-hero__meta">
+          <div>
+            <span>Applicant</span>
+            <strong>{request.applicant_email || "Not recorded"}</strong>
+          </div>
+          <span className="admin-request-hero__divider" aria-hidden="true" />
+          <div>
+            <span>Submitted</span>
+            <strong>{formatDate(request.submitted_at || request.created_at)}</strong>
+          </div>
+        </div>
+      </section>
 
       {actionError ? <ErrorMessage>{actionError}</ErrorMessage> : null}
 
       <article className="panel admin-request-card">
         <dl className="detail-list">
-          <div>
-            <dt>Applicant</dt>
-            <dd>{request.applicant_email}</dd>
-          </div>
-          <div>
-            <dt>Submitted</dt>
-            <dd>{formatDate(request.submitted_at)}</dd>
-          </div>
-          <div>
-            <dt>School year</dt>
-            <dd>{request.school_year}</dd>
-          </div>
-          <div>
-            <dt>Short description</dt>
-            <dd>{request.short_description}</dd>
-          </div>
-          <div>
-            <dt>Full description</dt>
+          <div className="detail-list__description">
+            <dt>Description</dt>
             <dd>{request.description}</dd>
           </div>
           <div>
@@ -282,7 +282,7 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
         ))}
 
         {canReview ? (
-          <>
+          <div className="admin-request-review">
             <TextArea
               id="review-notes"
               label="Review notes"
@@ -316,7 +316,7 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
                 Reject
               </button>
             </div>
-          </>
+          </div>
         ) : null}
       </article>
 
@@ -369,7 +369,7 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
           ) : (
             <p>
               This will reject the request. The club can be re-selected later
-              subject to the daily quota.
+              when it is eligible for re-application.
             </p>
           )}
         </ConfirmDialog>

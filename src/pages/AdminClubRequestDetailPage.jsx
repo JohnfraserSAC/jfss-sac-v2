@@ -64,6 +64,7 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
   }, [requestId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- load request data on mount
     loadRequest();
   }, [loadRequest]);
 
@@ -197,12 +198,26 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
         </Link>
       </p>
 
-      <div className="section-heading">
-        <div>
+      <section className="admin-request-hero">
+        <p className="admin-request-hero__eyebrow">Submitted</p>
+        <div className="admin-request-hero__heading">
           <h2 className="exec-section__title">{request.proposed_name}</h2>
           <StatusBadge status={request.status} />
         </div>
-      </div>
+        <div className="admin-request-hero__meta">
+          <div>
+            <span>Applicant</span>
+            <strong>{request.respondent_email || "Not recorded"}</strong>
+          </div>
+          <span className="admin-request-hero__divider" aria-hidden="true" />
+          <div>
+            <span>Submitted</span>
+            <strong>
+              {formatDate(request.submitted_at || request.created_at)}
+            </strong>
+          </div>
+        </div>
+      </section>
 
       {readOnly ? (
         <PermissionNotice title="Read only">
@@ -222,24 +237,8 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
             </dd>
           </div>
           <div>
-            <dt>Requested by</dt>
-            <dd>
-              <code>{request.requested_by}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Submitted</dt>
-            <dd>
-              {formatDate(request.submitted_at || request.created_at)}
-            </dd>
-          </div>
-          <div>
             <dt>Expected members</dt>
             <dd>{request.expected_member_count ?? "Not provided"}</dd>
-          </div>
-          <div>
-            <dt>Applicant email</dt>
-            <dd>{request.respondent_email || "Not recorded"}</dd>
           </div>
           <div>
             <dt>Advisor</dt>
@@ -253,11 +252,6 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
         </dl>
 
         <div className="admin-request-card__details">
-          {request.short_description ? (
-            <p>
-              <strong>Short description:</strong> {request.short_description}
-            </p>
-          ) : null}
           <p>
             <strong>Description:</strong> {request.description}
           </p>
@@ -358,7 +352,7 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
         ) : null}
 
         {canReview ? (
-          <>
+          <div className="admin-request-review">
             <TextArea
               id="review-notes"
               label="Review notes"
@@ -395,7 +389,7 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
                 Approve
               </button>
             </div>
-          </>
+          </div>
         ) : null}
       </article>
 

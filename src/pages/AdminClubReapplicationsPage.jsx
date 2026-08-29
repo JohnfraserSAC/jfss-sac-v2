@@ -92,7 +92,8 @@ export function AdminClubReapplicationsPage({ embedded = false }) {
       ) : (
         <div className="exec-queue-list">
           {requests.map((request) => {
-            const clubName = request.clubs?.name || "Unknown club";
+            const clubName =
+              request.clubs?.name || request.club_name || "Unknown club";
             return (
               <ExecReviewQueueCard
                 key={request.id}

@@ -1,6 +1,6 @@
 import { ANNOUNCEMENT_STATUS_LABELS } from "../../utils/announcementPermissions";
 
-export function AnnouncementStatusBadge({ status }) {
+export function AnnouncementStatusBadge({ status, prefix = "" }) {
   const label = ANNOUNCEMENT_STATUS_LABELS[status] || status;
   const tone = String(status || "unknown")
     .toLowerCase()
@@ -8,7 +8,10 @@ export function AnnouncementStatusBadge({ status }) {
 
   return (
     <span className={`badge badge--status badge--${tone}`}>
-      <span aria-hidden="true">{label}</span>
+      <span aria-hidden="true">
+        {prefix}
+        {label}
+      </span>
       <span className="sr-only">Announcement status: {label}</span>
     </span>
   );

@@ -5,6 +5,7 @@ import { isValidPdsbEmail, normalizePdsbEmail } from "../utils/clubPermissions";
 const REAPP_FIELDS = `
   id,
   club_id,
+  club_name,
   school_year,
   requested_by,
   applicant_email,

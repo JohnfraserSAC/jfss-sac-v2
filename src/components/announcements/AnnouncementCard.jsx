@@ -4,7 +4,14 @@ import { announcementExcerpt } from "../../utils/announcementPermissions";
 import { formatDate } from "../../utils/format";
 import { formatDateOnly } from "../../utils/torontoDate";
 
-function announcementDateLabel(announcement) {
+function announcementDateLabel(announcement, showStatus) {
+  if (showStatus) {
+    return formatDate(
+      announcement.created_at ||
+        announcement.updated_at ||
+        announcement.published_at,
+    );
+  }
   if (announcement.scheduled_posting_date) {
     return formatDateOnly(announcement.scheduled_posting_date);
   }
@@ -22,7 +29,7 @@ export function AnnouncementCard({
 }) {
   const club = announcement.clubs;
   const excerpt = announcementExcerpt(announcement, 180);
-  const dateLabel = announcementDateLabel(announcement);
+  const dateLabel = announcementDateLabel(announcement, showStatus);
 
   return (
     <article className="announcement-card">
@@ -40,6 +47,17 @@ export function AnnouncementCard({
       )}
 
       <div className="announcement-card__body">
+        {showStatus ? (
+          <div className="request-card__labels">
+            <span className="submission-type announcement-card__type">
+              Announcement request
+            </span>
+            <AnnouncementStatusBadge
+              status={announcement.status}
+              prefix="Status: "
+            />
+          </div>
+        ) : null}
         <div className="announcement-card__header">
           <h2 className="announcement-card__title">
             <Link to={`/announcements/${announcement.id}`}>
@@ -47,21 +65,17 @@ export function AnnouncementCard({
             </Link>
           </h2>
           <time className="announcement-card__date" dateTime={
-            announcement.scheduled_posting_date ||
-            announcement.published_at ||
-            announcement.updated_at ||
-            announcement.created_at ||
+            (showStatus
+              ? announcement.created_at
+              : announcement.scheduled_posting_date ||
+                announcement.published_at ||
+                announcement.updated_at ||
+                announcement.created_at) ||
             undefined
           }>
-            {dateLabel}
+            {showStatus ? `Submitted ${dateLabel}` : dateLabel}
           </time>
         </div>
-
-        {showStatus ? (
-          <div className="badge-row">
-            <AnnouncementStatusBadge status={announcement.status} />
-          </div>
-        ) : null}
 
         {excerpt ? (
           <p className="announcement-card__excerpt">{excerpt}</p>
