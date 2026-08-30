@@ -122,6 +122,39 @@ export function ClubEventForm({ club, canSubmit = true }) {
     <form className="stack" onSubmit={handleSubmit} noValidate>
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
+      <section
+        className="panel funding-guidelines"
+        aria-labelledby={`event-guidelines-title-${club.id}`}
+      >
+        <h3 id={`event-guidelines-title-${club.id}`}>Hey Jags,</h3>
+        <p>
+          Are you interested in planning an event for your club? If so, please
+          complete the form below to submit your event proposal for review and
+          potential approval.
+        </p>
+        <p>
+          Please note that submitting this form does not guarantee that your
+          event will be approved. Additionally, your event must be approved
+          before you submit a Club Funding Request Form.
+        </p>
+        <p>
+          We encourage you to provide as much detail as possible to help us
+          review your proposal efficiently.
+        </p>
+        <p>
+          If you have any questions, please contact our club liaisons through
+          email or Instagram:
+        </p>
+        <ul>
+          <li>
+            Eshaal Cheema (Email: 778345@pdsb.net | Instagram: eshaal_0009)
+          </li>
+          <li>
+            Rasleen Kaur (Email: 1099702@pdsb.net | Instagram: rasleenk._b)
+          </li>
+        </ul>
+      </section>
+
       <section className="panel form-stack">
         <TextInput
           id={`event-club-name-${club.id}`}
