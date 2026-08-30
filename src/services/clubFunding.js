@@ -190,11 +190,7 @@ export async function reviewClubFundingRequest({
   reviewNotes = null,
 }) {
   const normalizedAction = String(action || "").toUpperCase();
-  if (
-    !["UNDER_REVIEW", "CHANGES_REQUESTED", "APPROVED", "REJECTED"].includes(
-      normalizedAction,
-    )
-  ) {
+  if (!["APPROVED", "REJECTED"].includes(normalizedAction)) {
     throw new Error("Invalid funding request review action.");
   }
 

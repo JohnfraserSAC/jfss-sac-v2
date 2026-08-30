@@ -67,7 +67,7 @@ export function AdminClubFundingDetailPage({ embedded = false }) {
   async function runAction() {
     if (!request || !confirmAction) return;
     const notes = reviewNotes.trim();
-    if (["CHANGES_REQUESTED", "REJECTED"].includes(confirmAction) && !notes) {
+    if (confirmAction === "REJECTED" && !notes) {
       setActionError("Review notes are required for this action.");
       setConfirmAction(null);
       return;
@@ -223,26 +223,10 @@ export function AdminClubFundingDetailPage({ embedded = false }) {
               label="Review notes"
               value={reviewNotes}
               onChange={(event) => setReviewNotes(event.target.value)}
-              hint="Required when requesting changes or rejecting."
+              hint="Required when rejecting."
               disabled={busy}
             />
             <div className="button-row">
-              <button
-                type="button"
-                className="button button--secondary"
-                disabled={busy}
-                onClick={() => setConfirmAction("UNDER_REVIEW")}
-              >
-                Mark under review
-              </button>
-              <button
-                type="button"
-                className="button button--secondary"
-                disabled={busy}
-                onClick={() => setConfirmAction("CHANGES_REQUESTED")}
-              >
-                Request changes
-              </button>
               <button
                 type="button"
                 className="button button--primary"
