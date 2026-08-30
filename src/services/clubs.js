@@ -27,6 +27,7 @@ const CLUB_FIELDS = `
   meeting_days,
   meeting_time_details,
   member_application_url,
+  exec_application_url,
   status,
   creation_origin,
   deleted_at,
@@ -221,6 +222,8 @@ export async function updateOwnedClubProfile(clubId, values) {
   const meetingLocation = String(values?.meetingLocation ?? "").trim() || null;
   const memberApplicationUrl =
     String(values?.memberApplicationUrl ?? "").trim() || null;
+  const execApplicationUrl =
+    String(values?.execApplicationUrl ?? "").trim() || null;
   const logoUrl =
     values?.logoUrl === undefined || values?.logoUrl === null
       ? undefined
@@ -250,6 +253,12 @@ export async function updateOwnedClubProfile(clubId, values) {
   ) {
     throw new Error("Enter a valid member application link.");
   }
+  if (
+    execApplicationUrl &&
+    !/^https?:\/\/[^\s]+$/.test(execApplicationUrl)
+  ) {
+    throw new Error("Enter a valid executive application link.");
+  }
 
   const rpcArgs = {
     p_club_id: clubId,
@@ -264,10 +273,11 @@ export async function updateOwnedClubProfile(clubId, values) {
     p_meeting_time_details: meetingTimeDetails,
     p_meeting_location: meetingLocation,
     p_member_application_url: memberApplicationUrl,
+    p_exec_application_url: execApplicationUrl,
   };
 
   const { data, error } = await supabase.rpc(
-    "update_owned_club_profile_with_member_url",
+    "update_owned_club_profile_with_application_urls",
     rpcArgs,
   );
 

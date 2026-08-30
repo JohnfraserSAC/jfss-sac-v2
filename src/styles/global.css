@@ -1949,7 +1949,12 @@ summary:focus-visible {
   margin: 0.35rem 0 0.6rem;
 }
 
-.club-hero__application {
+.club-hero__applications {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -3197,6 +3202,10 @@ button.nav-link {
   .request-card__header {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .club-hero__applications {
+    align-self: flex-end;
   }
 
   .club-card {

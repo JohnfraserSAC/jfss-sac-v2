@@ -28,6 +28,9 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
   const [memberApplicationUrl, setMemberApplicationUrl] = useState(
     club?.member_application_url || "",
   );
+  const [execApplicationUrl, setExecApplicationUrl] = useState(
+    club?.exec_application_url || "",
+  );
   const [meetingDays, setMeetingDays] = useState(club?.meeting_days || []);
   const [meetingTimeDetails, setMeetingTimeDetails] = useState(
     club?.meeting_time_details || "",
@@ -61,6 +64,12 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     ) {
       errors.memberApplicationUrl = "Enter a valid member application link.";
     }
+    if (
+      execApplicationUrl.trim() &&
+      !/^https?:\/\/[^\s]+$/.test(execApplicationUrl.trim())
+    ) {
+      errors.execApplicationUrl = "Enter a valid executive application link.";
+    }
     return errors;
   }
 
@@ -87,6 +96,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
         contactEmail: publicEmail,
         instagramHandle: instagramHandle.replace(/^@+/, ""),
         memberApplicationUrl,
+        execApplicationUrl,
         meetingDays,
         meetingTimeDetails,
         meetingLocation,
@@ -107,6 +117,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           contactEmail: publicEmail,
           instagramHandle: instagramHandle.replace(/^@+/, ""),
           memberApplicationUrl,
+          execApplicationUrl,
           meetingDays,
           meetingTimeDetails,
           meetingLocation,
@@ -181,6 +192,16 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           value={memberApplicationUrl}
           onChange={(event) => setMemberApplicationUrl(event.target.value)}
           error={fieldErrors.memberApplicationUrl}
+          disabled={!canEdit || busy}
+          hint="Optional"
+        />
+        <TextInput
+          id="club-exec-application"
+          type="url"
+          label="Link to executive application"
+          value={execApplicationUrl}
+          onChange={(event) => setExecApplicationUrl(event.target.value)}
+          error={fieldErrors.execApplicationUrl}
           disabled={!canEdit || busy}
           hint="Optional"
         />

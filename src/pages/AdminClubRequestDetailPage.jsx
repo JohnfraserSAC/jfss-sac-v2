@@ -264,6 +264,19 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
               </a>
             </p>
           ) : null}
+          {request.exec_application_url ? (
+            <p>
+              <strong>Executive application:</strong>{" "}
+              <a
+                className="text-link"
+                href={request.exec_application_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open link
+              </a>
+            </p>
+          ) : null}
           {request.instagram_handle ? (
             <p>
               <strong>Instagram:</strong> {request.instagram_handle}

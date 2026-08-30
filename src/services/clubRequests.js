@@ -23,6 +23,7 @@ const REQUEST_FIELDS = `
   meeting_location,
   logo_storage_path,
   member_application_url,
+  exec_application_url,
   teacher_supervisor_emails,
   faculty_advisor_name,
   faculty_advisor_email,
@@ -59,7 +60,7 @@ export async function getMyClubRequests(userId) {
 
 export async function submitClubRegistrationApplication(payload) {
   const { data, error } = await supabase.rpc(
-    "submit_club_registration_application_with_member_url",
+    "submit_club_registration_application_with_application_urls",
     {
       p_request_id: payload.requestId,
       p_proposed_name: payload.proposedName,
@@ -79,6 +80,7 @@ export async function submitClubRegistrationApplication(payload) {
       p_faculty_advisor_name: payload.facultyAdvisorName || null,
       p_school_year: payload.schoolYear || CLUB_APPLICATION_SCHOOL_YEAR,
       p_member_application_url: payload.memberApplicationUrl || null,
+      p_exec_application_url: payload.execApplicationUrl || null,
     },
   );
 

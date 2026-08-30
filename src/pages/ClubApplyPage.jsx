@@ -32,6 +32,7 @@ const INITIAL = {
   public_email: "",
   instagram_handle: "",
   member_application_url: "",
+  exec_application_url: "",
   meeting_days: [],
   meeting_time_details: "",
   meeting_location: "",
@@ -123,6 +124,13 @@ export function ClubApplyPage() {
       errors.member_application_url =
         "Enter a valid member application link.";
     }
+    if (
+      values.exec_application_url.trim() &&
+      !isValidHttpUrl(values.exec_application_url.trim())
+    ) {
+      errors.exec_application_url =
+        "Enter a valid executive application link.";
+    }
 
     if (supervisorName.trim().length < 2) {
       errors.supervisor_name = "Enter the teacher’s full name.";
@@ -187,6 +195,7 @@ export function ClubApplyPage() {
         meetingTimeDetails: values.meeting_time_details,
         meetingLocation: values.meeting_location,
         memberApplicationUrl: values.member_application_url.trim() || null,
+        execApplicationUrl: values.exec_application_url.trim() || null,
         logoStoragePath: uploadedLogoPath,
         facultyAdvisorName: supervisorName.trim(),
         teacherSupervisorFormStoragePath: uploadedPath,
@@ -314,6 +323,18 @@ export function ClubApplyPage() {
             value={values.member_application_url}
             onChange={updateField}
             error={fieldErrors.member_application_url}
+            disabled={submitting}
+            hint="Optional"
+          />
+
+          <TextInput
+            id="exec_application_url"
+            name="exec_application_url"
+            type="url"
+            label="Link to executive application"
+            value={values.exec_application_url}
+            onChange={updateField}
+            error={fieldErrors.exec_application_url}
             disabled={submitting}
             hint="Optional"
           />

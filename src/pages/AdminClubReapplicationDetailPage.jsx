@@ -223,6 +223,21 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
               </dd>
             </div>
           ) : null}
+          {request.exec_application_url ? (
+            <div>
+              <dt>Executive application</dt>
+              <dd>
+                <a
+                  className="text-link"
+                  href={request.exec_application_url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open link
+                </a>
+              </dd>
+            </div>
+          ) : null}
           <div>
             <dt>Instagram</dt>
             <dd>{request.instagram_handle || "—"}</dd>

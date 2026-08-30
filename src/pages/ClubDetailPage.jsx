@@ -146,15 +146,29 @@ export function ClubDetailPage() {
               {membership ? <ClubRoleBadge role={membership.role} /> : null}
             </div>
             </div>
-            {club.member_application_url ? (
-              <a
-                className="button button--primary club-hero__application"
-                href={club.member_application_url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Apply
-              </a>
+            {club.member_application_url || club.exec_application_url ? (
+              <div className="club-hero__applications">
+                {club.member_application_url ? (
+                  <a
+                    className="button button--primary"
+                    href={club.member_application_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Member Apply
+                  </a>
+                ) : null}
+                {club.exec_application_url ? (
+                  <a
+                    className="button button--secondary"
+                    href={club.exec_application_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Exec Apply
+                  </a>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>

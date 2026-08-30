@@ -32,6 +32,7 @@ const INITIAL = {
   public_email: "",
   instagram_handle: "",
   member_application_url: "",
+  exec_application_url: "",
   meeting_days: [],
   meeting_time_details: "",
   meeting_location: "",
@@ -193,6 +194,13 @@ export function ClubReapplyPage() {
       errors.member_application_url =
         "Enter a valid member application link.";
     }
+    if (
+      values.exec_application_url.trim() &&
+      !isValidHttpUrl(values.exec_application_url.trim())
+    ) {
+      errors.exec_application_url =
+        "Enter a valid executive application link.";
+    }
     if (logoFile) {
       if (!REAPP_LOGO_ALLOWED_TYPES.includes(logoFile.type)) {
         errors.logo = "Logo must be JPEG, PNG, or WebP.";
@@ -314,6 +322,7 @@ export function ClubReapplyPage() {
         publicEmail: values.public_email.trim().toLowerCase(),
         instagramHandle: values.instagram_handle.trim().replace(/^@+/, ""),
         memberApplicationUrl: values.member_application_url.trim() || null,
+        execApplicationUrl: values.exec_application_url.trim() || null,
         meetingFrequency:
           values.meeting_days.length > 0 ? "Weekly" : "Other",
         meetingDays: values.meeting_days,
@@ -529,6 +538,18 @@ export function ClubReapplyPage() {
           value={values.member_application_url}
           onChange={updateField}
           error={fieldErrors.member_application_url}
+          disabled={submitting}
+          hint="Optional"
+        />
+
+        <TextInput
+          id="exec_application_url"
+          name="exec_application_url"
+          type="url"
+          label="Link to executive application"
+          value={values.exec_application_url}
+          onChange={updateField}
+          error={fieldErrors.exec_application_url}
           disabled={submitting}
           hint="Optional"
         />
