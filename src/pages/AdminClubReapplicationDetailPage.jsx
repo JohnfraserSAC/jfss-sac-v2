@@ -208,6 +208,21 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
             <dt>Public email</dt>
             <dd>{request.public_email}</dd>
           </div>
+          {request.member_application_url ? (
+            <div>
+              <dt>Member application</dt>
+              <dd>
+                <a
+                  className="text-link"
+                  href={request.member_application_url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open link
+                </a>
+              </dd>
+            </div>
+          ) : null}
           <div>
             <dt>Instagram</dt>
             <dd>{request.instagram_handle || "—"}</dd>

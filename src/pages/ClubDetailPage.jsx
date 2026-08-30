@@ -132,7 +132,8 @@ export function ClubDetailPage() {
             </div>
           )}
 
-          <div>
+          <div className="club-hero__title">
+            <div>
             <p className="eyebrow">Club</p>
             <h1>{club.name}</h1>
             {owners.length > 0 ? (
@@ -144,6 +145,17 @@ export function ClubDetailPage() {
               {showStatus ? <StatusBadge status={club.status} /> : null}
               {membership ? <ClubRoleBadge role={membership.role} /> : null}
             </div>
+            </div>
+            {club.member_application_url ? (
+              <a
+                className="button button--primary club-hero__application"
+                href={club.member_application_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Apply
+              </a>
+            ) : null}
           </div>
         </div>
       </div>

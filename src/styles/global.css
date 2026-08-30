@@ -1936,6 +1936,24 @@ summary:focus-visible {
   margin-top: -2.5rem;
 }
 
+.club-hero__title {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.club-hero__title h1 {
+  margin: 0.35rem 0 0.6rem;
+}
+
+.club-hero__application {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .club-hero__owners {
   margin: 0.45rem 0 0;
   color: var(--text-muted);
@@ -3173,6 +3191,7 @@ button.nav-link {
 
   .club-card,
   .club-hero__content,
+  .club-hero__title,
   .page-header,
   .section-heading,
   .request-card__header {

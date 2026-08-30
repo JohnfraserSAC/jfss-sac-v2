@@ -251,6 +251,19 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
               <strong>Club contact:</strong> {request.club_contact_information}
             </p>
           ) : null}
+          {request.member_application_url ? (
+            <p>
+              <strong>Member application:</strong>{" "}
+              <a
+                className="text-link"
+                href={request.member_application_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open link
+              </a>
+            </p>
+          ) : null}
           {request.instagram_handle ? (
             <p>
               <strong>Instagram:</strong> {request.instagram_handle}

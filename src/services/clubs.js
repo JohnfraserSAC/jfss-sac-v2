@@ -26,6 +26,7 @@ const CLUB_FIELDS = `
   meeting_frequency,
   meeting_days,
   meeting_time_details,
+  member_application_url,
   status,
   creation_origin,
   deleted_at,
@@ -218,6 +219,8 @@ export async function updateOwnedClubProfile(clubId, values) {
   const meetingTimeDetails =
     String(values?.meetingTimeDetails ?? "").trim() || null;
   const meetingLocation = String(values?.meetingLocation ?? "").trim() || null;
+  const memberApplicationUrl =
+    String(values?.memberApplicationUrl ?? "").trim() || null;
   const logoUrl =
     values?.logoUrl === undefined || values?.logoUrl === null
       ? undefined
@@ -241,23 +244,30 @@ export async function updateOwnedClubProfile(clubId, values) {
     throw new Error("Enter the club Instagram handle.");
   }
 
+  if (
+    memberApplicationUrl &&
+    !/^https?:\/\/[^\s]+$/.test(memberApplicationUrl)
+  ) {
+    throw new Error("Enter a valid member application link.");
+  }
+
   const rpcArgs = {
     p_club_id: clubId,
     p_name: name,
     p_description: description,
     p_contact_email: contactEmail,
+    p_leader_contact_information: null,
+    p_short_description: null,
+    p_logo_url: logoUrl ?? null,
     p_instagram_handle: instagramHandle,
     p_meeting_days: meetingDays,
     p_meeting_time_details: meetingTimeDetails,
     p_meeting_location: meetingLocation,
+    p_member_application_url: memberApplicationUrl,
   };
 
-  if (logoUrl !== undefined) {
-    rpcArgs.p_logo_url = logoUrl;
-  }
-
   const { data, error } = await supabase.rpc(
-    "update_owned_club_profile",
+    "update_owned_club_profile_with_member_url",
     rpcArgs,
   );
 

@@ -31,6 +31,7 @@ const INITIAL = {
   leader_details: "",
   public_email: "",
   instagram_handle: "",
+  member_application_url: "",
   meeting_days: [],
   meeting_time_details: "",
   meeting_location: "",
@@ -39,6 +40,15 @@ const INITIAL = {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function isValidHttpUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 export function ClubApplyPage() {
@@ -106,6 +116,13 @@ export function ClubApplyPage() {
     if (!values.instagram_handle.trim()) {
       errors.instagram_handle = "Enter the club Instagram handle.";
     }
+    if (
+      values.member_application_url.trim() &&
+      !isValidHttpUrl(values.member_application_url.trim())
+    ) {
+      errors.member_application_url =
+        "Enter a valid member application link.";
+    }
 
     if (supervisorName.trim().length < 2) {
       errors.supervisor_name = "Enter the teacher’s full name.";
@@ -169,6 +186,7 @@ export function ClubApplyPage() {
         meetingDays: values.meeting_days,
         meetingTimeDetails: values.meeting_time_details,
         meetingLocation: values.meeting_location,
+        memberApplicationUrl: values.member_application_url.trim() || null,
         logoStoragePath: uploadedLogoPath,
         facultyAdvisorName: supervisorName.trim(),
         teacherSupervisorFormStoragePath: uploadedPath,
@@ -286,6 +304,18 @@ export function ClubApplyPage() {
             error={fieldErrors.instagram_handle}
             required
             disabled={submitting}
+          />
+
+          <TextInput
+            id="member_application_url"
+            name="member_application_url"
+            type="url"
+            label="Link to member application"
+            value={values.member_application_url}
+            onChange={updateField}
+            error={fieldErrors.member_application_url}
+            disabled={submitting}
+            hint="Optional"
           />
 
           <fieldset className="form-field meeting-day-picker">

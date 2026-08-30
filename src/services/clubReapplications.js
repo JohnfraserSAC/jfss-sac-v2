@@ -17,6 +17,7 @@ const REAPP_FIELDS = `
   meeting_days,
   meeting_time_details,
   meeting_location,
+  member_application_url,
   proposed_logo_storage_path,
   is_seeking_teacher_supervisor,
   declaration_accepted,
@@ -47,7 +48,9 @@ export async function listEligibleClubsForReapplication(search = "") {
 }
 
 export async function submitClubReapplication(payload) {
-  const { data, error } = await supabase.rpc("submit_club_reapplication", {
+  const { data, error } = await supabase.rpc(
+    "submit_club_reapplication_with_member_url",
+    {
     p_request_id: payload.requestId,
     p_club_id: payload.clubId,
     p_short_description: payload.shortDescription,
@@ -58,6 +61,7 @@ export async function submitClubReapplication(payload) {
     p_meeting_days: payload.meetingDays ?? [],
     p_meeting_time_details: payload.meetingTimeDetails || null,
     p_meeting_location: payload.meetingLocation || null,
+    p_member_application_url: payload.memberApplicationUrl || null,
     p_proposed_logo_storage_path: payload.proposedLogoStoragePath || null,
     p_is_seeking_teacher_supervisor: Boolean(
       payload.isSeekingTeacherSupervisor,
@@ -65,7 +69,8 @@ export async function submitClubReapplication(payload) {
     p_declaration_accepted: Boolean(payload.declarationAccepted),
     p_supervisors: payload.supervisors ?? [],
     p_attachments: payload.attachments ?? [],
-  });
+    },
+  );
 
   if (error) {
     logServiceError("submitClubReapplication", error);
@@ -78,7 +83,9 @@ export async function submitClubReapplication(payload) {
 }
 
 export async function updateClubReapplication(payload) {
-  const { data, error } = await supabase.rpc("update_club_reapplication", {
+  const { data, error } = await supabase.rpc(
+    "update_club_reapplication_with_member_url",
+    {
     p_request_id: payload.requestId,
     p_short_description: payload.shortDescription,
     p_description: payload.description,
@@ -88,6 +95,7 @@ export async function updateClubReapplication(payload) {
     p_meeting_days: payload.meetingDays ?? [],
     p_meeting_time_details: payload.meetingTimeDetails || null,
     p_meeting_location: payload.meetingLocation || null,
+    p_member_application_url: payload.memberApplicationUrl || null,
     p_proposed_logo_storage_path: payload.proposedLogoStoragePath || null,
     p_is_seeking_teacher_supervisor: Boolean(
       payload.isSeekingTeacherSupervisor,
@@ -95,7 +103,8 @@ export async function updateClubReapplication(payload) {
     p_declaration_accepted: Boolean(payload.declarationAccepted),
     p_supervisors: payload.supervisors ?? [],
     p_attachments: payload.attachments ?? null,
-  });
+    },
+  );
 
   if (error) {
     logServiceError("updateClubReapplication", error);

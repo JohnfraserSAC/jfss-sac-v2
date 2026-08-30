@@ -31,6 +31,7 @@ const INITIAL = {
   description: "",
   public_email: "",
   instagram_handle: "",
+  member_application_url: "",
   meeting_days: [],
   meeting_time_details: "",
   meeting_location: "",
@@ -44,6 +45,15 @@ function emptySupervisor() {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function isValidHttpUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 /** Backend still stores short_description separately — derive from the one field. */
@@ -176,6 +186,13 @@ export function ClubReapplyPage() {
     if (!values.instagram_handle.trim()) {
       errors.instagram_handle = "Enter the club Instagram handle.";
     }
+    if (
+      values.member_application_url.trim() &&
+      !isValidHttpUrl(values.member_application_url.trim())
+    ) {
+      errors.member_application_url =
+        "Enter a valid member application link.";
+    }
     if (logoFile) {
       if (!REAPP_LOGO_ALLOWED_TYPES.includes(logoFile.type)) {
         errors.logo = "Logo must be JPEG, PNG, or WebP.";
@@ -296,6 +313,7 @@ export function ClubReapplyPage() {
         description,
         publicEmail: values.public_email.trim().toLowerCase(),
         instagramHandle: values.instagram_handle.trim().replace(/^@+/, ""),
+        memberApplicationUrl: values.member_application_url.trim() || null,
         meetingFrequency:
           values.meeting_days.length > 0 ? "Weekly" : "Other",
         meetingDays: values.meeting_days,
@@ -501,6 +519,18 @@ export function ClubReapplyPage() {
           onChange={updateField}
           error={fieldErrors.instagram_handle}
           disabled={submitting}
+        />
+
+        <TextInput
+          id="member_application_url"
+          name="member_application_url"
+          type="url"
+          label="Link to member application"
+          value={values.member_application_url}
+          onChange={updateField}
+          error={fieldErrors.member_application_url}
+          disabled={submitting}
+          hint="Optional"
         />
 
         <fieldset

@@ -25,6 +25,9 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
   const [instagramHandle, setInstagramHandle] = useState(
     club?.instagram_handle || "",
   );
+  const [memberApplicationUrl, setMemberApplicationUrl] = useState(
+    club?.member_application_url || "",
+  );
   const [meetingDays, setMeetingDays] = useState(club?.meeting_days || []);
   const [meetingTimeDetails, setMeetingTimeDetails] = useState(
     club?.meeting_time_details || "",
@@ -52,6 +55,12 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     if (!instagramHandle.trim()) {
       errors.instagramHandle = "Enter the club Instagram handle.";
     }
+    if (
+      memberApplicationUrl.trim() &&
+      !/^https?:\/\/[^\s]+$/.test(memberApplicationUrl.trim())
+    ) {
+      errors.memberApplicationUrl = "Enter a valid member application link.";
+    }
     return errors;
   }
 
@@ -77,6 +86,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
         description,
         contactEmail: publicEmail,
         instagramHandle: instagramHandle.replace(/^@+/, ""),
+        memberApplicationUrl,
         meetingDays,
         meetingTimeDetails,
         meetingLocation,
@@ -96,6 +106,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           description,
           contactEmail: publicEmail,
           instagramHandle: instagramHandle.replace(/^@+/, ""),
+          memberApplicationUrl,
           meetingDays,
           meetingTimeDetails,
           meetingLocation,
@@ -162,6 +173,16 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           error={fieldErrors.instagramHandle}
           required
           disabled={!canEdit || busy}
+        />
+        <TextInput
+          id="club-member-application"
+          type="url"
+          label="Link to member application"
+          value={memberApplicationUrl}
+          onChange={(event) => setMemberApplicationUrl(event.target.value)}
+          error={fieldErrors.memberApplicationUrl}
+          disabled={!canEdit || busy}
+          hint="Optional"
         />
 
         <fieldset className="form-field meeting-day-picker">
