@@ -3,10 +3,18 @@ import { useAuth } from "../../context/AuthContext";
 
 const PRIMARY_TABS = [
   {
-    id: "applications",
+    id: "new-applications",
     to: "/exec-dashboard/applications/new",
-    label: "Applications",
-    matchPrefix: "/exec-dashboard/applications",
+    label: "New Club Applications",
+    matchPrefix: "/exec-dashboard/applications/new",
+    visible: ({ isSacAdmin, isSacExec, isFacultyAdvisor }) =>
+      isSacAdmin || isSacExec || isFacultyAdvisor,
+  },
+  {
+    id: "reapplications",
+    to: "/exec-dashboard/applications/reapplications",
+    label: "Reapplications",
+    matchPrefix: "/exec-dashboard/applications/reapplications",
     visible: ({ isSacAdmin, isSacExec, isFacultyAdvisor }) =>
       isSacAdmin || isSacExec || isFacultyAdvisor,
   },

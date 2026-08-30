@@ -65,7 +65,7 @@ export function MyRequestsLayout() {
           <NavLink
             key={tab.id}
             to={tab.to}
-            end
+            end={tab.id !== "clubRequests"}
             className={({ isActive }) =>
               isActive ? "subtab subtab--active" : "subtab"
             }

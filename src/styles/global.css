@@ -1934,6 +1934,7 @@ summary:focus-visible {
   align-items: flex-end;
   padding: 1.25rem;
   margin-top: -2.5rem;
+  background: #fff;
 }
 
 .club-hero__title {
@@ -1956,12 +1957,30 @@ summary:focus-visible {
   justify-content: flex-end;
   gap: 0.6rem;
   flex-shrink: 0;
+  margin-left: 0;
+}
+
+.club-hero__actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  align-self: flex-start;
   margin-left: auto;
 }
 
 .club-hero__owners {
   margin: 0.45rem 0 0;
   color: var(--text-muted);
+}
+
+.club-promo-confirmation {
+  display: inline-block;
+  margin: 0.35rem 0 0;
+  color: #4b9462;
+  font-weight: 700;
+  text-align: right;
 }
 
 .club-details-panel {
@@ -3767,13 +3786,19 @@ button.nav-link {
   font-size: 0.9rem;
   text-decoration: none;
   padding: 12px 24px;
+  border: 1px solid transparent;
   border-radius: 999px;
-  transition: background 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
   white-space: nowrap;
 }
 
 .btn-meet-team:hover {
-  background: #2c5eb0;
+  color: #1e2a4a;
+  background: transparent;
+  border-color: #1e2a4a;
 }
 
 .btn-meet-team--outline {

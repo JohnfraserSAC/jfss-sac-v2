@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { getMyClubEventRequests } from "../services/clubEvents";
-import { formatDate } from "../utils/format";
-import { formatDateOnly } from "../utils/torontoDate";
+import { useAuth } from "../context/AuthContext";
+import { getMyClubPromoLunchRequests } from "../services/clubPromoLunch";
 import { getErrorMessage } from "../utils/errors";
+import { formatDate } from "../utils/format";
+import { getPromoLunchDaysLabel } from "../utils/clubPromoLunch";
 
-export function MyEventRequestsPage() {
+export function MyPromoLunchRequestsPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,9 +19,11 @@ export function MyEventRequestsPage() {
     setLoading(true);
     setError("");
     try {
-      setRequests(await getMyClubEventRequests(user.id));
+      setRequests(await getMyClubPromoLunchRequests(user.id));
     } catch (loadError) {
-      setError(getErrorMessage(loadError, "Could not load your event proposals."));
+      setError(
+        getErrorMessage(loadError, "Could not load your Promo Lunch sign-ups."),
+      );
     } finally {
       setLoading(false);
     }
@@ -34,7 +35,7 @@ export function MyEventRequestsPage() {
   }, [loadRequests]);
 
   if (loading) {
-    return <LoadingScreen message="Loading event proposals…" />;
+    return <LoadingScreen message="Loading Promo Lunch sign-ups…" />;
   }
 
   return (
@@ -42,18 +43,14 @@ export function MyEventRequestsPage() {
       <header className="page-header">
         <div>
           <p className="eyebrow">Submissions</p>
-          <h1>Events</h1>
+          <h1>Club Promo Lunch</h1>
         </div>
-        <Link className="button button--primary" to="/events">
-          View events
-        </Link>
       </header>
-
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       {!error && requests.length === 0 ? (
         <EmptyState
-          title="No event proposals yet"
-          description="Submit an event proposal from Manage Club to track it here."
+          title="No sign-ups yet"
+          description="Submit a Club Promo Lunch sign-up from Manage Club."
         />
       ) : (
         requests.map((request) => (
@@ -62,31 +59,24 @@ export function MyEventRequestsPage() {
               <div>
                 <div className="request-card__labels">
                   <span className="submission-type request-card__type">
-                    Event proposal
+                    Promo Lunch
                   </span>
                   <StatusBadge status={request.status} prefix="Status: " />
                 </div>
-                <h2>{request.event_name}</h2>
-                <p className="muted">{request.clubs?.name}</p>
+                <h2>{request.clubs?.name || "Club Promo Lunch"}</h2>
               </div>
-              <time
-                className="request-card__date"
-                dateTime={request.submitted_at || request.created_at || undefined}
-              >
-                Submitted {formatDate(request.submitted_at || request.created_at)}
+              <time className="request-card__date">
+                Submitted {formatDate(request.submitted_at)}
               </time>
             </div>
             <dl className="meta-list">
               <div>
-                <dt>Event dates</dt>
-                <dd>
-                  {formatDateOnly(request.event_date)} –{" "}
-                  {formatDateOnly(request.event_end_date)}
-                </dd>
+                <dt>Booth days</dt>
+                <dd>{getPromoLunchDaysLabel(request.booth_days)}</dd>
               </div>
               <div>
-                <dt>Updated</dt>
-                <dd>{formatDate(request.updated_at)}</dd>
+                <dt>Approval email</dt>
+                <dd>{request.approval_email_received ? "Yes" : "No"}</dd>
               </div>
             </dl>
             {request.review_notes ? (

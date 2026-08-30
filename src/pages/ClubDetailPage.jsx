@@ -7,6 +7,7 @@ import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { getClubBySlug, getPublicClubOwners } from "../services/clubs";
+import { getApprovedClubPromoLunchConfirmation } from "../services/clubPromoLunch";
 import { getMyMembershipForClub } from "../services/memberships";
 import { isClubOwner } from "../utils/clubPermissions";
 import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
@@ -17,6 +18,7 @@ export function ClubDetailPage() {
   const { user, isAuthenticated, isAdmin } = useAuth();
   const [club, setClub] = useState(null);
   const [owners, setOwners] = useState([]);
+  const [promoLunchConfirmed, setPromoLunchConfirmed] = useState(false);
   const [membership, setMembership] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,6 +31,7 @@ export function ClubDetailPage() {
       setError("");
       setMembership(null);
       setOwners([]);
+      setPromoLunchConfirmed(false);
 
       try {
         const nextClub = await getClubBySlug(slug);
@@ -50,6 +53,11 @@ export function ClubDetailPage() {
         } catch (ownersError) {
           console.error(ownersError);
         }
+
+        const promoLunchConfirmation =
+          await getApprovedClubPromoLunchConfirmation(nextClub.id);
+        if (!active) return;
+        setPromoLunchConfirmed(Boolean(promoLunchConfirmation));
 
         if (isAuthenticated && user?.id) {
           try {
@@ -134,7 +142,6 @@ export function ClubDetailPage() {
 
           <div className="club-hero__title">
             <div>
-            <p className="eyebrow">Club</p>
             <h1>{club.name}</h1>
             {owners.length > 0 ? (
               <p className="club-hero__owners">
@@ -146,27 +153,38 @@ export function ClubDetailPage() {
               {membership ? <ClubRoleBadge role={membership.role} /> : null}
             </div>
             </div>
-            {club.member_application_url || club.exec_application_url ? (
-              <div className="club-hero__applications">
-                {club.member_application_url ? (
-                  <a
-                    className="button button--primary"
-                    href={club.member_application_url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Member Apply
-                  </a>
+            {promoLunchConfirmed ||
+            club.member_application_url ||
+            club.exec_application_url ? (
+              <div className="club-hero__actions">
+                {promoLunchConfirmed ? (
+                  <p className="club-promo-confirmation">
+                    Confirmed for Club Promo Lunch
+                  </p>
                 ) : null}
-                {club.exec_application_url ? (
-                  <a
-                    className="button button--secondary"
-                    href={club.exec_application_url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Exec Apply
-                  </a>
+                {club.member_application_url || club.exec_application_url ? (
+                  <div className="club-hero__applications">
+                    {club.member_application_url ? (
+                      <a
+                        className="button button--primary"
+                        href={club.member_application_url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Member Apply
+                      </a>
+                    ) : null}
+                    {club.exec_application_url ? (
+                      <a
+                        className="button button--secondary"
+                        href={club.exec_application_url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Exec Apply
+                      </a>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             ) : null}

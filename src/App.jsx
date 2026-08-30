@@ -4,11 +4,9 @@ import { AuthRedirectProvider } from "./context/AuthRedirectContext";
 import { AppShell } from "./components/layout/AppShell";
 import { ClubsLayout } from "./components/layout/ClubsLayout";
 import { ExecDashboardLayout } from "./components/layout/ExecDashboardLayout";
-import { ExecApplicationsLayout } from "./components/layout/ExecApplicationsLayout";
 import { ExecRequestsLayout } from "./components/layout/ExecRequestsLayout";
 import { ExecArchivedLayout } from "./components/layout/ExecArchivedLayout";
 import { ExecDashboardIndexRedirect } from "./components/layout/ExecDashboardIndexRedirect";
-import { ExecApplicationsIndexRedirect } from "./components/layout/ExecApplicationsIndexRedirect";
 import { ExecRequestsIndexRedirect } from "./components/layout/ExecRequestsIndexRedirect";
 import { ExecArchivedIndexRedirect } from "./components/layout/ExecArchivedIndexRedirect";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -27,8 +25,12 @@ import { MyClubReapplicationsPage } from "./pages/MyClubReapplicationsPage";
 import { MySupervisorRequestsPage } from "./pages/MySupervisorRequestsPage";
 import { MyFundingRequestsPage } from "./pages/MyFundingRequestsPage";
 import { MyEventRequestsPage } from "./pages/MyEventRequestsPage";
+import { MyPromoLunchRequestsPage } from "./pages/MyPromoLunchRequestsPage";
+import { AdminPromoLunchPage } from "./pages/AdminPromoLunchPage";
+import { AdminPromoLunchDetailPage } from "./pages/AdminPromoLunchDetailPage";
 import { MyClubsPage } from "./pages/MyClubsPage";
 import { MyRequestsLayout } from "./components/layout/MyRequestsLayout";
+import { MyClubRequestsLayout } from "./components/layout/MyClubRequestsLayout";
 import { MyRequestsIndexRedirect } from "./components/layout/MyRequestsIndexRedirect";
 import { AdminClubRequestsPage } from "./pages/AdminClubRequestsPage";
 import { AdminClubRequestDetailPage } from "./pages/AdminClubRequestDetailPage";
@@ -155,13 +157,23 @@ export default function App() {
               }
             >
               <Route index element={<MyRequestsIndexRedirect />} />
+              <Route path="club-requests" element={<MyClubRequestsLayout />}>
+                <Route index element={<Navigate to="applications" replace />} />
+                <Route path="applications" element={<MyClubApplicationsPage />} />
+                <Route
+                  path="reapplications"
+                  element={<MyClubReapplicationsPage />}
+                />
+              </Route>
               <Route
                 path="applications"
-                element={<MyClubApplicationsPage />}
+                element={<Navigate to="/my-requests/club-requests/applications" replace />}
               />
               <Route
                 path="reapplications"
-                element={<MyClubReapplicationsPage />}
+                element={
+                  <Navigate to="/my-requests/club-requests/reapplications" replace />
+                }
               />
               <Route
                 path="announcements"
@@ -173,6 +185,10 @@ export default function App() {
               />
               <Route path="funding" element={<MyFundingRequestsPage />} />
               <Route path="events" element={<MyEventRequestsPage />} />
+              <Route
+                path="promo-lunch"
+                element={<MyPromoLunchRequestsPage />}
+              />
             </Route>
 
             <Route
@@ -187,25 +203,28 @@ export default function App() {
             >
               <Route index element={<ExecDashboardIndexRedirect />} />
 
-              <Route path="applications" element={<ExecApplicationsLayout />}>
-                <Route index element={<ExecApplicationsIndexRedirect />} />
-                <Route
-                  path="new"
-                  element={<AdminClubRequestsPage embedded />}
-                />
-                <Route
-                  path="new/:requestId"
-                  element={<AdminClubRequestDetailPage embedded />}
-                />
-                <Route
-                  path="reapplications"
-                  element={<AdminClubReapplicationsPage embedded />}
-                />
-                <Route
-                  path="reapplications/:requestId"
-                  element={<AdminClubReapplicationDetailPage embedded />}
-                />
-              </Route>
+              <Route
+                path="applications"
+                element={
+                  <Navigate to="/exec-dashboard/applications/new" replace />
+                }
+              />
+              <Route
+                path="applications/new"
+                element={<AdminClubRequestsPage embedded />}
+              />
+              <Route
+                path="applications/new/:requestId"
+                element={<AdminClubRequestDetailPage embedded />}
+              />
+              <Route
+                path="applications/reapplications"
+                element={<AdminClubReapplicationsPage embedded />}
+              />
+              <Route
+                path="applications/reapplications/:requestId"
+                element={<AdminClubReapplicationDetailPage embedded />}
+              />
 
               <Route path="requests" element={<ExecRequestsLayout />}>
                 <Route index element={<ExecRequestsIndexRedirect />} />
@@ -224,6 +243,14 @@ export default function App() {
                 <Route
                   path="events/:requestId"
                   element={<AdminClubEventDetailPage embedded />}
+                />
+                <Route
+                  path="promo-lunch"
+                  element={<AdminPromoLunchPage embedded />}
+                />
+                <Route
+                  path="promo-lunch/:requestId"
+                  element={<AdminPromoLunchDetailPage embedded />}
                 />
                 <Route
                   path="announcements"

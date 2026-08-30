@@ -24,6 +24,10 @@ export function ExecRequestsLayout() {
       label: "Events",
     },
     {
+      to: "/exec-dashboard/requests/promo-lunch",
+      label: "Promo Lunch",
+    },
+    {
       to: "/exec-dashboard/requests/announcements",
       label: "Announcements",
     },
@@ -31,7 +35,7 @@ export function ExecRequestsLayout() {
       ? [
           {
             to: "/exec-dashboard/requests/supervisor",
-            label: "Supervisor Requests",
+            label: "Supervisor",
           },
         ]
       : []),
@@ -39,7 +43,7 @@ export function ExecRequestsLayout() {
 
   return (
     <div className="exec-section">
-      <nav className="subtabs subtabs--nested" aria-label="Requests">
+      <nav className="subtabs subtabs--nested" aria-label="Review types">
         {subtabs.map((tab) => (
           <NavLink
             key={tab.to}

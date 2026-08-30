@@ -1,5 +1,7 @@
 import { Navigate } from "react-router-dom";
 
-export function ExecApplicationsIndexRedirect() {
-  return <Navigate to="/exec-dashboard/applications/new" replace />;
+export function ExecApplicationsIndexRedirect({
+  basePath = "/exec-dashboard/applications",
+}) {
+  return <Navigate to={`${basePath}/new`} replace />;
 }

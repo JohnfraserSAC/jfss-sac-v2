@@ -14,6 +14,7 @@ import { ClubAnnouncementsPanel } from "../components/clubs/ClubAnnouncementsPan
 import { ClubDetailsPanel } from "../components/clubs/ClubDetailsPanel";
 import { ClubEventForm } from "../components/clubs/ClubEventForm";
 import { ClubFundingForm } from "../components/clubs/ClubFundingForm";
+import { ClubPromoLunchForm } from "../components/clubs/ClubPromoLunchForm";
 import { ClubManageTabs } from "../components/clubs/ClubManageTabs";
 import { ClubPeoplePanel } from "../components/clubs/ClubPeoplePanel";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
@@ -62,9 +63,14 @@ export function ClubManagePage() {
 
   const [activeTab, setActiveTab] = useState(() => {
     const requestedTab = searchParams.get("tab");
-    return ["details", "people", "announcements", "funding", "events"].includes(
-      requestedTab,
-    )
+    return [
+      "details",
+      "people",
+      "announcements",
+      "funding",
+      "events",
+      "promoLunch",
+    ].includes(requestedTab)
       ? requestedTab
       : "details";
   });
@@ -414,6 +420,31 @@ export function ClubManagePage() {
               Submit an event proposal for SAC review and potential approval.
             </p>
             <ClubEventForm
+              club={club}
+              canSubmit={
+                isClubOwner(membership?.role) &&
+                membership?.status === "ACTIVE" &&
+                annual?.status === "ACTIVE"
+              }
+            />
+          </section>
+        </div>
+      ) : null}
+
+      {activeTab === "promoLunch" ? (
+        <div
+          id="manage-panel-promoLunch"
+          role="tabpanel"
+          aria-labelledby="manage-tab-promoLunch"
+          className="stack"
+        >
+          <section className="panel">
+            <h2>Club Promo Lunch sign-up</h2>
+            <p className="muted">
+              Submit your club&apos;s booth information for review and
+              confirmation.
+            </p>
+            <ClubPromoLunchForm
               club={club}
               canSubmit={
                 isClubOwner(membership?.role) &&

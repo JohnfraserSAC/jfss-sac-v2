@@ -20,17 +20,15 @@ export function buildMyRequestTabs({
   const canSubmitEvents = activeMemberships.some((membership) =>
     isClubOwner(membership.role),
   );
+  const canSubmitPromoLunch = activeMemberships.some((membership) =>
+    isClubOwner(membership.role),
+  );
 
   return [
     {
-      id: "applications",
-      to: "/my-requests/applications",
-      label: "New Club Applications",
-    },
-    {
-      id: "reapplications",
-      to: "/my-requests/reapplications",
-      label: "Club Re-Applications",
+      id: "clubRequests",
+      to: "/my-requests/club-requests",
+      label: "Club Applications",
     },
     ...(canCreateAnnouncements
       ? [
@@ -46,7 +44,7 @@ export function buildMyRequestTabs({
           {
             id: "supervisor",
             to: "/my-requests/supervisor",
-            label: "Supervisor Requests",
+            label: "Supervisor",
           },
         ]
       : []),
@@ -64,7 +62,16 @@ export function buildMyRequestTabs({
           {
             id: "events",
             to: "/my-requests/events",
-            label: "Event Proposals",
+            label: "Events",
+          },
+        ]
+      : []),
+    ...(canSubmitPromoLunch
+      ? [
+          {
+            id: "promoLunch",
+            to: "/my-requests/promo-lunch",
+            label: "Promo Lunch",
           },
         ]
       : []),
