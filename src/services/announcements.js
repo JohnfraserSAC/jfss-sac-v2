@@ -398,11 +398,18 @@ export async function editAnnouncement(id, values, action) {
 }
 
 export async function reviewAnnouncement(id, action, reviewNotes = null) {
+  const normalizedAction = String(action || "").toUpperCase();
+  if (normalizedAction === "REJECTED" && !String(reviewNotes || "").trim()) {
+    throw new Error(
+      "Review notes are required when rejecting an announcement.",
+    );
+  }
+
   const { data: announcementId, error } = await supabase.rpc(
     "review_announcement",
     {
       p_announcement_id: id,
-      p_action: action,
+      p_action: normalizedAction,
       p_review_notes: reviewNotes || null,
     },
   );

@@ -200,6 +200,11 @@ export async function reviewClubReapplication({
   if (!["APPROVED", "REJECTED"].includes(normalizedAction)) {
     throw new Error("Invalid re-application review action.");
   }
+  if (normalizedAction === "REJECTED" && !String(reviewNotes || "").trim()) {
+    throw new Error(
+      "Review notes are required when rejecting a re-application.",
+    );
+  }
 
   const { data, error } = await supabase.rpc("review_club_reapplication", {
     p_request_id: requestId,

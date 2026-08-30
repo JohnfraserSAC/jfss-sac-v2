@@ -193,6 +193,11 @@ export async function reviewClubFundingRequest({
   if (!["APPROVED", "REJECTED"].includes(normalizedAction)) {
     throw new Error("Invalid funding request review action.");
   }
+  if (normalizedAction === "REJECTED" && !String(reviewNotes || "").trim()) {
+    throw new Error(
+      "Review notes are required when rejecting a funding request.",
+    );
+  }
 
   const { data, error } = await supabase.rpc("review_club_funding_request", {
     p_request_id: requestId,

@@ -26,6 +26,7 @@ import { MyClubApplicationsPage } from "./pages/MyClubApplicationsPage";
 import { MyClubReapplicationsPage } from "./pages/MyClubReapplicationsPage";
 import { MySupervisorRequestsPage } from "./pages/MySupervisorRequestsPage";
 import { MyFundingRequestsPage } from "./pages/MyFundingRequestsPage";
+import { MyEventRequestsPage } from "./pages/MyEventRequestsPage";
 import { MyClubsPage } from "./pages/MyClubsPage";
 import { MyRequestsLayout } from "./components/layout/MyRequestsLayout";
 import { MyRequestsIndexRedirect } from "./components/layout/MyRequestsIndexRedirect";
@@ -39,6 +40,8 @@ import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage
 import { AdminClubSupervisorRequestsDetailPage } from "./pages/AdminClubSupervisorRequestsDetailPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
 import { AdminClubFundingDetailPage } from "./pages/AdminClubFundingDetailPage";
+import { AdminEventsPage } from "./pages/AdminEventsPage";
+import { AdminClubEventDetailPage } from "./pages/AdminClubEventDetailPage";
 import { AdminClubAnnouncementsDetailPage } from "./pages/AdminClubAnnouncementsDetailPage";
 import { AdminSchoolDayPage } from "./pages/AdminSchoolDayPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
@@ -51,6 +54,7 @@ import { StudentResourcesPage } from "./pages/StudentResourcesPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { OurTeamPage } from "./pages/OurTeamPage";
 import { EventsPage } from "./pages/EventsPage";
+import { CurrentEventsPage } from "./pages/CurrentEventsPage";
 
 export default function App() {
   return (
@@ -104,10 +108,7 @@ export default function App() {
             </Route>
 
             <Route path="sports" element={<SportsPage />} />
-            <Route
-              path="events"
-              element={<Navigate to="/sports" replace />}
-            />
+            <Route path="events" element={<CurrentEventsPage />} />
             <Route path="sac-events" element={<EventsPage />} />
             <Route path="student-resources" element={<StudentResourcesPage />} />
             <Route path="our-team" element={<OurTeamPage />} />
@@ -171,6 +172,7 @@ export default function App() {
                 element={<MySupervisorRequestsPage />}
               />
               <Route path="funding" element={<MyFundingRequestsPage />} />
+              <Route path="events" element={<MyEventRequestsPage />} />
             </Route>
 
             <Route
@@ -214,6 +216,14 @@ export default function App() {
                 <Route
                   path="funding/:requestId"
                   element={<AdminClubFundingDetailPage embedded />}
+                />
+                <Route
+                  path="events"
+                  element={<AdminEventsPage embedded />}
+                />
+                <Route
+                  path="events/:requestId"
+                  element={<AdminClubEventDetailPage embedded />}
                 />
                 <Route
                   path="announcements"
@@ -320,10 +330,7 @@ export default function App() {
               <Route
                 path="events"
                 element={
-                  <Navigate
-                    to="/exec-dashboard/requests/announcements"
-                    replace
-                  />
+                  <Navigate to="/exec-dashboard/requests/events" replace />
                 }
               />
             </Route>

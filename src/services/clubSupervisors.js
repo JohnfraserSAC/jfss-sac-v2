@@ -57,9 +57,19 @@ export async function reviewClubSupervisorRequest({
   action,
   reviewNotes = null,
 }) {
+  const normalizedAction = String(action || "").toUpperCase();
+  if (
+    normalizedAction === "REJECTED" &&
+    !String(reviewNotes || "").trim()
+  ) {
+    throw new Error(
+      "Review notes are required when rejecting a supervisor request.",
+    );
+  }
+
   const { data, error } = await supabase.rpc("review_club_supervisor_request", {
     p_request_id: requestId,
-    p_action: action,
+    p_action: normalizedAction,
     p_review_notes: reviewNotes,
   });
 

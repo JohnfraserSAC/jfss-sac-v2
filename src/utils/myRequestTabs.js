@@ -17,6 +17,9 @@ export function buildMyRequestTabs({
   const canSubmitFunding = activeMemberships.some((membership) =>
     isClubOwner(membership.role),
   );
+  const canSubmitEvents = activeMemberships.some((membership) =>
+    isClubOwner(membership.role),
+  );
 
   return [
     {
@@ -53,6 +56,15 @@ export function buildMyRequestTabs({
             id: "funding",
             to: "/my-requests/funding",
             label: "Club Funding",
+          },
+        ]
+      : []),
+    ...(canSubmitEvents
+      ? [
+          {
+            id: "events",
+            to: "/my-requests/events",
+            label: "Event Proposals",
           },
         ]
       : []),

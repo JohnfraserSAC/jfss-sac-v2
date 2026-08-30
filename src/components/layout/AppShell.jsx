@@ -11,7 +11,7 @@ import { rememberAuthReturnTo } from "../../utils/authRedirect";
 const navLinks = [
   { to: "/clubs", label: "Clubs" },
   { to: "/sports", label: "Sports" },
-  { to: "/sac-events", label: "Events" },
+  { to: "/events", label: "Events" },
   { to: "/student-resources", label: "Student Resources" },
   { to: "/our-team", label: "Our Team" },
 ];
@@ -73,10 +73,12 @@ export function AppShell() {
   const roleTone = roleLabel === "STUDENT" ? "student" : "staff";
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset avatar fallback when source changes
     setAvatarFailed(false);
   }, [avatarUrl]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- close mobile menu after navigation
     setMenuOpen(false);
   }, [pathname]);
 

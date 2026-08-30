@@ -139,6 +139,9 @@ export async function updateClubRequestReview({
   if (action !== "REJECTED") {
     throw new Error("Invalid club request review action.");
   }
+  if (!String(reviewNotes || "").trim()) {
+    throw new Error("Review notes are required when rejecting a club request.");
+  }
 
   const { data, error } = await supabase.rpc(
     "review_club_registration_request",

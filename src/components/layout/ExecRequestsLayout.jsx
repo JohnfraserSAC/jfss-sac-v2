@@ -20,6 +20,10 @@ export function ExecRequestsLayout() {
         ]
       : []),
     {
+      to: "/exec-dashboard/requests/events",
+      label: "Events",
+    },
+    {
       to: "/exec-dashboard/requests/announcements",
       label: "Announcements",
     },

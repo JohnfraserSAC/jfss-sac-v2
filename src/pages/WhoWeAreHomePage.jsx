@@ -43,13 +43,22 @@ export function HomeWhoWeAre() {
           ))}
         </div>
 
-        <Link
-          to="/our-team"
-          className="btn-meet-team"
-          onClick={() => window.scrollTo(0, 0)}
-        >
-          Meet the Team
-        </Link>
+        <div className="who-we-are__actions">
+          <Link
+            to="/our-team"
+            className="btn-meet-team"
+            onClick={() => window.scrollTo(0, 0)}
+          >
+            Meet the Team
+          </Link>
+          <Link
+            to="/sac-events"
+            className="btn-meet-team btn-meet-team--outline"
+            onClick={() => window.scrollTo(0, 0)}
+          >
+            Past Events
+          </Link>
+        </div>
       </div>
     </section>
   );

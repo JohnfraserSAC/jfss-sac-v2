@@ -1,3 +1,5 @@
+import { EventCard } from "../components/events/EventCard";
+
 const events = [
   {
     id: "fraser-games",
@@ -97,30 +99,11 @@ const events = [
   },
 ];
 
-function EventCard({ event }) {
-  return (
-    <div className="event-card">
-      <div className="event-card__photo">
-        {event.photo ? (
-          <img src={event.photo} alt={event.title} />
-        ) : (
-          <div className="event-card__photo-placeholder">Photo coming soon</div>
-        )}
-      </div>
-      <div className="event-card__content">
-        <p className="event-card__date">{event.date}</p>
-        <h3 className="event-card__title">{event.title}</h3>
-        <p className="event-card__description">{event.description}</p>
-      </div>
-    </div>
-  );
-}
-
 export function EventsPage() {
   return (
     <div className="team-page">
       <div className="team-header">
-        <h1 className="team-title">Where Fraser Comes Alive</h1>
+        <h1 className="team-title">SAC Events</h1>
         <p className="team-subtitle">
           A look back at events SAC has hosted throughout the year.
         </p>

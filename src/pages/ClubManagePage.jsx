@@ -12,6 +12,7 @@ import { ArchiveClubDialog } from "../components/clubs/ArchiveClubDialog";
 import { ChangeRoleDialog } from "../components/clubs/ChangeRoleDialog";
 import { ClubAnnouncementsPanel } from "../components/clubs/ClubAnnouncementsPanel";
 import { ClubDetailsPanel } from "../components/clubs/ClubDetailsPanel";
+import { ClubEventForm } from "../components/clubs/ClubEventForm";
 import { ClubFundingForm } from "../components/clubs/ClubFundingForm";
 import { ClubManageTabs } from "../components/clubs/ClubManageTabs";
 import { ClubPeoplePanel } from "../components/clubs/ClubPeoplePanel";
@@ -61,7 +62,7 @@ export function ClubManagePage() {
 
   const [activeTab, setActiveTab] = useState(() => {
     const requestedTab = searchParams.get("tab");
-    return ["details", "people", "announcements", "funding"].includes(
+    return ["details", "people", "announcements", "funding", "events"].includes(
       requestedTab,
     )
       ? requestedTab
@@ -394,6 +395,30 @@ export function ClubManagePage() {
               canSubmit={
                 isClubOwner(membership?.role) &&
                 membership?.status === "ACTIVE"
+              }
+            />
+          </section>
+        </div>
+      ) : null}
+
+      {activeTab === "events" ? (
+        <div
+          id="manage-panel-events"
+          role="tabpanel"
+          aria-labelledby="manage-tab-events"
+          className="stack"
+        >
+          <section className="panel">
+            <h2>Event proposal</h2>
+            <p className="muted">
+              Submit an event proposal for SAC review and potential approval.
+            </p>
+            <ClubEventForm
+              club={club}
+              canSubmit={
+                isClubOwner(membership?.role) &&
+                membership?.status === "ACTIVE" &&
+                annual?.status === "ACTIVE"
               }
             />
           </section>

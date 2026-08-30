@@ -3725,6 +3725,14 @@ button.nav-link {
   padding-top: 24px;
 }
 
+.who-we-are__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
 .officer-list {
   display: flex;
   gap: 40px;
@@ -3766,6 +3774,17 @@ button.nav-link {
 
 .btn-meet-team:hover {
   background: #2c5eb0;
+}
+
+.btn-meet-team--outline {
+  color: #1e2a4a;
+  background: transparent;
+  border: 1px solid #1e2a4a;
+}
+
+.btn-meet-team--outline:hover {
+  color: #ffffff;
+  background: #1e2a4a;
 }
 
 .who-we-are__top {
@@ -3948,6 +3967,10 @@ button.nav-link {
   padding: 32px;
 }
 
+.event-tabs {
+  margin-bottom: 2rem;
+}
+
 @media (max-width: 900px) {
   .event-card {
     grid-template-columns: 1fr;
@@ -4003,11 +4026,43 @@ button.nav-link {
   margin: 0 0 16px;
 }
 
+.event-card__club {
+  color: #1e2a4a;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: -6px 0 14px;
+}
+
+.event-review-photo {
+  display: block;
+  width: min(100%, 34rem);
+  max-height: 24rem;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+}
+
 .event-card__description {
   color: #6b7280;
   font-size: 1.05rem;
   line-height: 1.7;
   margin: 0;
+}
+
+.event-card__more {
+  align-self: flex-start;
+  margin-top: 0.75rem;
+  padding: 0;
+  color: #2c5eb0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.event-card__more:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 720px) {

@@ -79,11 +79,18 @@ const PAGE_BANNERS = [
       "Meet the SAC Executive Team and Grade Reps leading clubs and events this year.",
   },
   {
-    match: (path) => path === "/sac-events" || path.startsWith("/sac-events/"),
+    match: (path) => path === "/events" || path.startsWith("/events/"),
     ariaLabel: "Events",
+    eyebrow: "\u2014 Events",
+    title: "Events.",
+    description: "Discover events organized by John Fraser clubs.",
+  },
+  {
+    match: (path) => path === "/sac-events" || path.startsWith("/sac-events/"),
+    ariaLabel: "SAC Events",
     eyebrow: "\u2014 SAC Events",
-    title: "Your Events Hub.",
-    description: "Details on the events organized and delivered by SAC.",
+    title: "SAC Events.",
+    description: "A look back at the events organized and hosted by SAC.",
   },
 ];
 
