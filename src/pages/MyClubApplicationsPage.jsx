@@ -5,12 +5,8 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { RequestCard } from "../components/clubs/RequestCard";
-import { Spinner } from "../components/ui/Spinner";
 import {
-  deleteDraftClubRequest,
   getMyClubRequests,
-  resubmitClubRequest,
-  withdrawClubRequest,
 } from "../services/clubRequests";
 import { getClubById } from "../services/clubs";
 import { getErrorMessage } from "../utils/errors";
@@ -24,8 +20,6 @@ export function MyClubApplicationsPage() {
   const [missingClubs, setMissingClubs] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [busyId, setBusyId] = useState(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const loadRequests = useCallback(async () => {
@@ -66,21 +60,9 @@ export function MyClubApplicationsPage() {
   }, [user.id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- load request data on mount
     loadRequests();
   }, [loadRequests]);
-
-  async function runAction(requestId, action) {
-    setBusyId(requestId);
-    setActionError("");
-    try {
-      await action();
-      await loadRequests();
-    } catch (actionErr) {
-      setActionError(getErrorMessage(actionErr, "Action failed."));
-    } finally {
-      setBusyId(null);
-    }
-  }
 
   if (loading) {
     return <LoadingScreen message="Loading club applications…" />;
@@ -98,7 +80,6 @@ export function MyClubApplicationsPage() {
       </header>
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
-      {actionError ? <ErrorMessage>{actionError}</ErrorMessage> : null}
 
       {!error && requests.length === 0 ? (
         <EmptyState title="No club applications yet">
@@ -107,11 +88,6 @@ export function MyClubApplicationsPage() {
       ) : null}
 
       {visible.map((request) => {
-        const canMutate =
-          request.status === "DRAFT" ||
-          request.status === "CHANGES_REQUESTED";
-        const isBusy = busyId === request.id;
-
         return (
           <RequestCard
             key={request.id}
@@ -120,55 +96,6 @@ export function MyClubApplicationsPage() {
             createdClubMissing={
               !request.created_club_id ||
               Boolean(missingClubs[request.created_club_id])
-            }
-            actions={
-              canMutate ? (
-                <div className="button-row">
-                  {request.status === "CHANGES_REQUESTED" ? (
-                    <button
-                      type="button"
-                      className="button button--primary"
-                      disabled={isBusy}
-                      onClick={() =>
-                        runAction(request.id, () =>
-                          resubmitClubRequest(request.id),
-                        )
-                      }
-                    >
-                      {isBusy ? (
-                        <Spinner size="sm" label="Working" />
-                      ) : null}
-                      Resubmit
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="button button--secondary"
-                    disabled={isBusy}
-                    onClick={() =>
-                      runAction(request.id, () =>
-                        withdrawClubRequest(request.id),
-                      )
-                    }
-                  >
-                    Withdraw
-                  </button>
-                  {request.status === "DRAFT" ? (
-                    <button
-                      type="button"
-                      className="button button--danger"
-                      disabled={isBusy}
-                      onClick={() =>
-                        runAction(request.id, () =>
-                          deleteDraftClubRequest(request.id),
-                        )
-                      }
-                    >
-                      Delete draft
-                    </button>
-                  ) : null}
-                </div>
-              ) : null
             }
           />
         );

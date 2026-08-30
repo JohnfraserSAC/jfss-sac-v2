@@ -155,9 +155,7 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
     request.clubs?.name || request.club_name || "Unknown club";
   const canReview =
     canMutate &&
-    ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(
-      request.status,
-    );
+    request.status === "SUBMITTED";
   const hasListedSupervisor =
     !request.is_seeking_teacher_supervisor &&
     (request.club_reapplication_supervisors || []).length > 0;

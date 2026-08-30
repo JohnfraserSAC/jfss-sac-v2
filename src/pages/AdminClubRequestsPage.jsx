@@ -22,6 +22,7 @@ export function AdminClubRequestsPage({ embedded = false }) {
   useEffect(() => {
     const state = location.state;
     if (state?.success) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- consume navigation feedback
       setActionSuccess(state.success);
       setCreatedClubLink(state.createdClub ?? null);
       window.history.replaceState({}, document.title);
@@ -43,6 +44,7 @@ export function AdminClubRequestsPage({ embedded = false }) {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional async queue fetch
     loadQueue();
   }, [loadQueue]);
 
@@ -68,8 +70,8 @@ export function AdminClubRequestsPage({ embedded = false }) {
 
       {readOnly ? (
         <PermissionNotice title="Read only">
-          You can view club registration requests, but you cannot approve,
-          reject, or request changes.
+          You can view club registration requests, but you cannot approve or
+          reject them.
         </PermissionNotice>
       ) : null}
 

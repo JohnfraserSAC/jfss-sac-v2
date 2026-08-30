@@ -178,7 +178,7 @@ export async function getAdminClubReapplicationQueue() {
     .select(
       `${REAPP_FIELDS}, club_reapplication_supervisors (*), club_reapplication_attachments (*)`,
     )
-    .in("status", ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"])
+    .eq("status", "SUBMITTED")
     .order("submitted_at", { ascending: false });
 
   if (error) {
@@ -196,9 +196,14 @@ export async function reviewClubReapplication({
   action,
   reviewNotes = null,
 }) {
+  const normalizedAction = String(action || "").toUpperCase();
+  if (!["APPROVED", "REJECTED"].includes(normalizedAction)) {
+    throw new Error("Invalid re-application review action.");
+  }
+
   const { data, error } = await supabase.rpc("review_club_reapplication", {
     p_request_id: requestId,
-    p_action: action,
+    p_action: normalizedAction,
     p_review_notes: reviewNotes,
   });
 

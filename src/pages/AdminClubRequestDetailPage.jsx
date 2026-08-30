@@ -188,7 +188,7 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
   }
 
   const canReview =
-    !readOnly && ["SUBMITTED", "UNDER_REVIEW"].includes(request.status);
+    !readOnly && request.status === "SUBMITTED";
 
   return (
     <div className={embedded ? "exec-section" : "page"}>
@@ -221,8 +221,8 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
 
       {readOnly ? (
         <PermissionNotice title="Read only">
-          You can view club registration requests, but you cannot approve,
-          reject, or request changes.
+          You can view club registration requests, but you cannot approve or
+          reject them.
         </PermissionNotice>
       ) : null}
 

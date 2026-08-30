@@ -41,7 +41,7 @@ const REQUEST_FIELDS = `
   updated_at
 `;
 
-const ADMIN_QUEUE_STATUSES = ["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"];
+const ADMIN_QUEUE_STATUSES = ["SUBMITTED"];
 
 export async function getMyClubRequests(userId) {
   const { data, error } = await supabase
@@ -94,50 +94,6 @@ export async function submitClubRegistrationApplication(payload) {
   return data;
 }
 
-export async function resubmitClubRequest(requestId) {
-  const { data, error } = await supabase
-    .from("club_registration_requests")
-    .update({ status: "SUBMITTED" })
-    .eq("id", requestId)
-    .select(REQUEST_FIELDS)
-    .single();
-
-  if (error) {
-    logServiceError("resubmitClubRequest", error);
-    throw new Error(getErrorMessage(error, "Could not resubmit your club request."));
-  }
-
-  return data;
-}
-
-export async function withdrawClubRequest(requestId) {
-  const { data, error } = await supabase
-    .from("club_registration_requests")
-    .update({ status: "WITHDRAWN" })
-    .eq("id", requestId)
-    .select(REQUEST_FIELDS)
-    .single();
-
-  if (error) {
-    logServiceError("withdrawClubRequest", error);
-    throw new Error(getErrorMessage(error, "Could not withdraw your club request."));
-  }
-
-  return data;
-}
-
-export async function deleteDraftClubRequest(requestId) {
-  const { error } = await supabase
-    .from("club_registration_requests")
-    .delete()
-    .eq("id", requestId);
-
-  if (error) {
-    logServiceError("deleteDraftClubRequest", error);
-    throw new Error(getErrorMessage(error, "Could not delete this draft."));
-  }
-}
-
 export async function getAdminClubRequestQueue() {
   const { data, error } = await supabase
     .from("club_registration_requests")
@@ -180,7 +136,7 @@ export async function updateClubRequestReview({
 }) {
   const action = String(status || "").toUpperCase();
 
-  if (!["UNDER_REVIEW", "CHANGES_REQUESTED", "REJECTED"].includes(action)) {
+  if (action !== "REJECTED") {
     throw new Error("Invalid club request review action.");
   }
 

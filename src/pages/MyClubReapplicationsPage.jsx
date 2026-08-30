@@ -19,7 +19,7 @@ import { getErrorMessage } from "../utils/errors";
 const PAGE_SIZE = 5;
 
 function canWithdrawReapplication(request, annualStatus) {
-  if (["SUBMITTED", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(request.status)) {
+  if (request.status === "SUBMITTED") {
     return true;
   }
   return (
@@ -157,13 +157,6 @@ export function MyClubReapplicationsPage() {
             {request.review_notes ? (
               <p>
                 <strong>Review notes:</strong> {request.review_notes}
-              </p>
-            ) : null}
-            {request.status === "CHANGES_REQUESTED" ? (
-              <p>
-                <Link to={`/clubs/reapply?edit=${request.id}`}>
-                  Edit and resubmit
-                </Link>
               </p>
             ) : null}
             {request.status === "REJECTED" || request.status === "WITHDRAWN" ? (
