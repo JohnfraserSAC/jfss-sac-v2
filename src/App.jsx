@@ -22,7 +22,6 @@ import { ClubDetailPage } from "./pages/ClubDetailPage";
 import { ClubManagePage } from "./pages/ClubManagePage";
 import { ClubApplyPage } from "./pages/ClubApplyPage";
 import { ClubReapplyPage } from "./pages/ClubReapplyPage";
-import { ClubFundingPage } from "./pages/ClubFundingPlaceholderPage";
 import { MyClubApplicationsPage } from "./pages/MyClubApplicationsPage";
 import { MyClubReapplicationsPage } from "./pages/MyClubReapplicationsPage";
 import { MySupervisorRequestsPage } from "./pages/MySupervisorRequestsPage";
@@ -99,14 +98,6 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <ClubManagePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path=":slug/manage/funding"
-                element={
-                  <ProtectedRoute>
-                    <ClubFundingPage />
                   </ProtectedRoute>
                 }
               />
