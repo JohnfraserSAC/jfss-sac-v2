@@ -8,7 +8,6 @@ import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { PermissionNotice } from "../components/ui/PermissionNotice";
 import { TextArea } from "../components/ui/TextArea";
 import { TextInput } from "../components/ui/TextInput";
-import { StatusBadge } from "../components/ui/StatusBadge";
 import { Spinner } from "../components/ui/Spinner";
 import {
   adminRejectPendingSupervisorClub,
@@ -18,7 +17,7 @@ import {
   listSupervisorWatchClubs,
   localDateTimeValueToIso,
 } from "../services/clubSupervisors";
-import { formatDate, formatDeadlineRelative } from "../utils/format";
+import { formatDeadlineRelative } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 
 function sortPendingClubs(rows) {
@@ -255,72 +254,30 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
           ) : (
             <ul className="stack card-list">
               {sortedPending.map((row) => {
-                const hasDeadline = Boolean(row.supervisor_due_at);
                 const relative = formatDeadlineRelative(
                   row.supervisor_due_at,
                   nowMs,
                 );
                 return (
-                  <li key={row.club_id} className="card">
-                    <div className="card__header">
-                      <h3>{row.name}</h3>
-                      <StatusBadge status="PENDING_TEACHER_SUPERVISOR" />
+                  <li
+                    key={row.club_id}
+                    className="pending-supervisor-card"
+                  >
+                    <div className="pending-supervisor-card__header">
+                      <Link
+                        className="pending-supervisor-card__club"
+                        to={`/clubs/${row.slug}`}
+                      >
+                        <h3>{row.name}</h3>
+                      </Link>
+                      <span
+                        className={`badge ${
+                          row.is_overdue ? "badge--warning" : "badge--info"
+                        }`}
+                      >
+                        {relative}
+                      </span>
                     </div>
-                    <dl className="meta-list">
-                      <div>
-                        <dt>Owners</dt>
-                        <dd>
-                          {(row.owner_emails || []).length
-                            ? row.owner_emails.join(", ")
-                            : "None active"}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Deadline</dt>
-                        <dd>
-                          {hasDeadline ? (
-                            formatDate(row.supervisor_due_at)
-                          ) : (
-                            <span className="badge badge--danger">
-                              Deadline missing
-                            </span>
-                          )}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Timing</dt>
-                        <dd>
-                          {hasDeadline ? (
-                            <>
-                              {relative}
-                              {row.is_overdue ? (
-                                <span className="badge badge--danger">
-                                  {" "}
-                                  Overdue
-                                </span>
-                              ) : null}
-                            </>
-                          ) : (
-                            <span className="muted">No deadline on file</span>
-                          )}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Supervisor submission</dt>
-                        <dd>
-                          {row.supervisor_request_status ? (
-                            <StatusBadge
-                              status={row.supervisor_request_status}
-                            />
-                          ) : (
-                            "None submitted"
-                          )}
-                        </dd>
-                      </div>
-                    </dl>
-                    <p>
-                      <Link to={`/clubs/${row.slug}`}>View club</Link>
-                    </p>
                     {canMutate ? (
                       <div className="button-row">
                         <button

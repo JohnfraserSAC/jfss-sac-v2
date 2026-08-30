@@ -579,6 +579,46 @@ summary:focus-visible {
   margin-left: auto;
 }
 
+.pending-supervisor-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+}
+
+.pending-supervisor-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pending-supervisor-card__club {
+  min-width: 0;
+  color: var(--text-strong);
+  text-decoration: none;
+}
+
+.pending-supervisor-card__club h3 {
+  margin: 0;
+}
+
+.pending-supervisor-card__club:hover,
+.pending-supervisor-card__club:focus-visible {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.pending-supervisor-card__header > .badge {
+  flex-shrink: 0;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 @media (min-width: 900px) {
   .supervisor-split {
     grid-template-columns: 1fr 1fr;

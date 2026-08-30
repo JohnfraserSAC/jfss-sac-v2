@@ -165,14 +165,6 @@ export function ClubDetailPage() {
             <dd>{club.instagram_handle || "Not provided"}</dd>
           </div>
           <div className="club-detail-item">
-            <dt>Owner contact</dt>
-            <dd>
-              {owners.length > 0
-                ? owners.map((owner) => owner.owner_email).join(", ")
-                : "Not provided"}
-            </dd>
-          </div>
-          <div className="club-detail-item">
             <dt>Meeting schedule</dt>
             <dd>{meetingSchedule || "Not provided"}</dd>
           </div>

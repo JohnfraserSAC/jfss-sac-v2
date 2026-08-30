@@ -11,7 +11,7 @@ function memberDisplayName(membership) {
   return (
     membership.profile?.full_name ||
     membership.profile?.email ||
-    membership.user_id
+    "Email unavailable"
   );
 }
 
@@ -40,8 +40,7 @@ export function ClubMemberRow({
   const addedByLabel =
     membership.added_by_profile?.full_name ||
     membership.added_by_profile?.email ||
-    membership.added_by ||
-    "—";
+    "Email unavailable";
 
   return (
     <tr>
@@ -51,9 +50,7 @@ export function ClubMemberRow({
           {membership.profile?.email ? (
             <span>{membership.profile.email}</span>
           ) : (
-            <span className="muted">
-              User ID: <code>{membership.user_id}</code>
-            </span>
+            <span className="muted">Email unavailable</span>
           )}
           {isSelf ? <span className="muted">You</span> : null}
         </div>
