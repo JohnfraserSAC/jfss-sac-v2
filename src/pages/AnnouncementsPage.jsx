@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnnouncementCard } from "../components/announcements/AnnouncementCard";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { Select } from "../components/ui/Select";
-import { TextInput } from "../components/ui/TextInput";
 import { getPublishedAnnouncements } from "../services/announcements";
 import { getErrorMessage } from "../utils/errors";
 
@@ -13,14 +12,11 @@ const PAGE_SIZE = 5;
 
 export function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
-  const [search, setSearch] = useState("");
   const [type, setType] = useState("ALL");
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [hasMore, setHasMore] = useState(false);
-
-  const filters = useMemo(() => ({ search, type }), [search, type]);
 
   useEffect(() => {
     let active = true;
@@ -31,7 +27,7 @@ export function AnnouncementsPage() {
 
       try {
         const data = await getPublishedAnnouncements({
-          ...filters,
+          type,
           limit: PAGE_SIZE,
           offset: 0,
         });
@@ -46,12 +42,11 @@ export function AnnouncementsPage() {
       }
     }
 
-    const handle = window.setTimeout(load, 250);
+    load();
     return () => {
       active = false;
-      window.clearTimeout(handle);
     };
-  }, [filters]);
+  }, [type]);
 
   async function loadMore() {
     setLoadingMore(true);
@@ -59,7 +54,7 @@ export function AnnouncementsPage() {
 
     try {
       const data = await getPublishedAnnouncements({
-        ...filters,
+        type,
         limit: PAGE_SIZE,
         offset: announcements.length,
       });
@@ -78,14 +73,7 @@ export function AnnouncementsPage() {
 
   return (
     <div className="page">
-      <div className="toolbar toolbar--split">
-        <TextInput
-          id="announcement-search"
-          label="Search announcements"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search by title or summary"
-        />
+      <div className="toolbar">
         <Select
           id="announcement-type-filter"
           label="Filter by type"
@@ -93,8 +81,8 @@ export function AnnouncementsPage() {
           onChange={(event) => setType(event.target.value)}
         >
           <option value="ALL">All</option>
-          <option value="GENERAL">General</option>
-          <option value="CLUB">Club announcements</option>
+          <option value="PUBLIC">Public</option>
+          <option value="CLUB">Club</option>
         </Select>
       </div>
 

@@ -38,7 +38,7 @@ export function AnnouncementForm({
     const nextType = event.target.value;
     setAnnouncementType(nextType);
     if (nextType === "GENERAL") {
-      onChange?.({ ...values, clubId: "" });
+      onChange?.({ ...values, clubId: "", visibility: "PUBLIC" });
     }
   }
 
@@ -117,6 +117,23 @@ export function AnnouncementForm({
         </FormField>
       ) : null}
 
+      {values.clubId || announcementType === "CLUB" ? (
+        <Select
+          id="announcement-visibility"
+          name="visibility"
+          label="Who can see this announcement?"
+          value={values.visibility || "PUBLIC"}
+          onChange={updateField}
+          error={fieldErrors.visibility}
+          required
+        >
+          <option value="PUBLIC">Public announcement (everyone can see)</option>
+          <option value="CLUB_MEMBERS">
+            Club announcement (club members only)
+          </option>
+        </Select>
+      ) : null}
+
       <TextInput
         id="title"
         name="title"
@@ -137,17 +154,6 @@ export function AnnouncementForm({
         error={fieldErrors.body}
         required
         rows={8}
-      />
-
-      <TextInput
-        id="imageUrl"
-        name="imageUrl"
-        type="url"
-        label="Image URL"
-        value={values.imageUrl}
-        onChange={updateField}
-        error={fieldErrors.imageUrl}
-        placeholder="https://"
       />
 
       <TextInput

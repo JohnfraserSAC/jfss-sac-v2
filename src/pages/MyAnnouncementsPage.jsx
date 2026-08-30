@@ -108,7 +108,7 @@ export function MyAnnouncementsPage({ embedded = false }) {
       {!error && announcements.length === 0 ? (
         <EmptyState title="No announcements yet">
           {canCreateAnnouncements
-            ? "Create a draft or submit a club announcement for review."
+            ? "Submit a club announcement for review."
             : "You have not created any announcements."}
         </EmptyState>
       ) : (

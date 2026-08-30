@@ -40,9 +40,9 @@ import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage
 import { AdminClubSupervisorRequestsDetailPage } from "./pages/AdminClubSupervisorRequestsDetailPage";
 import { AdminFundingPlaceholderPage } from "./pages/AdminFundingPlaceholderPage";
 import { AdminClubFundingDetailPage } from "./pages/AdminClubFundingDetailPage";
+import { AdminClubAnnouncementsDetailPage } from "./pages/AdminClubAnnouncementsDetailPage";
 import { AdminSchoolDayPage } from "./pages/AdminSchoolDayPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
-import { AnnouncementDetailPage } from "./pages/AnnouncementDetailPage";
 import { CreateAnnouncementPage } from "./pages/CreateAnnouncementPage";
 import { EditAnnouncementPage } from "./pages/EditAnnouncementPage";
 import { MyAnnouncementsPage } from "./pages/MyAnnouncementsPage";
@@ -138,8 +138,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
-
             <Route
               path="my-announcements"
               element={
@@ -229,6 +227,10 @@ export default function App() {
                 <Route
                   path="announcements"
                   element={<AdminAnnouncementsPage embedded />}
+                />
+                <Route
+                  path="announcements/:clubId"
+                  element={<AdminClubAnnouncementsDetailPage embedded />}
                 />
                 <Route
                   path="supervisor"

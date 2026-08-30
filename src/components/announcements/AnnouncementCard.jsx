@@ -32,20 +32,7 @@ export function AnnouncementCard({
   const dateLabel = announcementDateLabel(announcement, showStatus);
 
   return (
-    <article className="announcement-card">
-      {announcement.image_url ? (
-        <img
-          src={announcement.image_url}
-          alt=""
-          className="announcement-card__image"
-        />
-      ) : (
-        <div
-          className="announcement-card__image announcement-card__image--fallback"
-          aria-hidden="true"
-        />
-      )}
-
+    <article className="announcement-card announcement-card--text-only">
       <div className="announcement-card__body">
         {showStatus ? (
           <div className="request-card__labels">
@@ -60,9 +47,7 @@ export function AnnouncementCard({
         ) : null}
         <div className="announcement-card__header">
           <h2 className="announcement-card__title">
-            <Link to={`/announcements/${announcement.id}`}>
-              {announcement.title}
-            </Link>
+            {announcement.title}
           </h2>
           <time className="announcement-card__date" dateTime={
             (showStatus

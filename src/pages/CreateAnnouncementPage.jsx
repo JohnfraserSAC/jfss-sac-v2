@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AnnouncementForm } from "../components/announcements/AnnouncementForm";
@@ -18,8 +18,8 @@ const EMPTY_VALUES = {
   title: "",
   summary: "",
   body: "",
-  imageUrl: "",
   clubId: "",
+  visibility: "PUBLIC",
   scheduledPostingDate: "",
 };
 
@@ -74,13 +74,9 @@ export function CreateAnnouncementPage() {
 
   const clubs = isStaff ? staffClubs : ownedClubs;
 
-  const actions = useMemo(
-    () => [
-      { value: "DRAFT", label: "Save Draft" },
-      { value: "SUBMIT", label: "Submit for Review", primary: true },
-    ],
-    [],
-  );
+  const actions = [
+    { value: "SUBMIT", label: "Submit for Review", primary: true },
+  ];
 
   if (!canCreateAnnouncements && !loading) {
     return <Navigate to="/announcements" replace />;

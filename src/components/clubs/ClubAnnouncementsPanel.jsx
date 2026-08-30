@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnnouncementForm } from "../announcements/AnnouncementForm";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { createAnnouncement } from "../../services/announcements";
@@ -13,8 +13,8 @@ const EMPTY_ANNOUNCEMENT = {
   title: "",
   summary: "",
   body: "",
-  imageUrl: "",
   clubId: "",
+  visibility: "PUBLIC",
   scheduledPostingDate: "",
 };
 
@@ -40,14 +40,20 @@ export function ClubAnnouncementsPanel({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submittingAction, setSubmittingAction] = useState(null);
+  const successRef = useRef(null);
 
-  const actions = useMemo(
-    () => [
-      { value: "DRAFT", label: "Save Draft" },
-      { value: "SUBMIT", label: "Submit for Review", primary: true },
-    ],
-    [],
-  );
+  useEffect(() => {
+    if (!success || !successRef.current) return;
+
+    const notification = successRef.current;
+    const top =
+      window.scrollY + notification.getBoundingClientRect().top - 112;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }, [success]);
+
+  const actions = [
+    { value: "SUBMIT", label: "Submit for Review", primary: true },
+  ];
 
   async function handleSubmitAction(action) {
     if (submittingAction) return;
@@ -126,7 +132,11 @@ export function ClubAnnouncementsPanel({
           <>
             {error ? <ErrorMessage>{error}</ErrorMessage> : null}
             {success ? (
-              <div className="alert alert--success" role="status">
+              <div
+                ref={successRef}
+                className="alert alert--success manage-announcement-success"
+                role="status"
+              >
                 <strong>Success</strong>
                 <p>{success}</p>
               </div>

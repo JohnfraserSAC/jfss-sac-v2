@@ -122,8 +122,8 @@ export function validateAnnouncementForm(
   const title = String(values.title ?? "").trim();
   const summaryRaw = String(values.summary ?? "").trim();
   const body = String(values.body ?? "").trim();
-  const imageUrlRaw = String(values.imageUrl ?? "").trim();
   const clubId = values.clubId || null;
+  const visibility = String(values.visibility || "PUBLIC").trim().toUpperCase();
   const postingDateRaw = String(values.scheduledPostingDate ?? "").trim();
 
   if (title.length < 3 || title.length > 160) {
@@ -138,15 +138,8 @@ export function validateAnnouncementForm(
     errors.body = "Body must be between 10 and 30,000 characters.";
   }
 
-  if (imageUrlRaw) {
-    try {
-      const url = new URL(imageUrlRaw);
-      if (!["http:", "https:"].includes(url.protocol)) {
-        errors.imageUrl = "Enter a valid image URL.";
-      }
-    } catch {
-      errors.imageUrl = "Enter a valid image URL.";
-    }
+  if (clubId && !["PUBLIC", "CLUB_MEMBERS"].includes(visibility)) {
+    errors.visibility = "Choose who can see this announcement.";
   }
 
   if (requireClub && !clubId) {
@@ -172,8 +165,8 @@ export function validateAnnouncementForm(
       title,
       summary: summaryRaw || null,
       body,
-      imageUrl: imageUrlRaw || null,
       clubId,
+      visibility: clubId ? visibility : "PUBLIC",
       scheduledPostingDate,
     },
     minPostingDate: getTorontoTodayYmd(),

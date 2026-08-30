@@ -89,8 +89,6 @@ export function AdminArchivedAnnouncementsPage({ embedded = false }) {
                 ""
               }
               archivedAt={announcement.archived_at}
-              imageUrl={announcement.image_url}
-              detailTo={`/announcements/${announcement.id}`}
             />
           ))}
         </div>

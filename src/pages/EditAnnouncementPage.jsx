@@ -82,8 +82,8 @@ export function EditAnnouncementPage() {
           title: data.title || "",
           summary: data.summary || "",
           body: data.body || "",
-          imageUrl: data.image_url || "",
           clubId: data.club_id || "",
+          visibility: data.visibility || "PUBLIC",
           clubName: data.clubs?.name || "",
           scheduledPostingDate: toDateOnlyValue(data.scheduled_posting_date),
           status: data.status,
@@ -145,7 +145,7 @@ export function EditAnnouncementPage() {
   }
 
   if (unauthorized) {
-    return <Navigate to={`/announcements/${id}`} replace />;
+    return <Navigate to="/my-requests/announcements" replace />;
   }
 
   if (error || !values) {

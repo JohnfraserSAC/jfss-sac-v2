@@ -8,7 +8,7 @@ const ANNOUNCEMENT_FIELDS = `
   title,
   summary,
   body,
-  image_url,
+  visibility,
   status,
   created_by,
   submitted_at,
@@ -32,6 +32,11 @@ const ANNOUNCEMENT_WITH_CLUB = `
     logo_url,
     status
   )
+`;
+
+const ANNOUNCEMENT_REVIEW_WITH_CLUB = `
+  ${ANNOUNCEMENT_WITH_CLUB},
+  submitter:profiles!created_by ( email )
 `;
 
 function mapAnnouncementError(error, fallback) {
@@ -114,7 +119,6 @@ async function fetchAnnouncementById(id) {
 }
 
 export async function getPublishedAnnouncements({
-  search = "",
   type = "ALL",
   clubId = null,
   limit = 50,
@@ -129,21 +133,14 @@ export async function getPublishedAnnouncements({
     .order("published_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (type === "GENERAL") {
-    query = query.is("club_id", null);
+  if (type === "PUBLIC") {
+    query = query.eq("visibility", "PUBLIC");
   } else if (type === "CLUB") {
-    query = query.not("club_id", "is", null);
+    query = query.eq("visibility", "CLUB_MEMBERS");
   }
 
   if (clubId) {
     query = query.eq("club_id", clubId);
-  }
-
-  const trimmed = search.trim();
-  if (trimmed) {
-    query = query.or(
-      `title.ilike.%${trimmed}%,summary.ilike.%${trimmed}%`,
-    );
   }
 
   const { data, error } = await query;
@@ -171,7 +168,7 @@ export async function getMyAnnouncements(userId, { status = "ALL" } = {}) {
 
   let query = supabase
     .from("announcements")
-    .select(ANNOUNCEMENT_WITH_CLUB)
+    .select(ANNOUNCEMENT_REVIEW_WITH_CLUB)
     .eq("created_by", userId)
     .order("updated_at", { ascending: false });
 
@@ -206,43 +203,23 @@ function compareReviewQueue(a, b) {
   return 0;
 }
 
-export async function getAnnouncementReviewQueue({
-  status = "ACTIVE",
-  search = "",
-  clubId = null,
-} = {}) {
+async function fetchAnnouncementReviewQueue(clubId) {
   await refreshAnnouncementLifecycle();
 
   let query = supabase
     .from("announcements")
-    .select(ANNOUNCEMENT_WITH_CLUB)
+    .select(ANNOUNCEMENT_REVIEW_WITH_CLUB)
+    .in("status", ["SUBMITTED", "UNDER_REVIEW"])
     .order("scheduled_posting_date", {
       ascending: true,
       nullsFirst: false,
     })
     .order("submitted_at", { ascending: true, nullsFirst: false });
 
-  if (status === "ACTIVE") {
-    query = query.in("status", ["SUBMITTED", "UNDER_REVIEW"]);
-  } else if (status === "CHANGES_REQUESTED") {
-    query = query.eq("status", "CHANGES_REQUESTED");
-  } else if (status !== "ALL") {
-    query = query.eq("status", status);
-  } else {
-    query = query.in("status", [
-      "SUBMITTED",
-      "UNDER_REVIEW",
-      "CHANGES_REQUESTED",
-    ]);
-  }
-
-  if (clubId) {
+  if (clubId === null) {
+    query = query.is("club_id", null);
+  } else if (clubId) {
     query = query.eq("club_id", clubId);
-  }
-
-  const trimmed = search.trim();
-  if (trimmed) {
-    query = query.ilike("title", `%${trimmed}%`);
   }
 
   const { data, error } = await query;
@@ -255,6 +232,14 @@ export async function getAnnouncementReviewQueue({
   }
 
   return [...(data ?? [])].sort(compareReviewQueue);
+}
+
+export async function getAnnouncementReviewQueue() {
+  return fetchAnnouncementReviewQueue();
+}
+
+export async function getAnnouncementReviewQueueForClub(clubId) {
+  return fetchAnnouncementReviewQueue(clubId);
 }
 
 export async function getArchivedAnnouncements({ search = "" } = {}) {
@@ -360,8 +345,8 @@ export async function createAnnouncement(values, action) {
       p_title: data.title,
       p_body: data.body,
       p_summary: data.summary,
-      p_image_url: data.imageUrl,
       p_club_id: data.clubId,
+      p_visibility: data.visibility,
       p_action: action,
       p_scheduled_posting_date: data.scheduledPostingDate,
     },
@@ -396,7 +381,7 @@ export async function editAnnouncement(id, values, action) {
       p_title: data.title,
       p_body: data.body,
       p_summary: data.summary,
-      p_image_url: data.imageUrl,
+      p_visibility: data.visibility,
       p_action: action,
       p_scheduled_posting_date: data.scheduledPostingDate,
     },
