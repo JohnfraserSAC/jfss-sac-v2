@@ -105,6 +105,33 @@ export function StudentResourcesPage() {
           ))}
         </div>
       </section>
+
+      <section className="panel" aria-labelledby="sac-resources-heading">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">SAC resources</p>
+            <h2 id="sac-resources-heading">Photos and agendas</h2>
+          </div>
+        </div>
+        <div className="quick-links">
+          <a
+            className="quick-link"
+            href="https://drive.google.com/drive/folders/1SMfTaY3obQr5DMAnU3MZMiqWH5JrRxB6"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            SAC Photos
+          </a>
+          <a
+            className="quick-link"
+            href="https://drive.google.com/drive/folders/11pX72a1tGycKR7qWd1HRaj9wGqERGUDs"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            SAC Agendas
+          </a>
+        </div>
+      </section>
     </div>
   );
 }
