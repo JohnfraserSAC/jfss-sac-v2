@@ -75,7 +75,7 @@ export function AdminArchivedAnnouncementsPage({ embedded = false }) {
 
       {!error && rows.length === 0 ? (
         <EmptyState title="No archived announcements">
-          Completed posts will appear here after their Toronto posting day ends.
+          Completed posts will appear here after their posting day ends.
         </EmptyState>
       ) : (
         <div className="announcement-grid">

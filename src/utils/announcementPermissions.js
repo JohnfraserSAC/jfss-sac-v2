@@ -152,7 +152,7 @@ export function validateAnnouncementForm(
       errors.scheduledPostingDate = "Announcement posting date is required.";
     } else if (!isValidFutureTorontoPostingDate(postingDateRaw)) {
       errors.scheduledPostingDate =
-        "Choose today or a future date in America/Toronto.";
+        "Choose today or a future date.";
     } else {
       scheduledPostingDate = postingDateRaw;
     }

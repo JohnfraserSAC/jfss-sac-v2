@@ -168,7 +168,7 @@ export function AnnouncementForm({
         hint={
           isPublishNow
             ? "Today selected — once approved, this announcement publishes immediately."
-            : "Required to submit. America/Toronto calendar date. Choose today to request publish now, or a future day to schedule."
+            : "Required to submit. Calendar date. Choose today to request publish now, or a future day to schedule."
         }
       />
 

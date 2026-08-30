@@ -92,7 +92,7 @@ export function ClubAnnouncementsPanel({
       });
       setSuccess(
         action === "SUBMIT"
-          ? "Announcement submitted for review. It will post on the scheduled Toronto date once approved."
+          ? "Announcement submitted for review. It will post on the scheduled date once approved."
           : "Announcement draft saved.",
       );
     } catch (submitError) {
@@ -118,7 +118,7 @@ export function ClubAnnouncementsPanel({
         <h2>Announcement request</h2>
         <p className="muted">
           Use announcements for club news and events. Every request needs a
-          Toronto posting date. Choose today to request publish now once
+          posting date. Choose today to request publish now once
           approved, or a future date to schedule midnight go-live.
         </p>
 

@@ -68,7 +68,7 @@ export function AdminClubAnnouncementsDetailPage({ embedded = false }) {
         action === "PUBLISH"
           ? announcement.scheduled_posting_date === getTorontoTodayYmd()
             ? `Approved “${announcement.title}”. It is live on the public board now.`
-            : `Approved “${announcement.title}”. It will appear on the public board on its Toronto posting date.`
+            : `Approved “${announcement.title}”. It will appear on the public board on its posting date.`
           : `Updated “${announcement.title}” to ${action}.`,
       );
       setReviewDialog(null);

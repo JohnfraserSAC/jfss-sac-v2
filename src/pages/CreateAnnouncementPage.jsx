@@ -164,8 +164,8 @@ export function CreateAnnouncementPage() {
           <h1>New announcement</h1>
           <p className="lede">
             {isStaff
-              ? "Create a general or club announcement draft, or submit it for review with a Toronto posting date."
-              : "Create a club announcement as a draft or submit it for SAC review with a Toronto posting date."}
+              ? "Create a general or club announcement draft, or submit it for review with a posting date."
+              : "Create a club announcement as a draft or submit it for SAC review with a posting date."}
           </p>
         </div>
       </header>

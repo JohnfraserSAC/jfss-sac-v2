@@ -65,9 +65,9 @@ export function AdminAnnouncementsPage({ embedded = false }) {
             <p className="eyebrow">Administration</p>
             <h1>Announcement review queue</h1>
             <p className="lede">
-              Review submissions sorted by scheduled Toronto posting date.
+              Review submissions sorted by scheduled posting date.
               Approving a same-day request publishes it immediately; future
-              dates go live at midnight America/Toronto on that day.
+              dates go live at midnight on that day.
             </p>
           </div>
         </header>
@@ -82,7 +82,7 @@ export function AdminAnnouncementsPage({ embedded = false }) {
         </PermissionNotice>
       ) : (
         <PermissionNotice title="Scheduled posting">
-          Choose today to publish when approved, or a future Toronto date to
+          Choose today to publish when approved, or a future date to
           schedule midnight go-live. Unapproved requests are cancelled after
           their posting day ends.
         </PermissionNotice>

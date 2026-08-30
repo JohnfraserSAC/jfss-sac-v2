@@ -43,6 +43,7 @@ export function AdminSchoolDayPage({ embedded = false }) {
 
   useEffect(() => {
     if (!canView) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional async page fetch
     load();
   }, [canView, load]);
 
@@ -175,7 +176,7 @@ export function AdminSchoolDayPage({ embedded = false }) {
         <section className="panel stack">
           <dl className="meta-list">
             <div>
-              <dt>Toronto date</dt>
+              <dt>Date</dt>
               <dd>{formatDateOnly(data.toronto_date)}</dd>
             </div>
             <div>
