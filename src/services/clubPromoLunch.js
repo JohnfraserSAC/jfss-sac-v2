@@ -108,6 +108,21 @@ export async function getApprovedClubPromoLunchConfirmation(clubId) {
   return data;
 }
 
+export async function getConfirmedClubPromoLunchClubIds() {
+  const { data, error } = await supabase
+    .from("club_promo_lunch_requests")
+    .select("club_id")
+    .eq("status", "APPROVED");
+
+  if (error) {
+    logServiceError("getConfirmedClubPromoLunchClubIds", error);
+    throw new Error(
+      getErrorMessage(error, "Could not load Promo Lunch confirmations."),
+    );
+  }
+  return new Set((data || []).map((row) => row.club_id));
+}
+
 export async function reviewClubPromoLunchRequest({
   requestId,
   action,

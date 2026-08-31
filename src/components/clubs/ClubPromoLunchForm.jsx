@@ -86,6 +86,9 @@ export function ClubPromoLunchForm({ club, canSubmit = true }) {
   return (
     <form className="stack" onSubmit={handleSubmit} noValidate>
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+      <div className="alert alert--warning" role="status">
+        Club Promo Lunch sign-ups are due September 27, 2026.
+      </div>
       <section className="panel form-stack">
         <TextInput
           id={`promo-lunch-club-${club.id}`}

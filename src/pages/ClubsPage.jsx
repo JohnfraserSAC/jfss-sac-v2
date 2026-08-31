@@ -6,18 +6,22 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { TextInput } from "../components/ui/TextInput";
 import { getApprovedClubs } from "../services/clubs";
+import { getConfirmedClubPromoLunchClubIds } from "../services/clubPromoLunch";
 import { getErrorMessage } from "../utils/errors";
 
 export function ClubsPage() {
   const location = useLocation();
   const [clubs, setClubs] = useState([]);
   const [search, setSearch] = useState("");
+  const [promoLunchOnly, setPromoLunchOnly] = useState(false);
+  const [promoLunchClubIds, setPromoLunchClubIds] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(location.state?.notice || "");
 
   useEffect(() => {
     if (location.state?.notice) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- consume navigation feedback
       setNotice(location.state.notice);
       window.history.replaceState({}, document.title);
     }
@@ -28,8 +32,12 @@ export function ClubsPage() {
     setError("");
 
     try {
-      const data = await getApprovedClubs();
+      const [data, confirmedClubIds] = await Promise.all([
+        getApprovedClubs(),
+        getConfirmedClubPromoLunchClubIds(),
+      ]);
       setClubs(data);
+      setPromoLunchClubIds(confirmedClubIds);
     } catch (loadError) {
       setError(getErrorMessage(loadError, "Could not load clubs."));
     } finally {
@@ -38,35 +46,15 @@ export function ClubsPage() {
   }, []);
 
   useEffect(() => {
-    let active = true;
-
-    async function load() {
-      setLoading(true);
-      setError("");
-
-      try {
-        const data = await getApprovedClubs();
-        if (!active) return;
-        setClubs(data);
-      } catch (loadError) {
-        if (!active) return;
-        setError(getErrorMessage(loadError, "Could not load clubs."));
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    load();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional async clubs fetch
+    loadClubs();
+  }, [loadClubs]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return clubs;
     return clubs.filter((club) => {
+      if (promoLunchOnly && !promoLunchClubIds.has(club.id)) return false;
+      if (!query) return true;
       const haystack = [
         club.name,
         club.short_description,
@@ -80,11 +68,22 @@ export function ClubsPage() {
         .toLowerCase();
       return haystack.includes(query);
     });
-  }, [clubs, search]);
+  }, [clubs, promoLunchClubIds, promoLunchOnly, search]);
 
   return (
     <div className="page">
-      <div className="toolbar">
+      <div className="toolbar clubs-toolbar">
+        <button
+          type="button"
+          className={`promo-lunch-filter${promoLunchOnly ? " promo-lunch-filter--active" : ""}`}
+          aria-pressed={promoLunchOnly}
+          disabled={loading}
+          onClick={() => setPromoLunchOnly((active) => !active)}
+        >
+          {promoLunchOnly
+            ? "Clubs confirmed for Club Promo Lunch"
+            : "See clubs confirmed for Club Promo Lunch"}
+        </button>
         <TextInput
           id="club-search"
           value={search}
@@ -127,7 +126,9 @@ export function ClubsPage() {
         >
           {search.trim()
             ? "No approved clubs match your search. Try a different name or clear the search."
-            : "There are no publicly active clubs to show right now. Check back after clubs are approved for this school year."}
+            : promoLunchOnly
+              ? "No clubs have been confirmed for Club Promo Lunch yet."
+              : "There are no publicly active clubs to show right now. Check back after clubs are approved for this school year."}
         </EmptyState>
       ) : null}
 
