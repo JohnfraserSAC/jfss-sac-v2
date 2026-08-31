@@ -9,7 +9,11 @@ import { StatusBadge } from "../ui/StatusBadge";
 import { useAuth } from "../../context/AuthContext";
 import { MEETING_DAYS } from "../../config/clubApplications";
 import { updateOwnedClubProfile } from "../../services/clubs";
-import { uploadClubLogo } from "../../services/clubLogos";
+import {
+  deleteClubLogo,
+  removeOldClubProfileLogos,
+  uploadClubLogo,
+} from "../../services/clubLogos";
 import {
   getActiveClubAdvisors,
   getClubSupervisorRequests,
@@ -87,6 +91,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     }
 
     setBusy(true);
+    let uploadedLogoPath = null;
 
     try {
       // Save text fields first so photo-upload issues don't block edits.
@@ -111,6 +116,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           clubId: club.id,
           file: logoFile,
         });
+        uploadedLogoPath = logoUrl;
         updated = await updateOwnedClubProfile(club.id, {
           name,
           description,
@@ -123,12 +129,18 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           meetingLocation,
           logoUrl,
         });
+        await removeOldClubProfileLogos({
+          userId: user.id,
+          clubId: club.id,
+          keepPath: logoUrl,
+        });
         setLogoFile(null);
       }
 
       setFieldErrors({});
       onClubUpdated?.(updated);
     } catch (saveError) {
+      await deleteClubLogo(uploadedLogoPath);
       setError(getErrorMessage(saveError, "Could not save club details."));
     } finally {
       setBusy(false);

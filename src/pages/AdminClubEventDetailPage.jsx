@@ -27,6 +27,7 @@ export function AdminClubEventDetailPage({ embedded = false }) {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [reviewNotes, setReviewNotes] = useState("");
+  const [photoUrl, setPhotoUrl] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -39,9 +40,15 @@ export function AdminClubEventDetailPage({ embedded = false }) {
       const data = await getAdminClubEventRequestById(requestId);
       if (!data) {
         setRequest(null);
+        setPhotoUrl(null);
         setError("This event could not be found.");
         return;
       }
+      setPhotoUrl(
+        data.photo_storage_path
+          ? await getClubEventPhotoUrl(data.photo_storage_path)
+          : null,
+      );
       setRequest(data);
       setReviewNotes(data.review_notes || "");
     } catch (loadError) {
@@ -114,7 +121,6 @@ export function AdminClubEventDetailPage({ embedded = false }) {
   }
 
   const clubName = request.clubs?.name || "Club event";
-  const photoUrl = getClubEventPhotoUrl(request.photo_storage_path);
   const canReview = canMutateReviews && request.status === "SUBMITTED";
 
   return (

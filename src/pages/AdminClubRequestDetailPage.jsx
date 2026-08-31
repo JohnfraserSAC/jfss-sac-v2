@@ -40,6 +40,7 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
   const [approveNotes, setApproveNotes] = useState("");
   const [approveSlugError, setApproveSlugError] = useState("");
   const [approving, setApproving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(null);
 
   const listPath = "/exec-dashboard/applications/new";
 
@@ -52,8 +53,14 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
       if (!data) {
         setError("This club request could not be found.");
         setRequest(null);
+        setLogoUrl(null);
         return;
       }
+      setLogoUrl(
+        data.logo_storage_path
+          ? await resolveClubLogoUrl(data.logo_storage_path)
+          : null,
+      );
       setRequest(data);
       setReviewNotes(data.review_notes || "");
     } catch (loadError) {
@@ -333,7 +340,7 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
           <div className="signed-form-preview">
             <p className="muted">Proposed club logo</p>
             <img
-              src={resolveClubLogoUrl(request.logo_storage_path)}
+              src={logoUrl}
               alt="Proposed club logo"
               className="logo-preview"
             />

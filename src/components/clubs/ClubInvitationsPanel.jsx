@@ -10,7 +10,6 @@ import {
 import { getClubRoleLabel } from "../../utils/clubPermissions";
 import { formatDate } from "../../utils/format";
 import { getErrorMessage } from "../../utils/errors";
-import { resolveClubLogoUrl } from "../../utils/clubMedia";
 
 export function ClubInvitationsPanel({ invitations, onChanged }) {
   const [busyId, setBusyId] = useState(null);
@@ -71,7 +70,6 @@ export function ClubInvitationsPanel({ invitations, onChanged }) {
         <ul className="stack card-list">
           {invitations.map((invitation) => {
             const club = invitation.clubs;
-            const logo = resolveClubLogoUrl(club?.logo_url);
             const inviter =
               invitation.inviter?.full_name ||
               invitation.inviter?.email ||
@@ -82,15 +80,6 @@ export function ClubInvitationsPanel({ invitations, onChanged }) {
               <li key={invitation.id} className="card">
                 <div className="section-heading">
                   <div className="badge-row" style={{ alignItems: "center" }}>
-                    {logo ? (
-                      <img
-                        src={logo}
-                        alt=""
-                        width={40}
-                        height={40}
-                        style={{ borderRadius: "8px", objectFit: "cover" }}
-                      />
-                    ) : null}
                     <div>
                       <h3>{club?.name || "Club"}</h3>
                       <p className="muted">

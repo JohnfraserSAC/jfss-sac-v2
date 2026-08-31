@@ -89,11 +89,8 @@ function mapAnnouncementError(error, fallback) {
 }
 
 async function refreshAnnouncementLifecycle() {
-  const { error } = await supabase.rpc("refresh_announcement_lifecycle");
-  if (error) {
-    logServiceError("refreshAnnouncementLifecycle", error);
-    // Non-fatal for reads: RLS remains time-aware even if status sync fails.
-  }
+  // Lifecycle status is evaluated by the read policies; public reads must
+  // never invoke a global mutating RPC.
 }
 
 async function fetchAnnouncementById(id) {

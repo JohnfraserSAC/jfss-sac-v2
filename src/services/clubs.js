@@ -2,11 +2,11 @@ import { supabase } from "../lib/supabase";
 import { resolveClubLogoUrl } from "../utils/clubMedia";
 import { getErrorMessage, logServiceError } from "../utils/errors";
 
-function withResolvedLogo(club) {
+async function withResolvedLogo(club) {
   if (!club) return club;
   return {
     ...club,
-    logo_url: resolveClubLogoUrl(club.logo_url),
+    logo_url: await resolveClubLogoUrl(club.logo_url),
   };
 }
 
@@ -19,7 +19,6 @@ const CLUB_FIELDS = `
   logo_url,
   banner_url,
   contact_email,
-  leader_contact_information,
   instagram_handle,
   meeting_location,
   meeting_schedule,
@@ -95,7 +94,6 @@ export async function getApprovedClubs() {
       logo_url,
       banner_url,
       contact_email,
-      leader_contact_information,
       instagram_handle,
       meeting_location,
       meeting_schedule,
@@ -117,11 +115,13 @@ export async function getApprovedClubs() {
     throw new Error(getErrorMessage(error, "Could not load approved clubs."));
   }
 
-  return (data ?? []).map((row) =>
-    withResolvedLogo({
-      ...row,
-      status: row.club_record_status || "APPROVED",
-    }),
+  return Promise.all(
+    (data ?? []).map((row) =>
+      withResolvedLogo({
+        ...row,
+        status: row.club_record_status || "APPROVED",
+      }),
+    ),
   );
 }
 
@@ -167,25 +167,7 @@ export async function getClubBySlug(slug) {
     throw new Error(getErrorMessage(error, "Could not load this club."));
   }
 
-  return withResolvedLogo(data);
-}
-
-export async function getPublicClubOwners(clubId) {
-  const { data, error } = await supabase.rpc(
-    "get_public_club_owner_emails",
-    {
-      p_club_id: clubId,
-    },
-  );
-
-  if (error) {
-    logServiceError("getPublicClubOwners", error);
-    throw new Error(
-      getErrorMessage(error, "Could not load the club owners."),
-    );
-  }
-
-  return data ?? [];
+  return await withResolvedLogo(data);
 }
 
 export async function getClubById(clubId) {
@@ -200,7 +182,7 @@ export async function getClubById(clubId) {
     throw new Error(getErrorMessage(error, "Could not load this club."));
   }
 
-  return withResolvedLogo(data);
+  return await withResolvedLogo(data);
 }
 
 /**
@@ -288,7 +270,7 @@ export async function updateOwnedClubProfile(clubId, values) {
     );
   }
 
-  return withResolvedLogo(data);
+  return await withResolvedLogo(data);
 }
 
 /**

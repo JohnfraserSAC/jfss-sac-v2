@@ -94,25 +94,22 @@ export async function getAdminClubPromoLunchRequestById(requestId) {
 }
 
 export async function getApprovedClubPromoLunchConfirmation(clubId) {
-  const { data, error } = await supabase
-    .from("club_promo_lunch_requests")
-    .select("id, status")
-    .eq("club_id", clubId)
-    .eq("status", "APPROVED")
-    .maybeSingle();
+  const { data, error } = await supabase.rpc(
+    "get_public_club_promo_lunch_confirmation",
+    { p_club_id: clubId },
+  );
 
   if (error) {
     logServiceError("getApprovedClubPromoLunchConfirmation", error);
     return null;
   }
-  return data;
+  return data ? { status: "APPROVED" } : null;
 }
 
 export async function getConfirmedClubPromoLunchClubIds() {
-  const { data, error } = await supabase
-    .from("club_promo_lunch_requests")
-    .select("club_id")
-    .eq("status", "APPROVED");
+  const { data, error } = await supabase.rpc(
+    "get_public_confirmed_promo_lunch_club_ids",
+  );
 
   if (error) {
     logServiceError("getConfirmedClubPromoLunchClubIds", error);

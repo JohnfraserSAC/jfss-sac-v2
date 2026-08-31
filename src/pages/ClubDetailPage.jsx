@@ -6,7 +6,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { getClubBySlug, getPublicClubOwners } from "../services/clubs";
+import { getClubBySlug } from "../services/clubs";
 import { getApprovedClubPromoLunchConfirmation } from "../services/clubPromoLunch";
 import { getMyMembershipForClub } from "../services/memberships";
 import { isClubOwner } from "../utils/clubPermissions";
@@ -17,7 +17,6 @@ export function ClubDetailPage() {
   const { slug } = useParams();
   const { user, isAuthenticated, isAdmin } = useAuth();
   const [club, setClub] = useState(null);
-  const [owners, setOwners] = useState([]);
   const [promoLunchConfirmed, setPromoLunchConfirmed] = useState(false);
   const [membership, setMembership] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +29,6 @@ export function ClubDetailPage() {
       setLoading(true);
       setError("");
       setMembership(null);
-      setOwners([]);
       setPromoLunchConfirmed(false);
 
       try {
@@ -45,14 +43,6 @@ export function ClubDetailPage() {
         }
 
         setClub(nextClub);
-
-        try {
-          const ownerRows = await getPublicClubOwners(nextClub.id);
-          if (!active) return;
-          setOwners(ownerRows);
-        } catch (ownersError) {
-          console.error(ownersError);
-        }
 
         const promoLunchConfirmation =
           await getApprovedClubPromoLunchConfirmation(nextClub.id);
@@ -143,11 +133,6 @@ export function ClubDetailPage() {
           <div className="club-hero__title">
             <div>
             <h1>{club.name}</h1>
-            {owners.length > 0 ? (
-              <p className="club-hero__owners">
-                • {owners.map((owner) => owner.owner_email).join(", ")}
-              </p>
-            ) : null}
             <div className="badge-row">
               {showStatus ? <StatusBadge status={club.status} /> : null}
               {membership ? <ClubRoleBadge role={membership.role} /> : null}

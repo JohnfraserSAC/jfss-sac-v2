@@ -104,12 +104,16 @@ export async function deleteClubEventPhoto(path) {
   if (error) logServiceError("deleteClubEventPhoto", error);
 }
 
-export function getClubEventPhotoUrl(path) {
+export async function getClubEventPhotoUrl(path) {
   if (!path) return null;
-  const { data } = supabase.storage
+  const { data, error } = await supabase.storage
     .from(CLUB_EVENT_PHOTOS_BUCKET)
-    .getPublicUrl(path);
-  return data?.publicUrl || null;
+    .createSignedUrl(path, 60 * 60);
+  if (error) {
+    logServiceError("getClubEventPhotoUrl", error);
+    return null;
+  }
+  return data?.signedUrl || null;
 }
 
 export async function submitClubEventRequest(payload) {
@@ -184,17 +188,22 @@ export async function getAdminClubEventRequestById(requestId) {
 }
 
 export async function getPublishedClubEvents() {
-  const { data, error } = await supabase
-    .from("club_event_requests")
-    .select(EVENT_FIELDS)
-    .eq("status", "APPROVED")
-    .order("event_date", { ascending: true });
+  const { data, error } = await supabase.rpc("get_public_club_events");
 
   if (error) {
     logServiceError("getPublishedClubEvents", error);
     throw new Error(getErrorMessage(error, "Could not load events."));
   }
-  return data ?? [];
+  return Promise.all(
+    (data ?? []).map(async (event) => ({
+      ...event,
+      clubs: {
+        name: event.club_name,
+        slug: event.club_slug,
+      },
+      photo_url: await getClubEventPhotoUrl(event.photo_storage_path),
+    })),
+  );
 }
 
 export async function reviewClubEventRequest({

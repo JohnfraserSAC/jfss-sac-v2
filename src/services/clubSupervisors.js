@@ -281,6 +281,14 @@ export async function uploadSupervisorDocument({ userId, requestId, file }) {
   };
 }
 
+export async function deleteSupervisorDocument(path) {
+  if (!path) return;
+  const { error } = await supabase.storage
+    .from(CLUB_SUPERVISOR_DOCUMENTS_BUCKET)
+    .remove([path]);
+  if (error) logServiceError("deleteSupervisorDocument", error);
+}
+
 export async function createSignedSupervisorDocumentUrl(
   path,
   expiresIn = 60 * 10,

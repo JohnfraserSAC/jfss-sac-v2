@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:load": "node load-smoke.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.109.0",

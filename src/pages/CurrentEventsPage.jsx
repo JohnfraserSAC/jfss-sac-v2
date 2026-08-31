@@ -3,10 +3,7 @@ import { EventCard } from "../components/events/EventCard";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
-import {
-  getClubEventPhotoUrl,
-  getPublishedClubEvents,
-} from "../services/clubEvents";
+import { getPublishedClubEvents } from "../services/clubEvents";
 import { formatDateOnly, getTorontoTodayYmd } from "../utils/torontoDate";
 import { getErrorMessage } from "../utils/errors";
 
@@ -113,7 +110,7 @@ export function CurrentEventsPage() {
                 ),
                 title: event.event_name,
                 description: event.event_description,
-                photo: getClubEventPhotoUrl(event.photo_storage_path),
+                photo: event.photo_url,
                 clubName: event.clubs?.name,
               }}
             />

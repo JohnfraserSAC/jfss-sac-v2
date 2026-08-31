@@ -5,7 +5,7 @@ import { supabase } from "../lib/supabase";
  * club.logo_url may be a full URL or a club-logos storage path
  * (e.g. after reapplication approval).
  */
-export function resolveClubLogoUrl(logoUrl) {
+export async function resolveClubLogoUrl(logoUrl) {
   if (!logoUrl || typeof logoUrl !== "string") return null;
 
   const trimmed = logoUrl.trim();
@@ -15,9 +15,9 @@ export function resolveClubLogoUrl(logoUrl) {
     return trimmed;
   }
 
-  const { data } = supabase.storage
+  const { data, error } = await supabase.storage
     .from(CLUB_LOGOS_BUCKET)
-    .getPublicUrl(trimmed);
+    .createSignedUrl(trimmed, 60 * 60);
 
-  return data?.publicUrl || trimmed;
+  return error ? null : data?.signedUrl || null;
 }

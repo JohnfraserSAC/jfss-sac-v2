@@ -278,9 +278,11 @@ export function ClubReapplyPage() {
 
     const requestId = crypto.randomUUID();
     setSubmitting(true);
+    const uploadedFiles = [];
+    let logoPath = null;
+    const uploadedAttachments = [];
 
     try {
-      let logoPath = null;
       if (logoFile) {
         setUploadProgress("Uploading logo…");
         const ext =
@@ -291,9 +293,12 @@ export function ClubReapplyPage() {
               : "jpg";
         logoPath = `reapplication-logos/${user.id}/${requestId}/${crypto.randomUUID()}.${ext}`;
         await uploadFile(CLUB_LOGOS_BUCKET, logoPath, logoFile);
+        uploadedFiles.push({
+          bucket: CLUB_LOGOS_BUCKET,
+          path: logoPath,
+        });
       }
 
-      const uploadedAttachments = [];
       if (signedFormFile) {
         setUploadProgress("Uploading teacher supervisor form…");
         const ext =
@@ -304,6 +309,10 @@ export function ClubReapplyPage() {
               : "jpg";
         const path = `reapplications/${user.id}/${requestId}/${crypto.randomUUID()}.${ext}`;
         await uploadFile(CLUB_APPLICATION_DOCUMENTS_BUCKET, path, signedFormFile);
+        uploadedFiles.push({
+          bucket: CLUB_APPLICATION_DOCUMENTS_BUCKET,
+          path,
+        });
         uploadedAttachments.push({
           storage_path: path,
           original_filename: signedFormFile.name,
@@ -337,6 +346,11 @@ export function ClubReapplyPage() {
 
       setSuccessId(requestId);
     } catch (submitError) {
+      await Promise.all(
+        uploadedFiles.map(({ bucket, path }) =>
+          supabase.storage.from(bucket).remove([path]),
+        ),
+      );
       setError(
         getErrorMessage(submitError, "Could not submit the re-application."),
       );

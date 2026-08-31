@@ -71,6 +71,34 @@ export async function uploadClubLogo({ userId, clubId, file }) {
   return path;
 }
 
+export async function removeOldClubProfileLogos({
+  userId,
+  clubId,
+  keepPath,
+}) {
+  if (!userId || !clubId) return;
+
+  const prefix = `club-profile-logos/${userId}/${clubId}`;
+  const { data, error } = await supabase.storage
+    .from(CLUB_LOGOS_BUCKET)
+    .list(prefix);
+
+  if (error) {
+    logServiceError("listOldClubProfileLogos", error);
+    return;
+  }
+
+  const paths = (data || [])
+    .map((file) => `${prefix}/${file.name}`)
+    .filter((path) => path !== keepPath);
+  if (paths.length === 0) return;
+
+  const { error: removeError } = await supabase.storage
+    .from(CLUB_LOGOS_BUCKET)
+    .remove(paths);
+  if (removeError) logServiceError("removeOldClubProfileLogos", removeError);
+}
+
 export function buildNewClubApplicationLogoPath({ userId, requestId, file }) {
   const ext = extensionForMime(file.type);
   return `new-club-logos/${userId}/${requestId}/${crypto.randomUUID()}.${ext}`;

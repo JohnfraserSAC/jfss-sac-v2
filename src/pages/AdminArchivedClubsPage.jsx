@@ -7,7 +7,6 @@ import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { PermissionNotice } from "../components/ui/PermissionNotice";
 import { TextInput } from "../components/ui/TextInput";
 import { listArchivedClubs } from "../services/clubs";
-import { resolveClubLogoUrl } from "../utils/clubMedia";
 import { getErrorMessage } from "../utils/errors";
 
 export function AdminArchivedClubsPage({ embedded = false }) {
@@ -84,7 +83,6 @@ export function AdminArchivedClubsPage({ embedded = false }) {
               title={row.name}
               description={row.description || row.short_description || ""}
               archivedAt={row.archived_at}
-              imageUrl={resolveClubLogoUrl(row.logo_url)}
               detailTo={row.slug ? `/clubs/${row.slug}` : undefined}
             />
           ))}

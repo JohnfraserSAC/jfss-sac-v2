@@ -58,12 +58,6 @@ export function ClubCard({ club }) {
               <dd>{club.contact_email}</dd>
             </div>
           ) : null}
-          {club.leader_contact_information ? (
-            <div>
-              <dt>Leader</dt>
-              <dd>{club.leader_contact_information}</dd>
-            </div>
-          ) : null}
         </dl>
 
         <Link className="text-link" to={`/clubs/${club.slug}`}>

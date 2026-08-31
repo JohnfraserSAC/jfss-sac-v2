@@ -11,6 +11,7 @@ const MISSISSAUGA = {
 
 const CACHE_TTL_MS = 20 * 60 * 1000;
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
+const WEATHER_REQUEST_TIMEOUT_MS = 10000;
 
 let memoryCache = null;
 
@@ -116,7 +117,20 @@ async function fetchMississaugaWeather() {
     forecast_days: "1",
   });
 
-  const response = await fetch(`${OPEN_METEO_URL}?${params.toString()}`);
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    WEATHER_REQUEST_TIMEOUT_MS,
+  );
+
+  let response;
+  try {
+    response = await fetch(`${OPEN_METEO_URL}?${params.toString()}`, {
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
   if (!response.ok) {
     throw new Error(`Weather service returned HTTP ${response.status}.`);
   }

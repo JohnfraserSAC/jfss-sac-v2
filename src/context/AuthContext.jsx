@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { supabase } from "../lib/supabase";
@@ -27,6 +28,7 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [authError, setAuthError] = useState("");
+  const authGenerationRef = useRef(0);
 
   const clearSessionState = useCallback(() => {
     setUser(null);
@@ -73,6 +75,9 @@ export function AuthProvider({ children }) {
 
   const processUser = useCallback(
     async (currentUser) => {
+      const generation = ++authGenerationRef.current;
+      const isCurrent = () => authGenerationRef.current === generation;
+
       if (!currentUser) {
         clearSessionState();
         setAccessDenied(false);
@@ -88,7 +93,7 @@ export function AuthProvider({ children }) {
           "Only @pdsb.net Google accounts may access this application.",
         );
         setIsLoading(false);
-        await authService.signOut();
+        if (isCurrent()) await authService.signOut();
         return;
       }
 
@@ -100,8 +105,10 @@ export function AuthProvider({ children }) {
 
       try {
         const nextProfile = await getCurrentProfile(currentUser.id);
+        if (!isCurrent()) return;
         setProfile(nextProfile);
       } catch (profileError) {
+        if (!isCurrent()) return;
         setProfile(null);
         nextError = getErrorMessage(
           profileError,
@@ -111,8 +118,10 @@ export function AuthProvider({ children }) {
 
       try {
         const nextRoles = await getCurrentUserSystemRoles(currentUser.id);
+        if (!isCurrent()) return;
         setSystemRoles(nextRoles);
       } catch (rolesError) {
+        if (!isCurrent()) return;
         setSystemRoles([]);
         const rolesMessage = getErrorMessage(
           rolesError,
@@ -123,8 +132,10 @@ export function AuthProvider({ children }) {
 
       try {
         const nextClubs = await getOwnedClubsForAnnouncements(currentUser.id);
+        if (!isCurrent()) return;
         setOwnedClubs(nextClubs);
       } catch (clubsError) {
+        if (!isCurrent()) return;
         setOwnedClubs([]);
         console.error(clubsError);
       }
@@ -133,7 +144,7 @@ export function AuthProvider({ children }) {
         setAuthError(nextError);
       }
 
-      setIsLoading(false);
+      if (isCurrent()) setIsLoading(false);
     },
     [clearSessionState],
   );
@@ -181,6 +192,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    authGenerationRef.current += 1;
     setAuthError("");
     setAccessDenied(false);
     await authService.signOut();
@@ -257,6 +269,7 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- context hook intentionally shares this provider module
 export function useAuth() {
   const context = useContext(AuthContext);
 

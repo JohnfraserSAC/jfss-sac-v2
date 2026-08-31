@@ -11,6 +11,7 @@ import {
   getClubSupervisorRequests,
   submitClubSupervisorRequest,
   uploadSupervisorDocument,
+  deleteSupervisorDocument,
   validateSupervisorAttachmentFile,
   createSignedSupervisorDocumentUrl,
 } from "../../services/clubSupervisors";
@@ -92,6 +93,7 @@ export function ClubSupervisorSubmitForm({
 
     setBusy(true);
     const requestId = crypto.randomUUID();
+    let uploadedAttachmentPath = null;
 
     try {
       const attachment = await uploadSupervisorDocument({
@@ -99,6 +101,7 @@ export function ClubSupervisorSubmitForm({
         requestId,
         file: signatureFile,
       });
+      uploadedAttachmentPath = attachment.storage_path;
 
       await submitClubSupervisorRequest({
         requestId,
@@ -116,6 +119,7 @@ export function ClubSupervisorSubmitForm({
       await loadHistory();
       onSubmitted?.();
     } catch (submitError) {
+      await deleteSupervisorDocument(uploadedAttachmentPath);
       setError(
         getErrorMessage(submitError, "Could not submit supervisor request."),
       );

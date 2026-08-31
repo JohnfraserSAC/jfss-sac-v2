@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnnouncementCard } from "../components/announcements/AnnouncementCard";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -17,9 +17,13 @@ export function AnnouncementsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [hasMore, setHasMore] = useState(false);
+  const requestGenerationRef = useRef(0);
 
   useEffect(() => {
     let active = true;
+    const generation = ++requestGenerationRef.current;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination state when the filter changes
+    setLoadingMore(false);
 
     async function load() {
       setLoading(true);
@@ -31,11 +35,11 @@ export function AnnouncementsPage() {
           limit: PAGE_SIZE,
           offset: 0,
         });
-        if (!active) return;
+        if (!active || requestGenerationRef.current !== generation) return;
         setAnnouncements(data);
         setHasMore(data.length === PAGE_SIZE);
       } catch (loadError) {
-        if (!active) return;
+        if (!active || requestGenerationRef.current !== generation) return;
         setError(getErrorMessage(loadError, "Could not load announcements."));
       } finally {
         if (active) setLoading(false);
@@ -49,6 +53,7 @@ export function AnnouncementsPage() {
   }, [type]);
 
   async function loadMore() {
+    const generation = requestGenerationRef.current;
     setLoadingMore(true);
     setError("");
 
@@ -58,12 +63,15 @@ export function AnnouncementsPage() {
         limit: PAGE_SIZE,
         offset: announcements.length,
       });
+      if (requestGenerationRef.current !== generation) return;
       setAnnouncements((current) => [...current, ...data]);
       setHasMore(data.length === PAGE_SIZE);
     } catch (loadError) {
-      setError(getErrorMessage(loadError, "Could not load more announcements."));
+      if (requestGenerationRef.current === generation) {
+        setError(getErrorMessage(loadError, "Could not load more announcements."));
+      }
     } finally {
-      setLoadingMore(false);
+      if (requestGenerationRef.current === generation) setLoadingMore(false);
     }
   }
 
