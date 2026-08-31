@@ -82,7 +82,8 @@ export function SignInView({ returnTo, className = "" }) {
       <div className="sign-in-view__card">
         <h1 className="sign-in-view__title">Welcome</h1>
         <p className="sign-in-view__subtitle">
-          Sign in to access your SAC portal account.
+          Sign in with your @pdsb.net Google account to access your SAC portal
+          account.
         </p>
 
         {(accessDenied || authError || localError) && (

@@ -8,6 +8,7 @@ export async function signInWithGoogle() {
       redirectTo: window.location.origin,
       queryParams: {
         prompt: "select_account",
+        hd: "pdsb.net",
       },
     },
   });
