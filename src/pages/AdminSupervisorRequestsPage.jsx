@@ -138,7 +138,7 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
       setExtendTarget(null);
       await load();
     } catch (actionError) {
-      setError(getErrorMessage(actionError, "Could not extend deadline."));
+      setError(getErrorMessage(actionError, "Could not change deadline."));
     } finally {
       setBusyId(null);
     }
@@ -295,7 +295,7 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
                             setExtendTarget(row);
                           }}
                         >
-                          Extend Deadline
+                          Change Deadline
                         </button>
                         <button
                           type="button"
@@ -322,7 +322,7 @@ export function AdminSupervisorRequestsPage({ embedded = false }) {
       <ConfirmDialog
         open={Boolean(extendTarget)}
         title="Extend supervisor deadline"
-        confirmLabel="Extend deadline"
+        confirmLabel="Change deadline"
         busy={busyId === extendTarget?.club_id}
         onCancel={() => setExtendTarget(null)}
         onConfirm={confirmExtend}
