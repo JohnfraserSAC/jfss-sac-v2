@@ -3972,11 +3972,164 @@ button.nav-link {
 }
 
 .athlete-card {
+  position: relative;
   background: #fff;
   border: 1px solid #e5e9f0;
   border-radius: 12px;
   padding: 20px 16px;
   text-align: center;
+}
+
+.athlete-card__remove {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  z-index: 1;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e2a4a;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.athlete-card__remove:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.athlete-card__remove:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.athlete-card--add {
+  display: grid;
+  aspect-ratio: 0.62;
+  place-items: center;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e9f0;
+  border-radius: 12px;
+  background: #fff;
+  color: #1e2a4a;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.athlete-card--add:hover,
+.athlete-card--add:active {
+  border-color: #8db8e8;
+  background: #eaf3ff;
+  color: #1e2a4a;
+}
+
+.athlete-card__add-icon {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  border: 2px solid #2c5eb0;
+  border-radius: 50%;
+  color: #2c5eb0;
+  font-size: 2.5rem;
+  font-weight: 400;
+  line-height: 1;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.athlete-card--add:hover .athlete-card__add-icon,
+.athlete-card--add:active .athlete-card__add-icon {
+  border-color: #2c5eb0;
+  background: #fff;
+  color: #2c5eb0;
+}
+
+.athlete-card--editor {
+  display: block;
+  text-align: center;
+  animation: athlete-editor-enter 0.4s ease both;
+}
+
+@keyframes athlete-editor-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.athlete-card__photo-button {
+  display: block;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.athlete-card--editor .athlete-card__photo {
+  margin: 0;
+}
+
+.athlete-card__photo-button:hover .athlete-card__photo--placeholder {
+  background: #2c5eb0;
+  color: #fff;
+}
+
+.athlete-card--editor .athlete-card__photo--placeholder {
+  background: #eaf3ff;
+  color: #2c5eb0;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.athlete-card--editor .input {
+  display: block;
+  width: 100%;
+  height: 24px;
+  margin: 0 0 2px;
+  padding: 0 0.25rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.athlete-card--editor .input:last-of-type {
+  height: 20px;
+  margin-bottom: 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.athlete-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 1rem 0 0;
 }
 
 .athlete-card__photo {
@@ -4008,6 +4161,12 @@ button.nav-link {
   color: #6b7280;
   font-size: 0.85rem;
   margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .athlete-card--editor {
+    animation: none;
+  }
 }
 
 /* ===== Events ===== */
