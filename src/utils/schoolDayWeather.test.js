@@ -6,9 +6,9 @@ import {
 import { canMutateSchoolDay } from "./execPermissions";
 
 describe("school day permissions", () => {
-  it("allows SAC_ADMIN and SAC_EXEC only", () => {
-    expect(canMutateSchoolDay([{ code: "SAC_ADMIN" }])).toBe(true);
-    expect(canMutateSchoolDay([{ code: "SAC_EXEC" }])).toBe(true);
+  it("allows SITE_ADMIN only", () => {
+    expect(canMutateSchoolDay([{ code: "SITE_ADMIN" }])).toBe(true);
+    expect(canMutateSchoolDay([{ code: "SAC_EXEC" }])).toBe(false);
     expect(canMutateSchoolDay([{ code: "FACULTY_ADVISOR" }])).toBe(false);
     expect(canMutateSchoolDay([])).toBe(false);
   });

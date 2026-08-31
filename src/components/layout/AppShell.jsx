@@ -35,10 +35,8 @@ function getInitials(name) {
 }
 
 /** Primary navbar role label from system roles. */
-function getNavRoleLabel({ isSacAdmin, isSacExec, isFacultyAdvisor }) {
-  if (isSacAdmin) return "SAC ADMIN";
-  if (isSacExec) return "SAC EXEC";
-  if (isFacultyAdvisor) return "FACULTY";
+function getNavRoleLabel({ isSacAdmin }) {
+  if (isSacAdmin) return "SITE ADMIN";
   return "STUDENT";
 }
 
@@ -49,8 +47,6 @@ export function AppShell() {
     isAuthenticated,
     canAccessExecDashboard,
     isSacAdmin,
-    isSacExec,
-    isFacultyAdvisor,
   } = useAuth();
   const location = useLocation();
   const { pathname } = location;
@@ -68,8 +64,6 @@ export function AppShell() {
   );
   const roleLabel = getNavRoleLabel({
     isSacAdmin,
-    isSacExec,
-    isFacultyAdvisor,
   });
   const roleTone = roleLabel === "STUDENT" ? "student" : "staff";
 

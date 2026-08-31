@@ -2,9 +2,7 @@ const ROLE_LABELS = {
   OWNER: "Owner",
   EXEC: "Executive",
   MEMBER: "Member",
-  SAC_ADMIN: "SAC Admin",
-  SAC_EXEC: "SAC Executive",
-  FACULTY_ADVISOR: "Faculty Advisor",
+  SITE_ADMIN: "Site Admin",
 };
 
 export function RoleBadge({ role }) {

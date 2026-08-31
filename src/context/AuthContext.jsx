@@ -192,14 +192,13 @@ export function AuthProvider({ children }) {
     [systemRoles],
   );
 
-  const isSacAdmin = roleCodes.includes("SAC_ADMIN");
-  const isFacultyAdvisor = roleCodes.includes("FACULTY_ADVISOR");
-  const isSacExec = roleCodes.includes("SAC_EXEC");
+  const isSacAdmin = roleCodes.includes("SITE_ADMIN");
+  const isFacultyAdvisor = false;
+  const isSacExec = false;
   const isAdmin = isSacAdmin;
-  const canAccessExecDashboard =
-    isSacAdmin || isFacultyAdvisor || isSacExec;
-  const canMutateReviews = isSacAdmin || isFacultyAdvisor;
-  const canMutateSchoolDay = isSacAdmin || isSacExec;
+  const canAccessExecDashboard = isSacAdmin;
+  const canMutateReviews = isSacAdmin;
+  const canMutateSchoolDay = isSacAdmin;
   const canCreateAnnouncements = canCreateAnnouncement({
     isSacAdmin,
     isFacultyAdvisor,

@@ -4,15 +4,12 @@
  */
 
 export const EXEC_DASHBOARD_ROLES = [
-  "SAC_ADMIN",
-  "FACULTY_ADVISOR",
-  "SAC_EXEC",
+  "SITE_ADMIN",
 ];
 
-export const REVIEW_MUTATOR_ROLES = ["SAC_ADMIN", "FACULTY_ADVISOR"];
+export const REVIEW_MUTATOR_ROLES = ["SITE_ADMIN"];
 
-/** Narrow exception: SAC_EXEC may mutate today’s school-day override only. */
-export const SCHOOL_DAY_MUTATOR_ROLES = ["SAC_ADMIN", "SAC_EXEC"];
+export const SCHOOL_DAY_MUTATOR_ROLES = ["SITE_ADMIN"];
 
 export function hasSystemRoleCode(systemRoles, code) {
   return (systemRoles || []).some((role) => role.code === code);
@@ -36,14 +33,6 @@ export function canMutateSchoolDay(systemRoles) {
   );
 }
 
-export function isSacExecRole(systemRoles) {
-  return hasSystemRoleCode(systemRoles, "SAC_EXEC");
-}
-
-export function isSacAdminRole(systemRoles) {
-  return hasSystemRoleCode(systemRoles, "SAC_ADMIN");
-}
-
-export function isFacultyAdvisorRole(systemRoles) {
-  return hasSystemRoleCode(systemRoles, "FACULTY_ADVISOR");
+export function isSiteAdminRole(systemRoles) {
+  return hasSystemRoleCode(systemRoles, "SITE_ADMIN");
 }
