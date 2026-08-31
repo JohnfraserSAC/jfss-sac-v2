@@ -3215,7 +3215,11 @@ button.nav-link {
   }
 
   .main-nav {
-    display: none;
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
     grid-column: 1 / -1;
     grid-row: 2;
     flex-direction: column;
@@ -3227,10 +3231,23 @@ button.nav-link {
     padding: 0.75rem 0 0.85rem;
     background: var(--bg);
     border-top: 1px solid #d7e2ec;
+    box-shadow: 0 0.75rem 1.5rem rgba(15, 35, 64, 0.12);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-0.5rem);
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      visibility 0.2s ease;
   }
 
   .main-nav--open {
     display: flex;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
   }
 
   .main-nav__links {
