@@ -55,6 +55,7 @@ export function AppShell() {
   const location = useLocation();
   const { pathname } = location;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
   const isHome = pathname === "/" || pathname === "";
   const isLogin = pathname === "/login";
@@ -95,9 +96,31 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [menuOpen]);
 
+  useEffect(() => {
+    let previousScrollY = window.scrollY;
+
+    function handleScroll() {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - previousScrollY;
+
+      if (currentScrollY <= 8 || menuOpen) {
+        setNavHidden(false);
+      } else if (scrollDelta > 4) {
+        setNavHidden(true);
+      } else if (scrollDelta < -4) {
+        setNavHidden(false);
+      }
+
+      previousScrollY = currentScrollY;
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [menuOpen]);
+
   return (
     <div className="app-shell">
-      <header className="site-header">
+      <header className={`site-header${navHidden ? " site-header--hidden" : ""}`}>
         <div className="site-header__inner">
           <div className="site-header__slot site-header__slot--left">
             <NavLink

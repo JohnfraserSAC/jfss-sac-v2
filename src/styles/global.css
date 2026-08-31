@@ -137,6 +137,11 @@ select {
   background: var(--bg);
   border-bottom: 1px solid #d7e2ec;
   max-width: 100%;
+  transition: transform 0.25s ease;
+}
+
+.site-header--hidden {
+  transform: translateY(-100%);
 }
 
 .site-header__inner {
@@ -3196,12 +3201,20 @@ button.nav-link {
     display: inline-flex;
     position: relative;
     z-index: 2;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 
   .site-header__inner {
     grid-template-columns: auto 1fr auto;
     grid-template-rows: auto auto;
     align-items: center;
+    min-height: 3.75rem;
+    padding: 0.2rem 0;
+  }
+
+  .brand-logo__image {
+    height: 3.5rem;
   }
 
   .site-header__slot--left {
@@ -3226,27 +3239,32 @@ button.nav-link {
     align-items: stretch;
     gap: 0.35rem;
     width: 100%;
-    max-height: min(70vh, 28rem);
+    max-height: 0;
     overflow: auto;
-    padding: 0.75rem 0 0.85rem;
+    padding: 0;
     background: var(--bg);
-    border-top: 1px solid #d7e2ec;
-    box-shadow: 0 0.75rem 1.5rem rgba(15, 35, 64, 0.12);
+    border-top: 0 solid transparent;
+    border-radius: 0 0 0.75rem 0.75rem;
+    box-shadow: 0 0.5rem 1rem rgba(15, 35, 64, 0.1);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-0.5rem);
     pointer-events: none;
     transition:
+      max-height 0.25s ease,
+      padding 0.25s ease,
       opacity 0.2s ease,
-      transform 0.2s ease,
+      border-top-width 0.25s ease,
       visibility 0.2s ease;
   }
 
   .main-nav--open {
     display: flex;
+    max-height: min(70vh, 28rem);
+    padding: 0.6rem 0 0.65rem;
+    border-top-width: 1px;
+    border-top-color: #d7e2ec;
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
     pointer-events: auto;
   }
 
@@ -3262,7 +3280,7 @@ button.nav-link {
     width: 100%;
     justify-content: flex-start;
     border-radius: 8px;
-    padding: 0.7rem 0.75rem;
+    padding: 0.55rem 0.75rem;
   }
 
   .nav-link::after {
