@@ -67,7 +67,12 @@ function SignatureUpload({
   );
 }
 
-export function ClubFundingForm({ club, canSubmit = true }) {
+export function ClubFundingForm({
+  club,
+  canSubmit = true,
+  blockedMessage,
+  onSubmitted,
+}) {
   const { user } = useAuth();
   const [usageOfFunding, setUsageOfFunding] = useState("");
   const [costRows, setCostRows] = useState([INITIAL_ROW]);
@@ -171,6 +176,7 @@ export function ClubFundingForm({ club, canSubmit = true }) {
 
       setSuccess(true);
       setFieldErrors({});
+      onSubmitted?.();
     } catch (submitError) {
       if (supervisorPath) await deleteFundingSignature(supervisorPath);
       if (applicantPath) await deleteFundingSignature(applicantPath);
@@ -181,14 +187,6 @@ export function ClubFundingForm({ club, canSubmit = true }) {
       setUploadProgress("");
       setSubmitting(false);
     }
-  }
-
-  if (!canSubmit) {
-    return (
-      <p className="muted">
-        Only active club owners can submit funding requests.
-      </p>
-    );
   }
 
   if (success) {
@@ -206,8 +204,16 @@ export function ClubFundingForm({ club, canSubmit = true }) {
     );
   }
 
+  const fieldsDisabled = submitting || !canSubmit;
+
   return (
     <div className="stack">
+      {!canSubmit ? (
+        <p className="alert alert--warning" role="status">
+          {blockedMessage ||
+            "Only active club owners can submit funding requests."}
+        </p>
+      ) : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <section className="panel funding-guidelines" aria-labelledby="funding-guidelines-title">
@@ -245,7 +251,7 @@ export function ClubFundingForm({ club, canSubmit = true }) {
             error={fieldErrors.usageOfFunding}
             rows={7}
             required
-            disabled={submitting}
+            disabled={fieldsDisabled}
             hint={`${countWords(usageOfFunding)} / 300 words`}
           />
         </section>
@@ -268,7 +274,7 @@ export function ClubFundingForm({ club, canSubmit = true }) {
                       updateCostRow(index, "item", event.target.value)
                     }
                     error={rowError.item}
-                    disabled={submitting}
+                    disabled={fieldsDisabled}
                     hint="Add a hyperlink if possible."
                   />
                   <TextInput
@@ -282,7 +288,7 @@ export function ClubFundingForm({ club, canSubmit = true }) {
                       updateCostRow(index, "unitPrice", event.target.value)
                     }
                     error={rowError.unitPrice}
-                    disabled={submitting}
+                    disabled={fieldsDisabled}
                   />
                   <TextInput
                     id={`funding-quantity-${club.id}-${index}`}
@@ -295,13 +301,13 @@ export function ClubFundingForm({ club, canSubmit = true }) {
                       updateCostRow(index, "quantity", event.target.value)
                     }
                     error={rowError.quantity}
-                    disabled={submitting}
+                    disabled={fieldsDisabled}
                   />
                   <button
                     type="button"
                     className="button button--secondary"
                     onClick={() => removeCostRow(index)}
-                    disabled={submitting || costRows.length === 1}
+                    disabled={fieldsDisabled || costRows.length === 1}
                   >
                     Remove
                   </button>
@@ -314,7 +320,7 @@ export function ClubFundingForm({ club, canSubmit = true }) {
               type="button"
               className="button button--secondary"
               onClick={addCostRow}
-              disabled={submitting}
+              disabled={fieldsDisabled}
             >
               Add row
             </button>
@@ -343,7 +349,7 @@ export function ClubFundingForm({ club, canSubmit = true }) {
               signatureErrors.supervisorSignature ||
               fieldErrors.supervisorSignature
             }
-            disabled={submitting}
+            disabled={fieldsDisabled}
             onChange={(file) => updateSignature("supervisorSignature", file)}
             onRemove={() => updateSignature("supervisorSignature", null)}
           />
@@ -355,7 +361,7 @@ export function ClubFundingForm({ club, canSubmit = true }) {
               signatureErrors.applicantSignature ||
               fieldErrors.applicantSignature
             }
-            disabled={submitting}
+            disabled={fieldsDisabled}
             onChange={(file) => updateSignature("applicantSignature", file)}
             onRemove={() => updateSignature("applicantSignature", null)}
           />
@@ -365,7 +371,7 @@ export function ClubFundingForm({ club, canSubmit = true }) {
           <button
             type="submit"
             className="button button--primary"
-            disabled={submitting}
+            disabled={fieldsDisabled}
           >
             {submitting ? <Spinner size="sm" label="Submitting" /> : null}
             {submitting ? uploadProgress || "Submitting…" : "Submit funding request"}

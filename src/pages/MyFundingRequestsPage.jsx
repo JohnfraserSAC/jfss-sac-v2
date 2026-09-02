@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useOutletContext } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Navigate, useOutletContext } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ClubFundingForm } from "../components/clubs/ClubFundingForm";
+import { OwnedClubRequestForm } from "../components/clubs/OwnedClubRequestForm";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { getMyFundingRequests } from "../services/clubFunding";
-import { isClubOwner } from "../utils/clubPermissions";
+import { getOwnedApprovedClubs } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
 import { formatDate } from "../utils/format";
 
@@ -18,47 +20,29 @@ export function MyFundingRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!canView || !user?.id) return;
-    let active = true;
-
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        const rows = await getMyFundingRequests(user.id);
-        if (active) setRequests(rows);
-      } catch (loadError) {
-        if (active) {
-          setError(
-            getErrorMessage(loadError, "Could not load your funding requests."),
-          );
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    void load();
-    return () => {
-      active = false;
-    };
-  }, [canView, user?.id]);
-
   const leaderClubs = useMemo(
-    () =>
-      (memberships || [])
-        .filter(
-          (membership) =>
-            membership.status === "ACTIVE" &&
-            isClubOwner(membership.role) &&
-            membership.clubs &&
-            membership.clubs.status === "APPROVED" &&
-            !membership.clubs.deleted_at,
-        )
-        .map((membership) => membership.clubs),
+    () => getOwnedApprovedClubs(memberships),
     [memberships],
   );
+
+  const loadRequests = useCallback(async () => {
+    if (!canView || !user?.id) return;
+    setLoading(true);
+    setError("");
+    try {
+      setRequests(await getMyFundingRequests(user.id));
+    } catch (loadError) {
+      setError(
+        getErrorMessage(loadError, "Could not load your funding requests."),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [canView, user?.id]);
+
+  useEffect(() => {
+    void loadRequests();
+  }, [loadRequests]);
 
   if (!canView) {
     return <Navigate to="/my-requests/applications" replace />;
@@ -72,7 +56,9 @@ export function MyFundingRequestsPage() {
     <div className="stack">
       <section className="panel">
         <h2>Club funding</h2>
-        <p className="muted">Track funding requests submitted for your clubs.</p>
+        <p className="muted">
+          Submit a funding request for a club you own, then track reviews here.
+        </p>
       </section>
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
@@ -83,22 +69,15 @@ export function MyFundingRequestsPage() {
           owner.
         </EmptyState>
       ) : (
-        <section className="panel">
-          <h3>Your clubs</h3>
-          <ul className="stack">
-            {leaderClubs.map((club) => (
-              <li key={club.id}>
-                <Link
-                  className="text-link"
-                  to={`/clubs/${club.slug}/manage?tab=funding`}
-                >
-                  {club.name}
-                </Link>
-                <span className="muted"> · Submit a funding request</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <OwnedClubRequestForm clubs={leaderClubs}>
+          {(club) => (
+            <ClubFundingForm
+              key={club.id}
+              club={club}
+              onSubmitted={loadRequests}
+            />
+          )}
+        </OwnedClubRequestForm>
       )}
 
       {requests.length > 0 ? (

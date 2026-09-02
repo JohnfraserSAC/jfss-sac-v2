@@ -39,6 +39,7 @@ import {
 import {
   canArchiveOwnedClub,
   canSearchStudents,
+  canSubmitClubRequestForms,
   getAddableRoles,
   isClubOwner,
 } from "../utils/clubPermissions";
@@ -58,7 +59,7 @@ function annualStatusLabel(status, overdue) {
 export function ClubManagePage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isSacAdmin, isAdmin, isFacultyAdvisor } = useAuth();
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -212,6 +213,28 @@ export function ClubManagePage() {
     membership?.status === "ACTIVE" &&
     Boolean(approvedReappId);
 
+  const canSubmitRequests = canSubmitClubRequestForms({
+    clubRole: membership?.role,
+    membershipStatus: membership?.status,
+    annualStatus: annual?.status,
+  });
+
+  function handleTabChange(tab) {
+    setActiveTab(tab);
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (tab === "details") {
+          next.delete("tab");
+        } else {
+          next.set("tab", tab);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  }
+
   if (loading) {
     return <LoadingScreen message="Loading club management…" />;
   }
@@ -278,10 +301,10 @@ export function ClubManagePage() {
               : "Pending Teacher Supervisor"}
           </strong>
           <p>
-            This club is not public in Explore. Announcements and funding
-            requests stay blocked until SAC approves at least one teacher
-            supervisor. Owners may still manage members and submit supervisor
-            information.
+            This club is not public in Explore. Announcements stay blocked
+            until SAC approves at least one teacher supervisor. Owners may
+            still manage members, submit supervisor information, and send
+            event and funding requests.
           </p>
         </div>
       ) : null}
@@ -295,7 +318,7 @@ export function ClubManagePage() {
 
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
-      <ClubManageTabs activeTab={activeTab} onChange={setActiveTab} />
+      <ClubManageTabs activeTab={activeTab} onChange={handleTabChange} />
 
       {activeTab === "details" ? (
         <ClubDetailsPanel
@@ -398,10 +421,8 @@ export function ClubManagePage() {
             </p>
             <ClubFundingForm
               club={club}
-              canSubmit={
-                isClubOwner(membership?.role) &&
-                membership?.status === "ACTIVE"
-              }
+              canSubmit={canSubmitRequests}
+              blockedMessage="Only an active owner of this club can submit a funding request."
             />
           </section>
         </div>
@@ -421,11 +442,8 @@ export function ClubManagePage() {
             </p>
             <ClubEventForm
               club={club}
-              canSubmit={
-                isClubOwner(membership?.role) &&
-                membership?.status === "ACTIVE" &&
-                annual?.status === "ACTIVE"
-              }
+              canSubmit={canSubmitRequests}
+              blockedMessage="Only an active owner of this club can submit an event proposal."
             />
           </section>
         </div>

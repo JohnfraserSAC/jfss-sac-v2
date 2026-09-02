@@ -17,7 +17,12 @@ import { validateClubEventForm } from "../../utils/clubEvents";
 import { getTorontoTodayYmd } from "../../utils/torontoDate";
 import { getErrorMessage } from "../../utils/errors";
 
-export function ClubEventForm({ club, canSubmit = true }) {
+export function ClubEventForm({
+  club,
+  canSubmit = true,
+  blockedMessage,
+  onSubmitted,
+}) {
   const { user } = useAuth();
   const [eventName, setEventName] = useState("");
   const [eventDescription, setEventDescription] = useState("");
@@ -85,6 +90,7 @@ export function ClubEventForm({ club, canSubmit = true }) {
 
       setSuccess(true);
       setFieldErrors({});
+      onSubmitted?.();
     } catch (submitError) {
       if (photoPath) await deleteClubEventPhoto(photoPath);
       setError(
@@ -94,14 +100,6 @@ export function ClubEventForm({ club, canSubmit = true }) {
       setUploadProgress("");
       setSubmitting(false);
     }
-  }
-
-  if (!canSubmit) {
-    return (
-      <p className="muted">
-        Only active club owners can submit event proposals.
-      </p>
-    );
   }
 
   if (success) {
@@ -118,8 +116,16 @@ export function ClubEventForm({ club, canSubmit = true }) {
     );
   }
 
+  const fieldsDisabled = submitting || !canSubmit;
+
   return (
     <form className="stack" onSubmit={handleSubmit} noValidate>
+      {!canSubmit ? (
+        <p className="alert alert--warning" role="status">
+          {blockedMessage ||
+            "Only active club owners can submit event proposals."}
+        </p>
+      ) : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <section
@@ -169,7 +175,7 @@ export function ClubEventForm({ club, canSubmit = true }) {
           onChange={(event) => setEventName(event.target.value)}
           error={fieldErrors.eventName}
           required
-          disabled={submitting}
+          disabled={fieldsDisabled}
         />
         <TextArea
           id={`event-description-${club.id}`}
@@ -180,7 +186,7 @@ export function ClubEventForm({ club, canSubmit = true }) {
           hint="Include what the event is and where you would like it to be held."
           rows={7}
           required
-          disabled={submitting}
+          disabled={fieldsDisabled}
         />
         <TextInput
           id={`event-start-date-${club.id}`}
@@ -191,7 +197,7 @@ export function ClubEventForm({ club, canSubmit = true }) {
           error={fieldErrors.eventStartDate}
           min={getTorontoTodayYmd()}
           required
-          disabled={submitting}
+          disabled={fieldsDisabled}
         />
         <TextInput
           id={`event-end-date-${club.id}`}
@@ -202,7 +208,7 @@ export function ClubEventForm({ club, canSubmit = true }) {
           error={fieldErrors.eventEndDate}
           min={eventStartDate || getTorontoTodayYmd()}
           required
-          disabled={submitting}
+          disabled={fieldsDisabled}
         />
         <TextArea
           id={`event-materials-${club.id}`}
@@ -213,7 +219,7 @@ export function ClubEventForm({ club, canSubmit = true }) {
           hint="For example: tables, chairs, or other school equipment."
           rows={4}
           required
-          disabled={submitting}
+          disabled={fieldsDisabled}
         />
         <FilePicker
           id={`event-photo-${club.id}`}
@@ -224,14 +230,14 @@ export function ClubEventForm({ club, canSubmit = true }) {
           emptyLabel="No photo chosen"
           hint="Optional. JPEG, PNG, or WebP up to 10 MB."
           error={photoError}
-          disabled={submitting}
+          disabled={fieldsDisabled}
           onChange={handlePhotoChange}
         />
         {photo ? (
           <LocalFilePreview
             file={photo}
             alt="Selected event photo"
-            disabled={submitting}
+            disabled={fieldsDisabled}
             removeLabel="Remove photo"
             onRemove={() => {
               setPhoto(null);
@@ -246,7 +252,7 @@ export function ClubEventForm({ club, canSubmit = true }) {
         <button
           type="submit"
           className="button button--primary"
-          disabled={submitting}
+          disabled={fieldsDisabled}
         >
           {submitting ? <Spinner size="sm" label="Submitting" /> : null}
           Submit event proposal

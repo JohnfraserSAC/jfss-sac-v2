@@ -31,6 +31,34 @@ export function isClubOwner(role) {
   return role === "OWNER";
 }
 
+/** Approved clubs the user currently owns (for event/funding/supervisor forms). */
+export function getOwnedApprovedClubs(memberships = []) {
+  return (memberships || [])
+    .filter(
+      (membership) =>
+        membership.status === "ACTIVE" &&
+        isClubOwner(membership.role) &&
+        membership.clubs?.status === "APPROVED" &&
+        !membership.clubs.deleted_at,
+    )
+    .map((membership) => membership.clubs);
+}
+
+/** Active owners may submit event/funding forms for this year's club. */
+export function canSubmitClubRequestForms({
+  clubRole,
+  membershipStatus,
+  annualStatus,
+} = {}) {
+  if (!isClubOwner(clubRole) || membershipStatus !== "ACTIVE") {
+    return false;
+  }
+
+  if (!annualStatus) return true;
+
+  return annualStatus === "ACTIVE" || annualStatus === "PENDING_SUPERVISOR";
+}
+
 /** Active OWNER may archive a club (never permanently delete). */
 export function canArchiveOwnedClub({
   clubRole,
