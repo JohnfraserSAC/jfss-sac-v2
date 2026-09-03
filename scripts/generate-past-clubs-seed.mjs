@@ -5,6 +5,7 @@
  *
  * Usage:
  *   node scripts/generate-past-clubs-seed.mjs
+ *   node scripts/generate-past-clubs-seed.mjs --additional-only
  *
  * Requires:
  *   local-input/JFSS_Official_Clubs_Masterlist_2025-2026.csv
@@ -39,6 +40,25 @@ const NAME_FIXES = new Map([
   ["John Fraser's Law CLub", "John Fraser's Law Club"],
   ["Fraser chefs", "Fraser Chefs"],
   ["Fraser ESports", "Fraser Esports"],
+  [
+    "John Fraser Secondary School's Badminton Club",
+    "Badminton Club",
+  ],
+]);
+
+const EXPECTED_NAMED_ROWS = 83;
+const EXPECTED_CANONICAL_CLUBS = 82;
+
+const ADDITIONAL_CANONICAL = new Set([
+  "Badminton Club",
+  "Computer Science Club",
+  "Fraser Dance Crew",
+  "FraserHacks",
+  "JFAS - John Fraser Advocacy Society",
+  "JFSS Physics Club",
+  "JFSS Pre-Vet Club",
+  "Positive Space",
+  "Project Link",
 ]);
 
 const FACE_NAMES = new Set([
@@ -331,9 +351,9 @@ for (const row of dataRows) {
   });
 }
 
-if (named.length !== 74) {
+if (named.length !== EXPECTED_NAMED_ROWS) {
   console.error(
-    `STOP: Expected 74 named club records, parsed ${named.length}. Seed aborted.`,
+    `STOP: Expected ${EXPECTED_NAMED_ROWS} named club records, parsed ${named.length}. Seed aborted.`,
   );
   process.exit(1);
 }
@@ -412,9 +432,9 @@ const clubs = [
   })),
 ];
 
-if (clubs.length !== 73) {
+if (clubs.length !== EXPECTED_CANONICAL_CLUBS) {
   console.error(
-    `STOP: Expected 73 canonical clubs after merge, got ${clubs.length}.`,
+    `STOP: Expected ${EXPECTED_CANONICAL_CLUBS} canonical clubs after merge, got ${clubs.length}.`,
   );
   process.exit(1);
 }
@@ -448,10 +468,37 @@ for (const club of clubs) {
   club.id = uuidFromKey(`club:${club.canonical.toLowerCase()}`);
 }
 
+const additionalOnly = process.argv.includes("--additional-only");
+const additionalOutPath = join(
+  ROOT,
+  "supabase",
+  "migrations",
+  "20260903183000_seed_additional_past_clubs.sql",
+);
+
+let clubsToWrite = clubs;
+let expectedResolved = EXPECTED_CANONICAL_CLUBS;
+let outPath = OUT_PATH;
+let sourceNote = `Source rows: ${EXPECTED_NAMED_ROWS} → canonical clubs: ${EXPECTED_CANONICAL_CLUBS}`;
+
+if (additionalOnly) {
+  clubsToWrite = clubs.filter((c) => ADDITIONAL_CANONICAL.has(c.canonical));
+  if (clubsToWrite.length !== ADDITIONAL_CANONICAL.size) {
+    const found = clubsToWrite.map((c) => c.canonical).join(", ");
+    console.error(
+      `STOP: Expected ${ADDITIONAL_CANONICAL.size} additional clubs, got ${clubsToWrite.length}: ${found || "(none)"}`,
+    );
+    process.exit(1);
+  }
+  expectedResolved = ADDITIONAL_CANONICAL.size;
+  outPath = additionalOutPath;
+  sourceNote = `Additional past clubs from 2025-2026 reapplication form (${expectedResolved} clubs)`;
+}
+
 const lines = [];
 lines.push("-- =========================================================");
 lines.push("-- Sanitized Past Clubs seed (generated; do not hand-edit)");
-lines.push(`-- Source rows: 74 → canonical clubs: 73`);
+lines.push(`-- ${sourceNote}`);
 lines.push(`-- School year: ${SCHOOL_YEAR}`);
 lines.push(`-- Generated: ${new Date().toISOString()}`);
 lines.push("-- =========================================================");
@@ -473,7 +520,7 @@ lines.push("  end if;");
 lines.push("end $$;");
 lines.push("");
 
-for (const club of clubs) {
+for (const club of clubsToWrite) {
   lines.push(`-- ${club.canonical}`);
   lines.push("do $club_seed$");
   lines.push("declare");
@@ -572,8 +619,8 @@ lines.push("  v_resolved_count integer;");
 lines.push("begin");
 lines.push("  with expected(name, slug) as (");
 lines.push("    values");
-clubs.forEach((club, index) => {
-  const suffix = index === clubs.length - 1 ? "" : ",";
+clubsToWrite.forEach((club, index) => {
+  const suffix = index === clubsToWrite.length - 1 ? "" : ",";
   lines.push(
     `      (${sqlString(club.canonical)}, ${sqlString(club.slug)})${suffix}`,
   );
@@ -589,21 +636,24 @@ lines.push(`     and csy.school_year = ${sqlString(SCHOOL_YEAR)}`);
 lines.push("    where c.eligible_for_reapplication = true");
 lines.push("  )");
 lines.push("  select count(*) into v_resolved_count from resolved;");
-lines.push("  if v_resolved_count < 73 then");
+lines.push(`  if v_resolved_count < ${expectedResolved} then`);
 lines.push(
-  "    raise exception 'Past clubs seed incomplete: expected 73 resolved canonical clubs, found %', v_resolved_count;",
+  `    raise exception 'Past clubs seed incomplete: expected ${expectedResolved} resolved canonical clubs, found %', v_resolved_count;`,
 );
 lines.push("  end if;");
 lines.push("end $$;");
 lines.push("");
 
-mkdirSync(dirname(OUT_PATH), { recursive: true });
-writeFileSync(OUT_PATH, lines.join("\n"), "utf8");
+mkdirSync(dirname(outPath), { recursive: true });
+writeFileSync(outPath, lines.join("\n"), "utf8");
 
 console.log("Sanitized seed migration written:");
-console.log(`  ${OUT_PATH}`);
+console.log(`  ${outPath}`);
 console.log(`Parsed named rows: ${named.length}`);
 console.log(`Canonical clubs: ${clubs.length}`);
+if (additionalOnly) {
+  console.log(`Additional clubs written: ${clubsToWrite.length}`);
+}
 console.log("Normalizations:");
 for (const note of normalizations) {
   console.log(`  - ${note}`);
