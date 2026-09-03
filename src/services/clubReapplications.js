@@ -19,6 +19,7 @@ const REAPP_FIELDS = `
   meeting_location,
   member_application_url,
   exec_application_url,
+  owner_names,
   proposed_logo_storage_path,
   is_seeking_teacher_supervisor,
   declaration_accepted,
@@ -50,7 +51,7 @@ export async function listEligibleClubsForReapplication(search = "") {
 
 export async function submitClubReapplication(payload) {
   const { data, error } = await supabase.rpc(
-    "submit_club_reapplication_with_application_urls",
+    "submit_club_reapplication_with_owner_names",
     {
     p_request_id: payload.requestId,
     p_club_id: payload.clubId,
@@ -64,6 +65,7 @@ export async function submitClubReapplication(payload) {
     p_meeting_location: payload.meetingLocation || null,
     p_member_application_url: payload.memberApplicationUrl || null,
     p_exec_application_url: payload.execApplicationUrl || null,
+    p_owner_names: payload.ownerNames,
     p_proposed_logo_storage_path: payload.proposedLogoStoragePath || null,
     p_is_seeking_teacher_supervisor: Boolean(
       payload.isSeekingTeacherSupervisor,
@@ -86,7 +88,7 @@ export async function submitClubReapplication(payload) {
 
 export async function updateClubReapplication(payload) {
   const { data, error } = await supabase.rpc(
-    "update_club_reapplication_with_application_urls",
+    "update_club_reapplication_with_owner_names",
     {
     p_request_id: payload.requestId,
     p_short_description: payload.shortDescription,
@@ -99,6 +101,7 @@ export async function updateClubReapplication(payload) {
     p_meeting_location: payload.meetingLocation || null,
     p_member_application_url: payload.memberApplicationUrl || null,
     p_exec_application_url: payload.execApplicationUrl || null,
+    p_owner_names: payload.ownerNames,
     p_proposed_logo_storage_path: payload.proposedLogoStoragePath || null,
     p_is_seeking_teacher_supervisor: Boolean(
       payload.isSeekingTeacherSupervisor,

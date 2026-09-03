@@ -1,3 +1,17 @@
+export function validateOwnerNames(value, { required = true } = {}) {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return required ? "List the full name of every club owner." : null;
+  }
+  if (text.length < 2) {
+    return "List the full name of every club owner.";
+  }
+  if (text.length > 1000) {
+    return "Keep owner names to 1,000 characters or fewer.";
+  }
+  return null;
+}
+
 export function validateClubSlug(slug) {
   const normalized = String(slug ?? "").trim().toLowerCase();
 

@@ -202,6 +202,12 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
             <dt>Description</dt>
             <dd>{request.description}</dd>
           </div>
+          {request.owner_names ? (
+            <div>
+              <dt>Owners</dt>
+              <dd>{request.owner_names}</dd>
+            </div>
+          ) : null}
           <div>
             <dt>Public email</dt>
             <dd>{request.public_email}</dd>

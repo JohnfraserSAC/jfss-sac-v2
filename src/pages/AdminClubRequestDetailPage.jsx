@@ -253,6 +253,11 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
               <strong>Leaders:</strong> {request.leader_details}
             </p>
           ) : null}
+          {request.owner_names ? (
+            <p>
+              <strong>Owners:</strong> {request.owner_names}
+            </p>
+          ) : null}
           {request.club_contact_information ? (
             <p>
               <strong>Club contact:</strong> {request.club_contact_information}

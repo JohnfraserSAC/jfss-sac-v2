@@ -25,10 +25,12 @@ import {
 } from "../services/clubReapplications";
 import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
 import { getErrorMessage } from "../utils/errors";
+import { validateOwnerNames } from "../utils/validation";
 
 const INITIAL = {
   club_id: "",
   description: "",
+  owner_names: "",
   public_email: "",
   instagram_handle: "",
   member_application_url: "",
@@ -181,6 +183,10 @@ export function ClubReapplyPage() {
     if (values.description.trim().length < 10) {
       errors.description = "Enter the club description.";
     }
+    const ownerNamesError = validateOwnerNames(values.owner_names);
+    if (ownerNamesError) {
+      errors.owner_names = ownerNamesError;
+    }
     if (!isValidEmail(values.public_email)) {
       errors.public_email = "Enter a valid public club email.";
     }
@@ -328,6 +334,7 @@ export function ClubReapplyPage() {
         clubId: values.club_id,
         shortDescription: deriveShortDescription(description),
         description,
+        ownerNames: values.owner_names,
         publicEmail: values.public_email.trim().toLowerCase(),
         instagramHandle: values.instagram_handle.trim().replace(/^@+/, ""),
         memberApplicationUrl: values.member_application_url.trim() || null,
@@ -519,6 +526,19 @@ export function ClubReapplyPage() {
               ? "Autofilled from the club record — edit as needed."
               : "Select a past club to autofill this description."
           }
+        />
+
+        <TextArea
+          id="owner_names"
+          name="owner_names"
+          label="Names of all club owners"
+          required
+          rows={3}
+          value={values.owner_names}
+          onChange={updateField}
+          error={fieldErrors.owner_names}
+          disabled={submitting}
+          hint="List the full name of every owner. A club may have at most three owners."
         />
 
         <TextInput

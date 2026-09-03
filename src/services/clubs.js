@@ -27,6 +27,7 @@ const CLUB_FIELDS = `
   meeting_time_details,
   member_application_url,
   exec_application_url,
+  owner_names,
   status,
   creation_origin,
   deleted_at,
@@ -206,6 +207,7 @@ export async function updateOwnedClubProfile(clubId, values) {
     String(values?.memberApplicationUrl ?? "").trim() || null;
   const execApplicationUrl =
     String(values?.execApplicationUrl ?? "").trim() || null;
+  const ownerNames = String(values?.ownerNames ?? "").trim() || null;
   const logoUrl =
     values?.logoUrl === undefined || values?.logoUrl === null
       ? undefined
@@ -256,10 +258,11 @@ export async function updateOwnedClubProfile(clubId, values) {
     p_meeting_location: meetingLocation,
     p_member_application_url: memberApplicationUrl,
     p_exec_application_url: execApplicationUrl,
+    p_owner_names: ownerNames,
   };
 
   const { data, error } = await supabase.rpc(
-    "update_owned_club_profile_with_application_urls",
+    "update_owned_club_profile_with_owner_names",
     rpcArgs,
   );
 

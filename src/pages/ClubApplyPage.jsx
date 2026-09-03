@@ -23,12 +23,14 @@ import {
 import { submitClubRegistrationApplication } from "../services/clubRequests";
 import { isValidPdsbEmail, normalizePdsbEmail } from "../utils/clubPermissions";
 import { getErrorMessage } from "../utils/errors";
+import { validateOwnerNames } from "../utils/validation";
 
 const INITIAL = {
   proposed_name: "",
   description: "",
   student_benefit: "",
   leader_details: "",
+  owner_names: "",
   public_email: "",
   instagram_handle: "",
   member_application_url: "",
@@ -111,6 +113,10 @@ export function ClubApplyPage() {
     if (values.leader_details.trim().length < 5) {
       errors.leader_details = "Include each leader’s full name and grade.";
     }
+    const ownerNamesError = validateOwnerNames(values.owner_names);
+    if (ownerNamesError) {
+      errors.owner_names = ownerNamesError;
+    }
     if (!isValidEmail(values.public_email)) {
       errors.public_email = "Enter a valid public club email.";
     }
@@ -188,6 +194,7 @@ export function ClubApplyPage() {
         description: values.description,
         studentBenefit: values.student_benefit,
         leaderDetails: values.leader_details,
+        ownerNames: values.owner_names,
         teacherSupervisorEmails: [email],
         clubContactInformation: values.public_email.trim().toLowerCase(),
         instagramHandle: values.instagram_handle.trim().replace(/^@+/, ""),
@@ -290,6 +297,19 @@ export function ClubApplyPage() {
             rows={4}
             required
             disabled={submitting}
+          />
+
+          <TextArea
+            id="owner_names"
+            name="owner_names"
+            label="Names of all club owners"
+            value={values.owner_names}
+            onChange={updateField}
+            error={fieldErrors.owner_names}
+            rows={3}
+            required
+            disabled={submitting}
+            hint="List the full name of every owner. A club may have at most three owners."
           />
 
           <TextInput

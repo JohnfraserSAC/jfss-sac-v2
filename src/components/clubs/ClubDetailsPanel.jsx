@@ -20,11 +20,13 @@ import {
 } from "../../services/clubSupervisors";
 import { isClubOwner } from "../../utils/clubPermissions";
 import { getErrorMessage } from "../../utils/errors";
+import { validateOwnerNames } from "../../utils/validation";
 
 function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
   const { user } = useAuth();
   const [name, setName] = useState(club?.name || "");
   const [description, setDescription] = useState(club?.description || "");
+  const [ownerNames, setOwnerNames] = useState(club?.owner_names || "");
   const [publicEmail, setPublicEmail] = useState(club?.contact_email || "");
   const [instagramHandle, setInstagramHandle] = useState(
     club?.instagram_handle || "",
@@ -74,6 +76,10 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     ) {
       errors.execApplicationUrl = "Enter a valid executive application link.";
     }
+    const ownerNamesError = validateOwnerNames(ownerNames, { required: false });
+    if (ownerNamesError) {
+      errors.ownerNames = ownerNamesError;
+    }
     return errors;
   }
 
@@ -105,6 +111,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
         meetingDays,
         meetingTimeDetails,
         meetingLocation,
+        ownerNames,
       });
 
       if (logoFile) {
@@ -127,6 +134,7 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           meetingDays,
           meetingTimeDetails,
           meetingLocation,
+          ownerNames,
           logoUrl,
         });
         await removeOldClubProfileLogos({
@@ -177,6 +185,16 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
           required
           disabled={!canEdit || busy}
           hint="Pitch your club and how it benefits students at JFSS."
+        />
+        <TextArea
+          id="club-owner-names"
+          label="Names of all club owners"
+          value={ownerNames}
+          onChange={(event) => setOwnerNames(event.target.value)}
+          error={fieldErrors.ownerNames}
+          rows={3}
+          disabled={!canEdit || busy}
+          hint="List the full name of every owner. A club may have at most three owners."
         />
         <TextInput
           id="club-public-email"
