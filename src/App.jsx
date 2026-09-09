@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
 import { AuthRedirectProvider } from "./context/AuthRedirectContext";
 import { AppShell } from "./components/layout/AppShell";
@@ -58,11 +59,26 @@ import { OurTeamPage } from "./pages/OurTeamPage";
 import { EventsPage } from "./pages/EventsPage";
 import { CurrentEventsPage } from "./pages/CurrentEventsPage";
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+function AppProviders({ children }) {
+  if (!GOOGLE_CLIENT_ID) {
+    return children;
+  }
+
+  return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      {children}
+    </GoogleOAuthProvider>
+  );
+}
+
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AuthRedirectProvider>
+    <AppProviders>
+      <AuthProvider>
+        <BrowserRouter>
+          <AuthRedirectProvider>
           <Routes>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
@@ -390,8 +406,9 @@ export default function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
           </Routes>
-        </AuthRedirectProvider>
-      </BrowserRouter>
-    </AuthProvider>
+          </AuthRedirectProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </AppProviders>
   );
 }

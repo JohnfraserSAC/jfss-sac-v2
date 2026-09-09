@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { resolveClubLogoUrl } from "../utils/clubMedia";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 import { getErrorMessage, logServiceError } from "../utils/errors";
 
 async function withResolvedLogo(club) {
@@ -7,6 +8,7 @@ async function withResolvedLogo(club) {
   return {
     ...club,
     logo_url: await resolveClubLogoUrl(club.logo_url),
+    banner_url: toSameOriginSupabaseUrl(club.banner_url) ?? null,
   };
 }
 

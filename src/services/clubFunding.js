@@ -5,6 +5,7 @@ import {
   normalizeFundingRows,
 } from "../utils/clubFunding";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export const CLUB_FUNDING_SIGNATURES_BUCKET = "club-funding-signatures";
 
@@ -112,7 +113,7 @@ export async function createSignedFundingSignatureUrl(
       getErrorMessage(error, "Could not open the funding signature."),
     );
   }
-  return data?.signedUrl ?? null;
+  return toSameOriginSupabaseUrl(data?.signedUrl) ?? null;
 }
 
 export async function submitClubFundingRequest(payload) {

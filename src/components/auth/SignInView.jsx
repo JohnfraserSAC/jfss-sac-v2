@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { Spinner } from "../ui/Spinner";
@@ -7,65 +8,58 @@ import {
   rememberAuthReturnTo,
 } from "../../utils/authRedirect";
 import { getErrorMessage } from "../../utils/errors";
+import { ALLOWED_EMAIL_DOMAIN } from "../../utils/domain";
 
-function GoogleMark() {
-  return (
-    <svg
-      className="sign-in-view__google-icon"
-      width="20"
-      height="20"
-      viewBox="0 0 48 48"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        fill="#FFC107"
-        d="M43.611 20.083H42V20H24v8h11.303C33.654 32.658 29.227 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.957 3.043l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
-      />
-      <path
-        fill="#FF3D00"
-        d="M6.306 14.691l6.571 4.819C14.655 16.108 18.961 14 24 14c3.059 0 5.842 1.154 7.957 3.043l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
-      />
-      <path
-        fill="#4CAF50"
-        d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
-      />
-      <path
-        fill="#1976D2"
-        d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
-      />
-    </svg>
-  );
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+function rememberReturnPath(returnTo) {
+  if (returnTo) {
+    rememberAuthReturnTo(returnTo);
+  } else if (!peekAuthReturnTo()) {
+    rememberAuthReturnTo(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    );
+  }
 }
 
 /**
  * Fraser Pay–style sign-in card: logo, Welcome, Google CTA, help footer.
- * Performs Google OAuth directly (no popup shell).
+ * Uses a Google ID token (GIS) rather than a Supabase OAuth redirect.
  */
 export function SignInView({ returnTo, className = "" }) {
   const { accessDenied, authError, signInWithGoogle } = useAuth();
   const [signingIn, setSigningIn] = useState(false);
   const [localError, setLocalError] = useState("");
+  const googleConfigured = Boolean(GOOGLE_CLIENT_ID);
 
-  async function handleSignIn() {
-    setSigningIn(true);
-    setLocalError("");
-
-    if (returnTo) {
-      rememberAuthReturnTo(returnTo);
-    } else if (!peekAuthReturnTo()) {
-      rememberAuthReturnTo(
-        `${window.location.pathname}${window.location.search}${window.location.hash}`,
-      );
+  async function handleGoogleCredential(response) {
+    const credential = response?.credential;
+    if (!credential) {
+      setLocalError("Google sign-in did not return an ID token.");
+      setSigningIn(false);
+      return;
     }
 
+    setSigningIn(true);
+    setLocalError("");
+    rememberReturnPath(returnTo);
+
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(credential);
     } catch (error) {
       setLocalError(getErrorMessage(error, "Google sign-in failed."));
       setSigningIn(false);
     }
   }
+
+  function handleGoogleError() {
+    setSigningIn(false);
+    setLocalError("Google sign-in was cancelled or failed. Please try again.");
+  }
+
+  const configError = googleConfigured
+    ? ""
+    : "This app uses Supabase Auth with Google Identity Services, not Firebase. Add your Google Cloud Web client ID as VITE_GOOGLE_CLIENT_ID in .env.local and reload.";
 
   return (
     <div className={`sign-in-view${className ? ` ${className}` : ""}`}>
@@ -82,34 +76,47 @@ export function SignInView({ returnTo, className = "" }) {
       <div className="sign-in-view__card">
         <h1 className="sign-in-view__title">Welcome</h1>
         <p className="sign-in-view__subtitle">
-          Sign in with your @pdsb.net Google account to access your SAC portal
-          account.
+          Sign in with your @{ALLOWED_EMAIL_DOMAIN} Google account to access
+          your SAC portal account.
         </p>
 
-        {(accessDenied || authError || localError) && (
+        {(accessDenied || authError || localError || configError) && (
           <ErrorMessage title="Unable to sign in">
-            {localError || authError}
+            {localError || authError || configError}
           </ErrorMessage>
         )}
 
-        <button
-          type="button"
-          className="sign-in-view__google"
-          onClick={handleSignIn}
-          disabled={signingIn}
-        >
-          {signingIn ? (
-            <>
-              <Spinner size="sm" label="Redirecting" />
-              Redirecting…
-            </>
-          ) : (
-            <>
-              <GoogleMark />
-              Sign in With Google
-            </>
-          )}
-        </button>
+        {signingIn ? (
+          <button
+            type="button"
+            className="sign-in-view__google"
+            disabled
+          >
+            <Spinner size="sm" label="Signing in" />
+            Signing in…
+          </button>
+        ) : googleConfigured ? (
+          <div className="sign-in-view__google-gis">
+            <GoogleLogin
+              onSuccess={handleGoogleCredential}
+              onError={handleGoogleError}
+              click_listener={() => rememberReturnPath(returnTo)}
+              useOneTap={false}
+              auto_select={false}
+              ux_mode="popup"
+              hosted_domain={ALLOWED_EMAIL_DOMAIN}
+              text="signin_with"
+              theme="outline"
+              size="large"
+              shape="rectangular"
+              logo_alignment="left"
+            />
+          </div>
+        ) : (
+          <button type="button" className="sign-in-view__google" disabled>
+            Sign in With Google
+          </button>
+        )}
 
         <div className="sign-in-view__footer">
           <span className="sign-in-view__info-icon" aria-hidden="true">

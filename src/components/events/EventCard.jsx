@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toSameOriginSupabaseUrl } from "../../utils/proxiedSupabaseUrl";
 
 const DESCRIPTION_PREVIEW_LENGTH = 240;
 
@@ -7,7 +8,7 @@ export function EventCard({ event }) {
   const title = event.title || event.event_name;
   const date = event.date || event.event_date;
   const description = event.description || event.event_description || "";
-  const photo = event.photo || event.photo_url;
+  const photo = toSameOriginSupabaseUrl(event.photo || event.photo_url);
   const clubName = event.clubName || event.clubs?.name;
   const shouldTruncate = description.length > DESCRIPTION_PREVIEW_LENGTH;
   const preview = shouldTruncate

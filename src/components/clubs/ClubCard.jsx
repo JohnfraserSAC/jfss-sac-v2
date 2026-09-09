@@ -1,15 +1,17 @@
 import { Link } from "react-router-dom";
 import { getVisibleMeetingSchedule } from "../../utils/clubSchedule";
+import { toSameOriginSupabaseUrl } from "../../utils/proxiedSupabaseUrl";
 
 export function ClubCard({ club }) {
   const initial = club.name?.charAt(0)?.toUpperCase() || "C";
   const meetingSchedule = getVisibleMeetingSchedule(club.meeting_schedule);
+  const logoUrl = toSameOriginSupabaseUrl(club.logo_url);
 
   return (
     <article className="club-card">
       <div className="club-card__media">
-        {club.logo_url ? (
-          <img src={club.logo_url} alt="" className="club-card__logo" />
+        {logoUrl ? (
+          <img src={logoUrl} alt="" className="club-card__logo" />
         ) : (
           <div
             className="club-card__logo club-card__logo--fallback"

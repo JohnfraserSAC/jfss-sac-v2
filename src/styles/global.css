@@ -912,6 +912,19 @@ summary:focus-visible {
   cursor: wait;
 }
 
+.sign-in-view__google-gis {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.sign-in-view__google-gis > div {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .sign-in-view__google-icon {
   flex-shrink: 0;
 }

@@ -5,6 +5,7 @@ import {
   SIGNED_FORM_MAX_BYTES,
 } from "../config/clubApplications";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 function extensionForMime(mime) {
   if (mime === "image/png") return "png";
@@ -107,5 +108,5 @@ export async function createSignedClubDocumentUrl(path, expiresIn = 60 * 10) {
     );
   }
 
-  return data?.signedUrl ?? null;
+  return toSameOriginSupabaseUrl(data?.signedUrl) ?? null;
 }

@@ -5,6 +5,7 @@ import {
   REAPP_ATTACHMENT_MAX_BYTES,
 } from "../config/clubApplications";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 const SUPERVISOR_REQ_FIELDS = `
   id,
@@ -304,7 +305,7 @@ export async function createSignedSupervisorDocumentUrl(
     );
   }
 
-  return data?.signedUrl ?? null;
+  return toSameOriginSupabaseUrl(data?.signedUrl) ?? null;
 }
 
 /** Default supervisor deadline: now + 7 days (local datetime-local value). */

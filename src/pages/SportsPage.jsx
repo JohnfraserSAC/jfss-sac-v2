@@ -16,6 +16,7 @@ import {
   canManageAthletesEmail,
   validateAthletePhoto,
 } from "../services/athletes";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 const ATHLETE_PLACEHOLDER_COLORS = [
   "#1e2a4a",
@@ -113,7 +114,9 @@ const sportsTeams = [
 ];
 
 function AthleteCard({ athlete, index, onRemove }) {
-  const photo = getAthletePhotoUrl(athlete.photo_storage_path);
+  const photo = toSameOriginSupabaseUrl(
+    getAthletePhotoUrl(athlete.photo_storage_path),
+  );
 
   return (
     <div className="athlete-card" data-athlete-card-id={athlete.id}>

@@ -7,6 +7,7 @@ import { resolvePageBanner } from "../../config/pageBanners";
 import { getStudentNumberFromEmail } from "../../utils/domain";
 import { displayName } from "../../utils/format";
 import { rememberAuthReturnTo } from "../../utils/authRedirect";
+import { toSameOriginSupabaseUrl } from "../../utils/proxiedSupabaseUrl";
 
 const navLinks = [
   { to: "/clubs", label: "Clubs" },
@@ -17,12 +18,12 @@ const navLinks = [
 ];
 
 function getAvatarUrl(profile, user) {
-  return (
+  const raw =
     profile?.avatar_url ||
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
-    ""
-  );
+    "";
+  return toSameOriginSupabaseUrl(raw) || "";
 }
 
 function getInitials(name) {

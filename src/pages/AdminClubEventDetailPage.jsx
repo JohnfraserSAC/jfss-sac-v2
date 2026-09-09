@@ -14,6 +14,7 @@ import {
 import { formatDate } from "../utils/format";
 import { formatDateOnly } from "../utils/torontoDate";
 import { getErrorMessage } from "../utils/errors";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 const LIST_PATH = "/exec-dashboard/requests/events";
 
@@ -181,7 +182,7 @@ export function AdminClubEventDetailPage({ embedded = false }) {
             <h3>Event photo</h3>
             <img
               className="event-review-photo"
-              src={photoUrl}
+              src={toSameOriginSupabaseUrl(photoUrl) || photoUrl}
               alt={`Photo for ${request.event_name}`}
             />
           </section>

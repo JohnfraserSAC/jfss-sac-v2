@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LocalFilePreview } from "../ui/LocalFilePreview";
 import { FilePicker } from "../ui/FilePicker";
 import { validateClubLogoFile } from "../../services/clubLogos";
+import { toSameOriginSupabaseUrl } from "../../utils/proxiedSupabaseUrl";
 
 /** Club logo uploader styled like the signed teacher-supervisor form control. */
 export function ClubLogoUpload({
@@ -15,6 +16,7 @@ export function ClubLogoUpload({
   currentUrl = null,
 }) {
   const [localError, setLocalError] = useState("");
+  const previewUrl = toSameOriginSupabaseUrl(currentUrl);
 
   function handleFileChange(next) {
     const validationError = next ? validateClubLogoFile(next) : null;
@@ -51,11 +53,11 @@ export function ClubLogoUpload({
             }}
           />
         </div>
-      ) : currentUrl ? (
+      ) : previewUrl ? (
         <div className="signed-form-preview">
           <p className="muted">Current club photo</p>
           <img
-            src={currentUrl}
+            src={previewUrl}
             alt="Current club logo"
             className="logo-preview"
           />

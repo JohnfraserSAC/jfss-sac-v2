@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export const CLUB_EVENT_PHOTOS_BUCKET = "club-event-photos";
 export const CLUB_EVENT_PHOTO_MAX_BYTES = 10 * 1024 * 1024;
@@ -116,7 +117,7 @@ export async function getClubEventPhotoUrl(path) {
     logServiceError("getClubEventPhotoUrl", error);
     return null;
   }
-  return data?.signedUrl || null;
+  return toSameOriginSupabaseUrl(data?.signedUrl) || null;
 }
 
 export async function submitClubEventRequest(payload) {

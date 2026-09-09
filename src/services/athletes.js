@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export const ATHLETE_PHOTOS_BUCKET = "athlete-photos";
 export const ATHLETE_PHOTO_MAX_BYTES = 10 * 1024 * 1024;
@@ -57,7 +58,7 @@ export function getAthletePhotoUrl(path) {
   const { data } = supabase.storage
     .from(ATHLETE_PHOTOS_BUCKET)
     .getPublicUrl(path);
-  return data?.publicUrl || null;
+  return toSameOriginSupabaseUrl(data?.publicUrl) || null;
 }
 
 export async function getAthletesOfTheMonth() {

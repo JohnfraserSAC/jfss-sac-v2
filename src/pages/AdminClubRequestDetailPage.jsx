@@ -17,6 +17,7 @@ import {
 import { createSignedClubDocumentUrl } from "../services/clubDocuments";
 import { getClubById } from "../services/clubs";
 import { resolveClubLogoUrl } from "../utils/clubMedia";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 import { slugifyClubName } from "../utils/slug";
@@ -345,7 +346,7 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
           <div className="signed-form-preview">
             <p className="muted">Proposed club logo</p>
             <img
-              src={logoUrl}
+              src={toSameOriginSupabaseUrl(logoUrl) || logoUrl}
               alt="Proposed club logo"
               className="logo-preview"
             />

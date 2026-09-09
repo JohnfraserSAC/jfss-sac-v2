@@ -185,10 +185,10 @@ export function AuthProvider({ children }) {
     };
   }, [clearSessionState, processUser]);
 
-  const signInWithGoogle = useCallback(async () => {
+  const signInWithGoogle = useCallback(async (idToken) => {
     setAuthError("");
     setAccessDenied(false);
-    await authService.signInWithGoogle();
+    await authService.signInWithGoogle(idToken);
   }, []);
 
   const signOut = useCallback(async () => {

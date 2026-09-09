@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatDate } from "../../utils/format";
+import { toSameOriginSupabaseUrl } from "../../utils/proxiedSupabaseUrl";
 
 function truncateText(text, maxLength = 180) {
   const source = String(text || "")
@@ -23,11 +24,12 @@ export function ArchiveItemCard({
   detailLabel = "Open in more detail",
 }) {
   const excerpt = truncateText(description, 180);
+  const mediaUrl = toSameOriginSupabaseUrl(imageUrl);
 
   return (
     <article className="announcement-card">
-      {imageUrl ? (
-        <img src={imageUrl} alt="" className="announcement-card__image" />
+      {mediaUrl ? (
+        <img src={mediaUrl} alt="" className="announcement-card__image" />
       ) : (
         <div
           className="announcement-card__image announcement-card__image--fallback"

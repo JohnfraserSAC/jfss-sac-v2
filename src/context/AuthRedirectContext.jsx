@@ -4,8 +4,8 @@ import { useAuth } from "./AuthContext";
 import { consumeAuthReturnTo } from "../utils/authRedirect";
 
 /**
- * After Google OAuth completes, send the user back to the path they
- * were trying to open (if one was remembered).
+ * After sign-in completes, send the user back to the path they were
+ * trying to open (if one was remembered).
  */
 export function AuthRedirectProvider({ children }) {
   const { isAuthenticated, isLoading } = useAuth();

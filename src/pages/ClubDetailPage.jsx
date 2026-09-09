@@ -12,6 +12,7 @@ import { getMyMembershipForClub } from "../services/memberships";
 import { isClubOwner } from "../utils/clubPermissions";
 import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
 import { getErrorMessage } from "../utils/errors";
+import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export function ClubDetailPage() {
   const { slug } = useParams();
@@ -108,19 +109,21 @@ export function ClubDetailPage() {
   const meetingSchedule = getVisibleMeetingSchedule(club.meeting_schedule);
   const showStatus = isAdmin || club.status !== "APPROVED";
   const canManage = isAdmin || isClubOwner(membership?.role);
+  const bannerUrl = toSameOriginSupabaseUrl(club.banner_url);
+  const logoUrl = toSameOriginSupabaseUrl(club.logo_url);
 
   return (
     <div className="page">
       <div className="club-hero">
-        {club.banner_url ? (
-          <img src={club.banner_url} alt="" className="club-hero__banner" />
+        {bannerUrl ? (
+          <img src={bannerUrl} alt="" className="club-hero__banner" />
         ) : (
           <div className="club-hero__banner club-hero__banner--fallback" />
         )}
 
         <div className="club-hero__content">
-          {club.logo_url ? (
-            <img src={club.logo_url} alt="" className="club-hero__logo" />
+          {logoUrl ? (
+            <img src={logoUrl} alt="" className="club-hero__logo" />
           ) : (
             <div
               className="club-hero__logo club-hero__logo--fallback"

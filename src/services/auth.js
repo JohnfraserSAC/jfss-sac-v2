@@ -1,16 +1,21 @@
 import { supabase } from "../lib/supabase";
 import { getErrorMessage, logServiceError } from "../utils/errors";
 
-export async function signInWithGoogle() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+function disableGoogleAutoSelect() {
+  const disable = globalThis.google?.accounts?.id?.disableAutoSelect;
+  if (typeof disable === "function") {
+    disable();
+  }
+}
+
+export async function signInWithGoogle(idToken) {
+  if (!idToken || typeof idToken !== "string") {
+    throw new Error("Google sign-in did not return an ID token.");
+  }
+
+  const { data, error } = await supabase.auth.signInWithIdToken({
     provider: "google",
-    options: {
-      redirectTo: window.location.origin,
-      queryParams: {
-        prompt: "select_account",
-        hd: "pdsb.net",
-      },
-    },
+    token: idToken,
   });
 
   if (error) {
@@ -22,6 +27,8 @@ export async function signInWithGoogle() {
 }
 
 export async function signOut() {
+  disableGoogleAutoSelect();
+
   const { error } = await supabase.auth.signOut();
 
   if (error) {

@@ -1,5 +1,6 @@
 import { CLUB_LOGOS_BUCKET } from "../config/clubApplications";
 import { supabase } from "../lib/supabase";
+import { toSameOriginSupabaseUrl } from "./proxiedSupabaseUrl";
 
 /**
  * club.logo_url may be a full URL or a club-logos storage path
@@ -12,12 +13,13 @@ export async function resolveClubLogoUrl(logoUrl) {
   if (!trimmed) return null;
 
   if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
-    return trimmed;
+    const proxied = toSameOriginSupabaseUrl(trimmed);
+    return typeof proxied === "string" ? proxied : trimmed;
   }
 
   const { data, error } = await supabase.storage
     .from(CLUB_LOGOS_BUCKET)
     .createSignedUrl(trimmed, 60 * 60);
 
-  return error ? null : data?.signedUrl || null;
+  return error ? null : toSameOriginSupabaseUrl(data?.signedUrl) || null;
 }
