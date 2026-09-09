@@ -18,6 +18,7 @@ import {
 } from "../config/clubApplications";
 import { supabase } from "../lib/supabase";
 import { validateSignedFormFile } from "../services/clubDocuments";
+import { validateClubLogoFile } from "../services/clubLogos";
 import {
   listEligibleClubsForReapplication,
   submitClubReapplication,
@@ -247,6 +248,16 @@ export function ClubReapplyPage() {
   }
 
   async function uploadFile(bucket, path, file) {
+    const validationError =
+      bucket === CLUB_LOGOS_BUCKET
+        ? validateClubLogoFile(file)
+        : bucket === CLUB_APPLICATION_DOCUMENTS_BUCKET
+          ? validateSignedFormFile(file)
+          : "This file type cannot be uploaded here.";
+    if (validationError) {
+      throw new Error(validationError);
+    }
+
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(path, file, {
