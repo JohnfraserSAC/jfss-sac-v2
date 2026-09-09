@@ -1,13 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { toUpstreamAuthTokenPath } from './src/lib/supabaseAuthProxy.js'
 
-const SUPABASE_UPSTREAM = 'https://nvpxsuafdcrobnackhnd.supabase.co'
+// School Wi-Fi blocks *.supabase.co. The Vite process runs on this laptop, so
+// proxy through the public site (Vercel) instead of calling Supabase directly.
+const DEV_PROXY_ORIGIN = 'https://www.johnfrasersac.com'
 
 const supabaseProxy = {
-  '/supabase': {
-    target: SUPABASE_UPSTREAM,
+  '/api/sf/go': {
+    target: DEV_PROXY_ORIGIN,
     changeOrigin: true,
-    rewrite: (path) => path.replace(/^\/supabase/, ''),
+    rewrite: (path) => `/supabase${toUpstreamAuthTokenPath(path)}`,
+  },
+  '/supabase': {
+    target: DEV_PROXY_ORIGIN,
+    changeOrigin: true,
   },
 }
 

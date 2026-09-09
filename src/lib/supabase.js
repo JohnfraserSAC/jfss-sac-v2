@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { rewriteBrowserAuthTokenUrl } from "./supabaseAuthProxy";
 import {
   getBrowserSupabaseUrl,
   SUPABASE_AUTH_STORAGE_KEY,
@@ -19,6 +20,28 @@ function isOpaqueSupabaseApiKey(value) {
   );
 }
 
+function mergeAbortSignals(left, right) {
+  if (typeof AbortSignal.any === "function") {
+    return AbortSignal.any([left, right]);
+  }
+  return right;
+}
+
+function rewriteFetchInput(input) {
+  const origin = globalThis.location?.origin;
+  if (typeof input === "string") {
+    return rewriteBrowserAuthTokenUrl(input, origin);
+  }
+  if (input instanceof Request) {
+    const rewritten = rewriteBrowserAuthTokenUrl(input.url, origin);
+    if (rewritten === input.url) {
+      return input;
+    }
+    return new Request(rewritten, input);
+  }
+  return input;
+}
+
 function fetchWithTimeout(input, init = {}) {
   const timeoutController = new AbortController();
   const timeoutId = globalThis.setTimeout(
@@ -26,7 +49,7 @@ function fetchWithTimeout(input, init = {}) {
     SUPABASE_REQUEST_TIMEOUT_MS,
   );
   const signal = init.signal
-    ? AbortSignal.any([init.signal, timeoutController.signal])
+    ? mergeAbortSignals(init.signal, timeoutController.signal)
     : timeoutController.signal;
 
   const headers = new Headers(init.headers ?? {});
@@ -39,9 +62,11 @@ function fetchWithTimeout(input, init = {}) {
     }
   }
 
-  return fetch(input, { ...init, headers, signal }).finally(() => {
-    globalThis.clearTimeout(timeoutId);
-  });
+  return fetch(rewriteFetchInput(input), { ...init, headers, signal }).finally(
+    () => {
+      globalThis.clearTimeout(timeoutId);
+    },
+  );
 }
 
 export const supabase = createClient(

@@ -5,7 +5,7 @@
       "destination": "https://nvpxsuafdcrobnackhnd.supabase.co/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

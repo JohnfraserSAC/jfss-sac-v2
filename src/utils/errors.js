@@ -1,3 +1,11 @@
+const SCHOOL_NETWORK_SIGN_IN_MESSAGE =
+  "This network blocked the sign-in request. On school Wi-Fi, try a phone hotspot, then reload.";
+
+function isOpaqueSerializedMessage(message) {
+  const trimmed = String(message || "").trim();
+  return trimmed === "{}" || trimmed === "[]" || trimmed === "null";
+}
+
 export function getErrorMessage(error, fallback = "Something went wrong.") {
   if (!error) return fallback;
 
@@ -6,7 +14,17 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
       ? error
       : error.message || error.error_description || fallback;
 
+  const status = typeof error === "object" ? error.status ?? error.statusCode : undefined;
   const lower = message.toLowerCase();
+
+  if (
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    isOpaqueSerializedMessage(message)
+  ) {
+    return SCHOOL_NETWORK_SIGN_IN_MESSAGE;
+  }
 
   if (lower.includes("duplicate key") || lower.includes("unique constraint")) {
     if (
