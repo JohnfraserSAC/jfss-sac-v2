@@ -12,13 +12,10 @@ export function HomeWhoWeAre() {
     <section className="panel who-we-are" aria-labelledby="who-we-are-heading">
       <div className="who-we-are__top">
         <div className="who-we-are__photo">
-          {groupPhoto ? (
-            <img src={groupPhoto} alt="SAC co-presidents Arshaan Thind and Amrita Rajaram" />
-          ) : (
-            <div className="who-we-are__photo-placeholder">
-              Photo coming soon
-            </div>
-          )}
+          <img
+            src={groupPhoto}
+            alt="SAC co-presidents Arshaan Thind and Amrita Rajaram"
+          />
         </div>
 
         <div className="who-we-are__intro">

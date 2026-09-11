@@ -3878,6 +3878,22 @@ button.nav-link {
     align-items: stretch;
   }
 
+  .officer-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    width: 100%;
+  }
+
+  .officer-list__item {
+    min-width: 0;
+  }
+
+  .officer-list__name {
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
   .who-we-are__actions {
     flex-wrap: nowrap;
     margin-left: 0;
