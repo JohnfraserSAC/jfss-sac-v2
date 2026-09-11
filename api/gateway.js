@@ -9,6 +9,8 @@ export const config = { runtime: "edge" };
 export default async function handler(request) {
   return proxySupabaseRequest(
     request,
-    toUpstreamGatewayUrl(resolveIncomingGatewayUrl(request.url)),
+    toUpstreamGatewayUrl(
+      resolveIncomingGatewayUrl(request.url, undefined, request.headers),
+    ),
   );
 }

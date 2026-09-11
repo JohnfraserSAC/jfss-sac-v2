@@ -133,12 +133,52 @@ export function rewriteBrowserGatewayUrl(input, origin) {
   );
 }
 
-export function resolveIncomingGatewayUrl(requestUrl, origin) {
+function getHeader(headers, name) {
+  if (!headers) return null;
+  if (typeof headers.get === "function") {
+    return headers.get(name);
+  }
+  return headers[name] ?? headers[name.toLowerCase()] ?? null;
+}
+
+function looksLikeGatewayPath(value) {
+  return /^(q|a|f|fn|rest|auth|storage|functions)\/v1\//.test(
+    String(value || ""),
+  );
+}
+
+export function shouldDropGatewaySearchParam(key, value) {
+  if (key === GATEWAY_PATH_QUERY || key === "") return true;
+  if (String(key).includes("/v1/")) return true;
+  return looksLikeGatewayPath(value);
+}
+
+export function stripGatewaySearchParams(url) {
+  const dropKeys = [];
+  url.searchParams.forEach((value, key) => {
+    if (shouldDropGatewaySearchParam(key, value)) {
+      dropKeys.push(key);
+    }
+  });
+  for (const key of dropKeys) {
+    url.searchParams.delete(key);
+  }
+  return url;
+}
+
+function copySearchParams(from, to) {
+  stripGatewaySearchParams(from);
+  to.search = "";
+  from.searchParams.forEach((value, key) => {
+    to.searchParams.append(key, value);
+  });
+}
+
+export function resolveIncomingGatewayUrl(requestUrl, origin, headers) {
   const incoming = parseUrl(requestUrl, origin);
   if (!incoming) return requestUrl;
 
   const nested = incoming.searchParams.get(GATEWAY_PATH_QUERY);
-  incoming.searchParams.delete(GATEWAY_PATH_QUERY);
 
   const hasProxyPath =
     incoming.pathname === SUPABASE_PROXY_PATH ||
@@ -146,8 +186,23 @@ export function resolveIncomingGatewayUrl(requestUrl, origin) {
 
   if (!hasProxyPath && nested) {
     incoming.pathname = `${SUPABASE_PROXY_PATH}/${String(nested).replace(/^\/+/, "")}`;
+  } else if (!hasProxyPath) {
+    const forwarded =
+      getHeader(headers, "x-forwarded-uri") ||
+      getHeader(headers, "x-original-uri");
+    const forwardedUrl = forwarded
+      ? parseUrl(forwarded, incoming.origin)
+      : null;
+    if (
+      forwardedUrl &&
+      (forwardedUrl.pathname === SUPABASE_PROXY_PATH ||
+        forwardedUrl.pathname.startsWith(`${SUPABASE_PROXY_PATH}/`))
+    ) {
+      incoming.pathname = forwardedUrl.pathname;
+    }
   }
 
+  stripGatewaySearchParams(incoming);
   return incoming.toString();
 }
 
@@ -160,7 +215,13 @@ export function toUpstreamGatewayUrl(
     throw new Error("Invalid API proxy URL.");
   }
 
-  incoming.searchParams.delete(GATEWAY_PATH_QUERY);
+  const nested = incoming.searchParams.get(GATEWAY_PATH_QUERY);
+  const hasProxyPath =
+    incoming.pathname === SUPABASE_PROXY_PATH ||
+    incoming.pathname.startsWith(`${SUPABASE_PROXY_PATH}/`);
+  if (!hasProxyPath && nested) {
+    incoming.pathname = `${SUPABASE_PROXY_PATH}/${String(nested).replace(/^\/+/, "")}`;
+  }
 
   let pathname = incoming.pathname;
   if (pathname === SUPABASE_PROXY_PATH) {
@@ -176,8 +237,8 @@ export function toUpstreamGatewayUrl(
 
   const dest = new URL(upstreamOrigin);
   dest.pathname = `/${segments.join("/")}`;
-  dest.search = incoming.search;
   dest.hash = incoming.hash;
+  copySearchParams(incoming, dest);
   return dest.toString();
 }
 

@@ -1,3 +1,5 @@
+import { stripGatewaySearchParams } from "./_paths.js";
+
 export const config = { runtime: "edge" };
 
 const REQUEST_HEADER_ALLOWLIST = [
@@ -104,7 +106,8 @@ export async function proxySupabaseRequest(request, destUrl) {
     init.duplex = "half";
   }
 
-  const upstream = await fetch(destUrl, init);
+  const dest = stripGatewaySearchParams(new URL(destUrl));
+  const upstream = await fetch(dest.toString(), init);
   return sanitizeUpstreamResponse(upstream);
 }
 

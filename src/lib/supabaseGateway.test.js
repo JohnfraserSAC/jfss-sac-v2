@@ -63,12 +63,22 @@ describe("supabaseGateway", () => {
     );
     expect(
       toUpstreamGatewayUrl(
-        resolveIncomingGatewayUrl(
-          `${ORIGIN}/api/x/q/v1/public_active_clubs?select=id&_px=q/v1/public_active_clubs`,
-        ),
+        `${ORIGIN}/api/x/q/v1/profiles?select=id&_px=q/v1/profiles`,
+      ),
+    ).toBe("https://nvpxsuafdcrobnackhnd.supabase.co/rest/v1/profiles?select=id");
+    expect(
+      toUpstreamGatewayUrl(
+        `${ORIGIN}/api/x/q/v1/user_system_roles?select=role&_px=q/v1/user_system_roles`,
       ),
     ).toBe(
-      "https://nvpxsuafdcrobnackhnd.supabase.co/rest/v1/public_active_clubs?select=id",
+      "https://nvpxsuafdcrobnackhnd.supabase.co/rest/v1/user_system_roles?select=role",
     );
+    expect(
+      toUpstreamGatewayUrl(
+        resolveIncomingGatewayUrl(
+          `${ORIGIN}/api/x/q/v1/profiles?select=id&q/v1/profiles`,
+        ),
+      ),
+    ).toBe("https://nvpxsuafdcrobnackhnd.supabase.co/rest/v1/profiles?select=id");
   });
 });
