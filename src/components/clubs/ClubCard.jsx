@@ -27,11 +27,11 @@ export function ClubCard({ club }) {
           <Link to={`/clubs/${club.slug}`}>{club.name}</Link>
         </h2>
 
-        {club.short_description ? (
-          <p className="club-card__summary">{club.short_description}</p>
+        {club.description ? (
+          <p className="club-card__summary">{club.description}</p>
         ) : (
           <p className="club-card__summary muted">
-            No short description provided.
+            No description provided.
           </p>
         )}
 

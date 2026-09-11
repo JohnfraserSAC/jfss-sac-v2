@@ -57,6 +57,7 @@ export function ClubsPage() {
       if (!query) return true;
       const haystack = [
         club.name,
+        club.description,
         club.short_description,
         club.instagram_handle,
         club.contact_email,
