@@ -20,9 +20,9 @@ import {
   deleteClubLogo,
   uploadNewClubLogo,
 } from "../services/clubLogos";
-import { submitClubRegistrationApplication } from "../services/clubRequests";
+import { isClubNameTaken, submitClubRegistrationApplication } from "../services/clubRequests";
 import { isValidPdsbEmail, normalizePdsbEmail } from "../utils/clubPermissions";
-import { getErrorMessage } from "../utils/errors";
+import { getErrorMessage, CLUB_NAME_TAKEN_MESSAGE } from "../utils/errors";
 import { validateOwnerNames } from "../utils/validation";
 
 const INITIAL = {
@@ -65,18 +65,16 @@ export function ClubApplyPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successId, setSuccessId] = useState(null);
-  const successRef = useRef(null);
+  const alertRef = useRef(null);
 
   useEffect(() => {
-    if (successId) {
-      const notification = successRef.current;
-      if (notification) {
-        const top =
-          window.scrollY + notification.getBoundingClientRect().top - 96;
-        window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-      }
-    }
-  }, [successId]);
+    if (!error && !successId) return;
+    const notification = alertRef.current;
+    if (!notification) return;
+    const top =
+      window.scrollY + notification.getBoundingClientRect().top - 96;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }, [error, successId]);
 
   const respondentEmail = profile?.email || user?.email || "";
 
@@ -167,6 +165,21 @@ export function ClubApplyPage() {
       return;
     }
 
+    try {
+      if (await isClubNameTaken(values.proposed_name)) {
+        setFieldErrors({
+          proposed_name: CLUB_NAME_TAKEN_MESSAGE,
+        });
+        setError(CLUB_NAME_TAKEN_MESSAGE);
+        return;
+      }
+    } catch (checkError) {
+      setError(
+        getErrorMessage(checkError, "Could not verify the club name."),
+      );
+      return;
+    }
+
     const requestId = crypto.randomUUID();
     let uploadedPath = null;
     let uploadedLogoPath = null;
@@ -236,17 +249,21 @@ export function ClubApplyPage() {
     <div className="page narrow-page">
       <ClubApplyNotice accountEmail={respondentEmail} />
 
-      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+      {(error || successId) ? (
+        <div ref={alertRef}>
+          {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
-      {successId ? (
-        <div ref={successRef} className="alert alert--success" role="status">
-          <strong>Application submitted</strong>
-          <p>
-            Your new club application was submitted successfully.{" "}
-            <Link className="text-link" to="/my-requests/applications">
-              View my requests
-            </Link>
-          </p>
+          {successId ? (
+            <div className="alert alert--success" role="status">
+              <strong>Application submitted</strong>
+              <p>
+                Your new club application was submitted successfully.{" "}
+                <Link className="text-link" to="/my-requests/applications">
+                  View my requests
+                </Link>
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

@@ -9,6 +9,10 @@
       "destination": "/api/go"
     },
     {
+      "source": "/api/club-sheet",
+      "destination": "/api/clubSheet"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

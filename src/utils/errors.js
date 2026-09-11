@@ -2,6 +2,8 @@ const SCHOOL_NETWORK_SIGN_IN_MESSAGE =
   "This network blocked the sign-in request. On school Wi-Fi, try a phone hotspot, then reload.";
 
 export const SIGN_IN_TO_SEE_MESSAGE = "Sign in to see this.";
+export const CLUB_NAME_TAKEN_MESSAGE =
+  "A club with that name already exists.";
 
 function isOpaqueSerializedMessage(message) {
   const trimmed = String(message || "").trim();
@@ -57,9 +59,13 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
       return "That club slug is already taken. Choose a different slug.";
     }
     if (lower.includes("name")) {
-      return "A club with that name already exists.";
+      return CLUB_NAME_TAKEN_MESSAGE;
     }
     return "That value is already in use. Please choose another.";
+  }
+
+  if (lower.includes("a club with that name already exists")) {
+    return CLUB_NAME_TAKEN_MESSAGE;
   }
 
   if (

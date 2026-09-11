@@ -59,6 +59,21 @@ export async function getMyClubRequests(userId) {
   return data ?? [];
 }
 
+export async function isClubNameTaken(proposedName) {
+  const { data, error } = await supabase.rpc("club_name_is_taken", {
+    p_name: String(proposedName || "").trim(),
+  });
+
+  if (error) {
+    logServiceError("isClubNameTaken", error);
+    throw new Error(
+      getErrorMessage(error, "Could not verify the club name."),
+    );
+  }
+
+  return Boolean(data);
+}
+
 export async function submitClubRegistrationApplication(payload) {
   const { data, error } = await supabase.rpc(
     "submit_club_registration_application_with_owner_names",

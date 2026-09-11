@@ -27,6 +27,12 @@ describe("getErrorMessage", () => {
     ).toBe("Sign in to see this.");
   });
 
+  it("maps existing club names to a clear application error", () => {
+    expect(getErrorMessage("A club with that name already exists")).toBe(
+      "A club with that name already exists.",
+    );
+  });
+
   it("hides Vercel NOT_FOUND page text", () => {
     expect(
       getErrorMessage({
