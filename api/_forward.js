@@ -1,3 +1,5 @@
+export const config = { runtime: "edge" };
+
 const REQUEST_HEADER_ALLOWLIST = [
   "accept",
   "accept-language",
@@ -104,4 +106,8 @@ export async function proxySupabaseRequest(request, destUrl) {
 
   const upstream = await fetch(destUrl, init);
   return sanitizeUpstreamResponse(upstream);
+}
+
+export default function helperNotFound() {
+  return new Response(null, { status: 404 });
 }

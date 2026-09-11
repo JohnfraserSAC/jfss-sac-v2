@@ -1,5 +1,5 @@
-import { toUpstreamAuthTokenUrl } from "../../src/lib/supabaseAuthProxy.js";
-import { proxySupabaseRequest } from "../../src/lib/supabaseGatewayServer.js";
+import { toUpstreamAuthTokenUrl } from "./_paths.js";
+import { proxySupabaseRequest } from "./_forward.js";
 
 export const config = { runtime: "edge" };
 

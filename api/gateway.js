@@ -1,8 +1,8 @@
 import {
   resolveIncomingGatewayUrl,
   toUpstreamGatewayUrl,
-} from "../../src/lib/supabaseGateway.js";
-import { proxySupabaseRequest } from "../../src/lib/supabaseGatewayServer.js";
+} from "./_paths.js";
+import { proxySupabaseRequest } from "./_forward.js";
 
 export const config = { runtime: "edge" };
 

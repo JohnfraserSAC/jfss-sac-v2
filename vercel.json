@@ -5,6 +5,10 @@
       "destination": "/api/gateway?_px=:path*"
     },
     {
+      "source": "/api/sf/go",
+      "destination": "/api/go"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
