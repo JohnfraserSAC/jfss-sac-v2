@@ -26,6 +26,13 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
     return SCHOOL_NETWORK_SIGN_IN_MESSAGE;
   }
 
+  if (
+    lower.includes("the page could not be found") ||
+    (lower.includes("not_found") && /::[a-z0-9]+-/i.test(message))
+  ) {
+    return "Could not reach the API. Refresh the page after the latest deploy is live.";
+  }
+
   if (lower.includes("duplicate key") || lower.includes("unique constraint")) {
     if (
       lower.includes("club_memberships") ||

@@ -4,6 +4,8 @@ import {
   SUPABASE_UPSTREAM_ORIGIN,
 } from "./supabaseAuthProxy.js";
 
+export const GATEWAY_PATH_QUERY = "_px";
+
 const SERVICE_TO_ALIAS = {
   rest: "q",
   auth: "a",
@@ -49,6 +51,25 @@ export function rewriteBrowserGatewayUrl(input, origin) {
     rewriteBrowserAuthTokenUrl(input, origin),
     origin,
   );
+}
+
+export function resolveIncomingGatewayUrl(requestUrl, origin) {
+  const incoming = parseUrl(requestUrl, origin);
+  if (!incoming) return requestUrl;
+
+  if (
+    incoming.pathname === SUPABASE_PROXY_PATH ||
+    incoming.pathname.startsWith(`${SUPABASE_PROXY_PATH}/`)
+  ) {
+    return incoming.toString();
+  }
+
+  const nested = incoming.searchParams.get(GATEWAY_PATH_QUERY);
+  if (!nested) return incoming.toString();
+
+  incoming.searchParams.delete(GATEWAY_PATH_QUERY);
+  incoming.pathname = `${SUPABASE_PROXY_PATH}/${String(nested).replace(/^\/+/, "")}`;
+  return incoming.toString();
 }
 
 export function toUpstreamGatewayUrl(

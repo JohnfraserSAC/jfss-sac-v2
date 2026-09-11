@@ -17,4 +17,13 @@ describe("getErrorMessage", () => {
       /already in use/i,
     );
   });
+
+  it("hides Vercel NOT_FOUND page text", () => {
+    expect(
+      getErrorMessage({
+        message: "The page could not be found NOT_FOUND iad1::abc",
+        status: 404,
+      }),
+    ).toMatch(/reach the API/i);
+  });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { AUTH_SESSION_BROWSER_PATH } from "./supabaseAuthProxy.js";
 import {
   rewriteBrowserGatewayUrl,
+  resolveIncomingGatewayUrl,
   toUpstreamGatewayUrl,
 } from "./supabaseGateway.js";
 
@@ -50,6 +51,15 @@ describe("supabaseGateway", () => {
       ),
     ).toBe(
       "https://nvpxsuafdcrobnackhnd.supabase.co/storage/v1/object/public/club-logos/a.png",
+    );
+    expect(
+      toUpstreamGatewayUrl(
+        resolveIncomingGatewayUrl(
+          `${ORIGIN}/api/gateway?_px=q/v1/profiles&select=id`,
+        ),
+      ),
+    ).toBe(
+      "https://nvpxsuafdcrobnackhnd.supabase.co/rest/v1/profiles?select=id",
     );
   });
 });
