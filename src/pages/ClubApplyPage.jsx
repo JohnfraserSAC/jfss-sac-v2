@@ -65,16 +65,32 @@ export function ClubApplyPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successId, setSuccessId] = useState(null);
+  const [statusTick, setStatusTick] = useState(0);
   const alertRef = useRef(null);
 
   useEffect(() => {
-    if (!error && !successId) return;
-    const notification = alertRef.current;
-    if (!notification) return;
-    const top =
-      window.scrollY + notification.getBoundingClientRect().top - 96;
-    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-  }, [error, successId]);
+    if (!statusTick) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      alertRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [statusTick]);
+
+  function revealStatus() {
+    setStatusTick((tick) => tick + 1);
+  }
+
+  function showError(message) {
+    setSuccessId(null);
+    setError(message);
+    revealStatus();
+  }
 
   const respondentEmail = profile?.email || user?.email || "";
 
@@ -161,7 +177,7 @@ export function ClubApplyPage() {
     const { errors, email } = validate();
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
-      setError("Please fix the highlighted fields before submitting.");
+      showError("Please fix the highlighted fields before submitting.");
       return;
     }
 
@@ -170,11 +186,11 @@ export function ClubApplyPage() {
         setFieldErrors({
           proposed_name: CLUB_NAME_TAKEN_MESSAGE,
         });
-        setError(CLUB_NAME_TAKEN_MESSAGE);
+        showError(CLUB_NAME_TAKEN_MESSAGE);
         return;
       }
     } catch (checkError) {
-      setError(
+      showError(
         getErrorMessage(checkError, "Could not verify the club name."),
       );
       return;
@@ -224,6 +240,7 @@ export function ClubApplyPage() {
       });
 
       setSuccessId(requestId);
+      revealStatus();
       setValues(INITIAL);
       setSupervisorName("");
       setSupervisorEmail("");
@@ -237,7 +254,7 @@ export function ClubApplyPage() {
       if (uploadedLogoPath) {
         await deleteClubLogo(uploadedLogoPath);
       }
-      setError(
+      showError(
         getErrorMessage(submitError, "Could not submit your club application."),
       );
     } finally {
@@ -247,25 +264,23 @@ export function ClubApplyPage() {
 
   return (
     <div className="page narrow-page">
+      <div ref={alertRef} className="club-apply-status">
+        {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+
+        {successId ? (
+          <div className="alert alert--success" role="status">
+            <strong>Application submitted</strong>
+            <p>
+              Your new club application was submitted successfully.{" "}
+              <Link className="text-link" to="/my-requests/applications">
+                View my requests
+              </Link>
+            </p>
+          </div>
+        ) : null}
+      </div>
+
       <ClubApplyNotice accountEmail={respondentEmail} />
-
-      {(error || successId) ? (
-        <div ref={alertRef}>
-          {error ? <ErrorMessage>{error}</ErrorMessage> : null}
-
-          {successId ? (
-            <div className="alert alert--success" role="status">
-              <strong>Application submitted</strong>
-              <p>
-                Your new club application was submitted successfully.{" "}
-                <Link className="text-link" to="/my-requests/applications">
-                  View my requests
-                </Link>
-              </p>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
 
       <form className="stack" onSubmit={handleSubmit} noValidate>
         <div className="panel form-stack">

@@ -1211,6 +1211,10 @@ summary:focus-visible {
   max-width: 720px;
 }
 
+.club-apply-status {
+  scroll-margin-top: 6rem;
+}
+
 .page-header,
 .section-heading {
   display: flex;
