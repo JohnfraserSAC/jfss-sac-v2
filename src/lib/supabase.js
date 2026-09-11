@@ -1,24 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
-import { rewriteBrowserAuthTokenUrl } from "./supabaseAuthProxy";
+import { rewriteBrowserGatewayUrl } from "./supabaseGateway";
 import {
   getBrowserSupabaseUrl,
   SUPABASE_AUTH_STORAGE_KEY,
+  SUPABASE_BROWSER_API_KEY,
 } from "./supabaseConfig";
 
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-// Proxying adds a hop, and allowed uploads can be up to 10 MB.
 const SUPABASE_REQUEST_TIMEOUT_MS = 60000;
-
-if (!supabasePublishableKey) {
-  throw new Error("Missing VITE_SUPABASE_PUBLISHABLE_KEY");
-}
-
-function isOpaqueSupabaseApiKey(value) {
-  return (
-    typeof value === "string" &&
-    (value.startsWith("sb_publishable_") || value.startsWith("sb_secret_"))
-  );
-}
 
 function mergeAbortSignals(left, right) {
   if (typeof AbortSignal.any === "function") {
@@ -30,16 +18,34 @@ function mergeAbortSignals(left, right) {
 function rewriteFetchInput(input) {
   const origin = globalThis.location?.origin;
   if (typeof input === "string") {
-    return rewriteBrowserAuthTokenUrl(input, origin);
+    return rewriteBrowserGatewayUrl(input, origin);
   }
   if (input instanceof Request) {
-    const rewritten = rewriteBrowserAuthTokenUrl(input.url, origin);
+    const rewritten = rewriteBrowserGatewayUrl(input.url, origin);
     if (rewritten === input.url) {
       return input;
     }
     return new Request(rewritten, input);
   }
   return input;
+}
+
+function scrubClientHeaders(headers) {
+  headers.delete("apikey");
+  headers.delete("x-client-info");
+  headers.delete("x-supabase-api-version");
+
+  const authorization = headers.get("Authorization");
+  if (authorization) {
+    const token = authorization.replace(/^Bearer\s+/i, "");
+    if (
+      token === SUPABASE_BROWSER_API_KEY ||
+      token.startsWith("sb_publishable_") ||
+      token.startsWith("sb_secret_")
+    ) {
+      headers.delete("Authorization");
+    }
+  }
 }
 
 function fetchWithTimeout(input, init = {}) {
@@ -53,14 +59,7 @@ function fetchWithTimeout(input, init = {}) {
     : timeoutController.signal;
 
   const headers = new Headers(init.headers ?? {});
-  const authorization = headers.get("Authorization");
-  if (authorization) {
-    const token = authorization.replace(/^Bearer\s+/i, "");
-    // Publishable keys are not JWTs. Keep them on apikey only.
-    if (isOpaqueSupabaseApiKey(token)) {
-      headers.delete("Authorization");
-    }
-  }
+  scrubClientHeaders(headers);
 
   return fetch(rewriteFetchInput(input), { ...init, headers, signal }).finally(
     () => {
@@ -71,7 +70,7 @@ function fetchWithTimeout(input, init = {}) {
 
 export const supabase = createClient(
   getBrowserSupabaseUrl(),
-  supabasePublishableKey,
+  SUPABASE_BROWSER_API_KEY,
   {
     auth: {
       persistSession: true,

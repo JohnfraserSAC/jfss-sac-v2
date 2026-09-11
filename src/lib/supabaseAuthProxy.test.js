@@ -12,22 +12,22 @@ describe("supabaseAuthProxy", () => {
   it("rewrites GoTrue token URLs onto /api/sf/go with a short grant code", () => {
     expect(
       rewriteBrowserAuthTokenUrl(
-        `${ORIGIN}/supabase/auth/v1/token?grant_type=refresh_token`,
+        `${ORIGIN}/api/x/auth/v1/token?grant_type=refresh_token`,
         ORIGIN,
       ),
     ).toBe(`${ORIGIN}${AUTH_SESSION_BROWSER_PATH}?g=2`);
 
     expect(
       rewriteBrowserAuthTokenUrl(
-        `${ORIGIN}/supabase/auth/v1/token?grant_type=id_token`,
+        `${ORIGIN}/api/x/auth/v1/token?grant_type=id_token`,
         ORIGIN,
       ),
     ).toBe(`${ORIGIN}${AUTH_SESSION_BROWSER_PATH}?g=1`);
   });
 
   it("leaves REST and Storage URLs unchanged", () => {
-    const rest = `${ORIGIN}/supabase/rest/v1/profiles?select=id`;
-    const storage = `${ORIGIN}/supabase/storage/v1/object/public/club-logos/a.png`;
+    const rest = `${ORIGIN}/api/x/rest/v1/profiles?select=id`;
+    const storage = `${ORIGIN}/api/x/storage/v1/object/public/club-logos/a.png`;
     expect(rewriteBrowserAuthTokenUrl(rest, ORIGIN)).toBe(rest);
     expect(rewriteBrowserAuthTokenUrl(storage, ORIGIN)).toBe(storage);
   });

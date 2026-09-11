@@ -1,4 +1,8 @@
-import { SUPABASE_PROJECT_REF, SUPABASE_PROXY_PATH } from "../lib/supabaseConfig";
+import {
+  SUPABASE_PROJECT_REF,
+  SUPABASE_PROXY_PATH,
+} from "../lib/supabaseConfig";
+import { toBrowserProxyPath } from "../lib/supabaseGateway";
 
 function isAuthoritativeSupabaseHost(hostname) {
   const parts = String(hostname || "")
@@ -14,9 +18,22 @@ function isAuthoritativeSupabaseHost(hostname) {
   );
 }
 
+function rewriteSameOriginProxyPath(pathname) {
+  if (pathname === "/supabase" || pathname.startsWith("/supabase/")) {
+    return toBrowserProxyPath(pathname.replace(/^\/supabase/, "") || "/");
+  }
+  if (
+    pathname === SUPABASE_PROXY_PATH ||
+    pathname.startsWith(`${SUPABASE_PROXY_PATH}/`)
+  ) {
+    return toBrowserProxyPath(pathname.slice(SUPABASE_PROXY_PATH.length) || "/");
+  }
+  return pathname;
+}
+
 /**
- * Rewrite legacy absolute URLs for this project's Storage/Auth/REST host
- * onto the current origin's /supabase proxy. Leaves every other value alone.
+ * Rewrite this project's Storage/Auth/REST URLs onto the current origin's
+ * bland API proxy. Leaves every other value alone.
  */
 export function toSameOriginSupabaseUrl(value, origin) {
   if (value == null || typeof value !== "string") {
@@ -35,10 +52,6 @@ export function toSameOriginSupabaseUrl(value, origin) {
     return value;
   }
 
-  if (!isAuthoritativeSupabaseHost(parsed.hostname)) {
-    return value;
-  }
-
   const resolvedOrigin =
     origin ??
     (typeof globalThis !== "undefined" ? globalThis.location?.origin : "");
@@ -47,8 +60,18 @@ export function toSameOriginSupabaseUrl(value, origin) {
     return value;
   }
 
+  const sameOrigin = parsed.origin === new URL(resolvedOrigin).origin;
+  if (!isAuthoritativeSupabaseHost(parsed.hostname) && !sameOrigin) {
+    return value;
+  }
+  if (sameOrigin && rewriteSameOriginProxyPath(parsed.pathname) === parsed.pathname) {
+    return value;
+  }
+
   const proxied = new URL(resolvedOrigin);
-  proxied.pathname = `${SUPABASE_PROXY_PATH}${parsed.pathname}`;
+  proxied.pathname = isAuthoritativeSupabaseHost(parsed.hostname)
+    ? toBrowserProxyPath(parsed.pathname)
+    : rewriteSameOriginProxyPath(parsed.pathname);
   proxied.search = parsed.search;
   proxied.hash = parsed.hash;
   return proxied.toString();

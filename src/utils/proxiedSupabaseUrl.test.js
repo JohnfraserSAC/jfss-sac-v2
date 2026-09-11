@@ -5,22 +5,29 @@ const ORIGIN = "https://www.johnfrasersac.com";
 const PROJECT_ORIGIN = "https://nvpxsuafdcrobnackhnd.supabase.co";
 
 describe("toSameOriginSupabaseUrl", () => {
-  it("rewrites a legacy absolute public Storage URL onto the current origin", () => {
+  it("rewrites a legacy absolute public Storage URL onto the bland proxy path", () => {
     expect(
       toSameOriginSupabaseUrl(
         `${PROJECT_ORIGIN}/storage/v1/object/public/club-logos/example.png`,
         ORIGIN,
       ),
-    ).toBe(
-      `${ORIGIN}/supabase/storage/v1/object/public/club-logos/example.png`,
-    );
+    ).toBe(`${ORIGIN}/api/x/f/v1/object/public/club-logos/example.png`);
   });
 
   it("preserves signed-URL query parameters", () => {
     const input = `${PROJECT_ORIGIN}/storage/v1/object/sign/club-application-documents/form.png?token=abc.def&download=form.png`;
     expect(toSameOriginSupabaseUrl(input, ORIGIN)).toBe(
-      `${ORIGIN}/supabase/storage/v1/object/sign/club-application-documents/form.png?token=abc.def&download=form.png`,
+      `${ORIGIN}/api/x/f/v1/object/sign/club-application-documents/form.png?token=abc.def&download=form.png`,
     );
+  });
+
+  it("migrates the old /supabase proxy path", () => {
+    expect(
+      toSameOriginSupabaseUrl(
+        `${ORIGIN}/supabase/storage/v1/object/public/club-logos/example.png`,
+        ORIGIN,
+      ),
+    ).toBe(`${ORIGIN}/api/x/f/v1/object/public/club-logos/example.png`);
   });
 
   it("leaves non-Supabase URLs unchanged", () => {
@@ -38,8 +45,8 @@ describe("toSameOriginSupabaseUrl", () => {
     expect(toSameOriginSupabaseUrl(other, ORIGIN)).toBe(other);
   });
 
-  it("leaves an already proxied URL unchanged", () => {
-    const proxied = `${ORIGIN}/supabase/storage/v1/object/public/club-logos/example.png`;
+  it("leaves an already aliased proxy URL unchanged", () => {
+    const proxied = `${ORIGIN}/api/x/f/v1/object/public/club-logos/example.png`;
     expect(toSameOriginSupabaseUrl(proxied, ORIGIN)).toBe(proxied);
   });
 

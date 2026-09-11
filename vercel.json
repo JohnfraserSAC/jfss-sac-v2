@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/supabase/:path*",
-      "destination": "https://nvpxsuafdcrobnackhnd.supabase.co/:path*"
-    },
-    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

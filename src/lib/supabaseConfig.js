@@ -1,6 +1,7 @@
 export const SUPABASE_PROJECT_REF = "nvpxsuafdcrobnackhnd";
-export const SUPABASE_AUTH_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
-export const SUPABASE_PROXY_PATH = "/supabase";
+export const SUPABASE_AUTH_STORAGE_KEY = "jfss-sac-session";
+export const SUPABASE_PROXY_PATH = "/api/x";
+export const SUPABASE_BROWSER_API_KEY = "public";
 
 export function getBrowserSupabaseUrl(origin) {
   const resolvedOrigin =
@@ -9,7 +10,7 @@ export function getBrowserSupabaseUrl(origin) {
 
   if (!resolvedOrigin) {
     throw new Error(
-      "Missing browser origin for the same-origin Supabase proxy URL.",
+      "Missing browser origin for the same-origin API URL.",
     );
   }
 

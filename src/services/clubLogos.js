@@ -63,7 +63,7 @@ export async function uploadClubLogo({ userId, clubId, file }) {
     throw new Error(
       getErrorMessage(
         error,
-        "Could not upload the club logo. If this keeps failing, apply the latest Supabase migrations.",
+        "Could not upload the club logo.",
       ),
     );
   }
