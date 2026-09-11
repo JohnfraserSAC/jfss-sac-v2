@@ -127,7 +127,9 @@ export function AuthProvider({ children }) {
           rolesError,
           "Could not load your system roles.",
         );
-        nextError = nextError ? `${nextError} ${rolesMessage}` : rolesMessage;
+        if (rolesMessage && rolesMessage !== nextError) {
+          nextError = nextError ? `${nextError} ${rolesMessage}` : rolesMessage;
+        }
       }
 
       try {

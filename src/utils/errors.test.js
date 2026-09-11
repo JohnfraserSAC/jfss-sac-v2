@@ -18,6 +18,15 @@ describe("getErrorMessage", () => {
     );
   });
 
+  it("asks signed-out users to sign in instead of showing a permission warning", () => {
+    expect(getErrorMessage("permission denied for table profiles")).toBe(
+      "Sign in to see this.",
+    );
+    expect(
+      getErrorMessage({ message: "new row violates row-level security", code: "42501" }),
+    ).toBe("Sign in to see this.");
+  });
+
   it("hides Vercel NOT_FOUND page text", () => {
     expect(
       getErrorMessage({

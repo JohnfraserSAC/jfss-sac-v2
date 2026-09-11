@@ -1,9 +1,22 @@
 const SCHOOL_NETWORK_SIGN_IN_MESSAGE =
   "This network blocked the sign-in request. On school Wi-Fi, try a phone hotspot, then reload.";
 
+export const SIGN_IN_TO_SEE_MESSAGE = "Sign in to see this.";
+
 function isOpaqueSerializedMessage(message) {
   const trimmed = String(message || "").trim();
   return trimmed === "{}" || trimmed === "[]" || trimmed === "null";
+}
+
+export function isSignInRequiredMessage(message) {
+  const lower = String(message || "").toLowerCase();
+  return (
+    lower.includes("sign in to see") ||
+    lower.includes("you do not have permission to perform this action") ||
+    lower.includes("permission denied") ||
+    lower.includes("42501") ||
+    lower.includes("row-level security")
+  );
 }
 
 export function getErrorMessage(error, fallback = "Something went wrong.") {
@@ -74,7 +87,7 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
     lower.includes("row-level security") ||
     lower.includes("rls")
   ) {
-    return "You do not have permission to perform this action.";
+    return SIGN_IN_TO_SEE_MESSAGE;
   }
 
   if (

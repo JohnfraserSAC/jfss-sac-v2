@@ -1681,6 +1681,12 @@ summary:focus-visible {
   color: #7f1d1d;
 }
 
+.alert--info {
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 28%, #d9ebf2);
+  color: var(--primary-hover);
+}
+
 .alert--success {
   background: var(--success-soft);
   border-color: #bbf7d0;
