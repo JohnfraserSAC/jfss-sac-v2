@@ -61,5 +61,14 @@ describe("supabaseGateway", () => {
     ).toBe(
       "https://nvpxsuafdcrobnackhnd.supabase.co/rest/v1/profiles?select=id",
     );
+    expect(
+      toUpstreamGatewayUrl(
+        resolveIncomingGatewayUrl(
+          `${ORIGIN}/api/x/q/v1/public_active_clubs?select=id&_px=q/v1/public_active_clubs`,
+        ),
+      ),
+    ).toBe(
+      "https://nvpxsuafdcrobnackhnd.supabase.co/rest/v1/public_active_clubs?select=id",
+    );
   });
 });

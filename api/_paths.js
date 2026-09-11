@@ -137,18 +137,17 @@ export function resolveIncomingGatewayUrl(requestUrl, origin) {
   const incoming = parseUrl(requestUrl, origin);
   if (!incoming) return requestUrl;
 
-  if (
+  const nested = incoming.searchParams.get(GATEWAY_PATH_QUERY);
+  incoming.searchParams.delete(GATEWAY_PATH_QUERY);
+
+  const hasProxyPath =
     incoming.pathname === SUPABASE_PROXY_PATH ||
-    incoming.pathname.startsWith(`${SUPABASE_PROXY_PATH}/`)
-  ) {
-    return incoming.toString();
+    incoming.pathname.startsWith(`${SUPABASE_PROXY_PATH}/`);
+
+  if (!hasProxyPath && nested) {
+    incoming.pathname = `${SUPABASE_PROXY_PATH}/${String(nested).replace(/^\/+/, "")}`;
   }
 
-  const nested = incoming.searchParams.get(GATEWAY_PATH_QUERY);
-  if (!nested) return incoming.toString();
-
-  incoming.searchParams.delete(GATEWAY_PATH_QUERY);
-  incoming.pathname = `${SUPABASE_PROXY_PATH}/${String(nested).replace(/^\/+/, "")}`;
   return incoming.toString();
 }
 
@@ -160,6 +159,8 @@ export function toUpstreamGatewayUrl(
   if (!incoming) {
     throw new Error("Invalid API proxy URL.");
   }
+
+  incoming.searchParams.delete(GATEWAY_PATH_QUERY);
 
   let pathname = incoming.pathname;
   if (pathname === SUPABASE_PROXY_PATH) {
