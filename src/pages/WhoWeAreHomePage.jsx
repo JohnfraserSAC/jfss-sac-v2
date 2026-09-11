@@ -5,7 +5,7 @@ const sacPresidents = [
   { id: "amrita", name: "Amrita Rajaram", role: "Co-President" },
 ];
 
-const groupPhoto = null; // set to e.g. "/images/hamza-david-group.jpg" once you have it
+const groupPhoto = "/images/team/pres.jpg";
 
 export function HomeWhoWeAre() {
   return (
@@ -13,7 +13,7 @@ export function HomeWhoWeAre() {
       <div className="who-we-are__top">
         <div className="who-we-are__photo">
           {groupPhoto ? (
-            <img src={groupPhoto} alt="Hamza Saleh and David Chen" />
+            <img src={groupPhoto} alt="SAC co-presidents Arshaan Thind and Amrita Rajaram" />
           ) : (
             <div className="who-we-are__photo-placeholder">
               Photo coming soon
