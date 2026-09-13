@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Spinner } from "./Spinner";
 import { toSameOriginSupabaseUrl } from "../../utils/proxiedSupabaseUrl";
+import { safeExternalHref } from "../../utils/urls";
 
 function isImageMime(mimeType, filename = "") {
   const mime = String(mimeType || "").toLowerCase();
@@ -98,7 +99,9 @@ export function AttachmentPreview({
     );
   }
 
-  const displayUrl = toSameOriginSupabaseUrl(resolvedUrl) || resolvedUrl;
+  const displayUrl = safeExternalHref(
+    toSameOriginSupabaseUrl(resolvedUrl) || resolvedUrl,
+  );
 
   if (!displayUrl) return null;
 
@@ -107,7 +110,7 @@ export function AttachmentPreview({
       <a
         href={displayUrl}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener noreferrer"
         className={`attachment-preview attachment-preview__link ${className}`.trim()}
         title="Open image in a new tab"
       >
@@ -127,7 +130,7 @@ export function AttachmentPreview({
       <a
         href={displayUrl}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener noreferrer"
         className="button button--secondary"
       >
         Open {filename || "document"}

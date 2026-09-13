@@ -5,6 +5,7 @@ import {
   REAPP_ATTACHMENT_MAX_BYTES,
 } from "../config/clubApplications";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 const SUPERVISOR_REQ_FIELDS = `
@@ -248,6 +249,8 @@ export function validateSupervisorAttachmentFile(file) {
 export async function uploadSupervisorDocument({ userId, requestId, file }) {
   const validationError = validateSupervisorAttachmentFile(file);
   if (validationError) throw new Error(validationError);
+
+  await assertFileMatchesDeclaredType(file, REAPP_ATTACHMENT_ALLOWED_TYPES);
 
   const ext =
     file.type === "application/pdf"

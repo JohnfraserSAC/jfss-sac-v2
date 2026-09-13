@@ -1,5 +1,6 @@
 export {
   GATEWAY_PATH_QUERY,
+  isAllowedUpstreamGatewayPath,
   resolveIncomingGatewayUrl,
   rewriteBrowserGatewayUrl,
   rewriteBrowserServiceAliases,

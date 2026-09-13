@@ -20,7 +20,10 @@ import {
 } from "../../services/clubSupervisors";
 import { isClubOwner } from "../../utils/clubPermissions";
 import { getErrorMessage } from "../../utils/errors";
-import { validateOwnerNames } from "../../utils/validation";
+import {
+  validateOptionalHttpsUrl,
+  validateOwnerNames,
+} from "../../utils/validation";
 
 function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
   const { user } = useAuth();
@@ -64,18 +67,16 @@ function ClubDetailsForm({ club, canEdit, onClubUpdated }) {
     if (!instagramHandle.trim()) {
       errors.instagramHandle = "Enter the club Instagram handle.";
     }
-    if (
-      memberApplicationUrl.trim() &&
-      !/^https?:\/\/[^\s]+$/.test(memberApplicationUrl.trim())
-    ) {
-      errors.memberApplicationUrl = "Enter a valid member application link.";
-    }
-    if (
-      execApplicationUrl.trim() &&
-      !/^https?:\/\/[^\s]+$/.test(execApplicationUrl.trim())
-    ) {
-      errors.execApplicationUrl = "Enter a valid executive application link.";
-    }
+    const memberUrlError = validateOptionalHttpsUrl(memberApplicationUrl, {
+      previous: club?.member_application_url,
+      label: "member application link",
+    });
+    if (memberUrlError) errors.memberApplicationUrl = memberUrlError;
+    const execUrlError = validateOptionalHttpsUrl(execApplicationUrl, {
+      previous: club?.exec_application_url,
+      label: "executive application link",
+    });
+    if (execUrlError) errors.execApplicationUrl = execUrlError;
     const ownerNamesError = validateOwnerNames(ownerNames, { required: false });
     if (ownerNamesError) {
       errors.ownerNames = ownerNamesError;

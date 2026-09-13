@@ -3,7 +3,10 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { SignInView } from "../components/auth/SignInView";
-import { rememberAuthReturnTo } from "../utils/authRedirect";
+import {
+  normalizeAuthReturnPath,
+  rememberAuthReturnTo,
+} from "../utils/authRedirect";
 
 /**
  * Dedicated sign-in page (not a modal). After Google ID-token sign-in,
@@ -14,9 +17,10 @@ export function LoginPage() {
   const location = useLocation();
 
   const from = location.state?.from;
-  const returnTo = from
-    ? `${from.pathname || "/"}${from.search || ""}${from.hash || ""}`
-    : "/";
+  const returnTo =
+    normalizeAuthReturnPath(
+      from ? `${from.pathname || "/"}${from.search || ""}${from.hash || ""}` : "/",
+    ) || "/";
 
   useEffect(() => {
     if (from) {

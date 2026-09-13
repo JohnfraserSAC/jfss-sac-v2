@@ -15,6 +15,7 @@ import {
   MEETING_DAYS,
   REAPP_LOGO_ALLOWED_TYPES,
   REAPP_LOGO_MAX_BYTES,
+  SIGNED_FORM_ALLOWED_TYPES,
 } from "../config/clubApplications";
 import { supabase } from "../lib/supabase";
 import { validateSignedFormFile } from "../services/clubDocuments";
@@ -26,7 +27,8 @@ import {
 } from "../services/clubReapplications";
 import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
 import { getErrorMessage } from "../utils/errors";
-import { validateOwnerNames } from "../utils/validation";
+import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
+import { validateOptionalHttpsUrl, validateOwnerNames } from "../utils/validation";
 
 const INITIAL = {
   club_id: "",
@@ -49,15 +51,6 @@ function emptySupervisor() {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
-}
-
-function isValidHttpUrl(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
 }
 
 /** Backend still stores short_description separately — derive from the one field. */
@@ -194,20 +187,15 @@ export function ClubReapplyPage() {
     if (!values.instagram_handle.trim()) {
       errors.instagram_handle = "Enter the club Instagram handle.";
     }
-    if (
-      values.member_application_url.trim() &&
-      !isValidHttpUrl(values.member_application_url.trim())
-    ) {
-      errors.member_application_url =
-        "Enter a valid member application link.";
-    }
-    if (
-      values.exec_application_url.trim() &&
-      !isValidHttpUrl(values.exec_application_url.trim())
-    ) {
-      errors.exec_application_url =
-        "Enter a valid executive application link.";
-    }
+    const memberUrlError = validateOptionalHttpsUrl(
+      values.member_application_url,
+      { label: "member application link" },
+    );
+    if (memberUrlError) errors.member_application_url = memberUrlError;
+    const execUrlError = validateOptionalHttpsUrl(values.exec_application_url, {
+      label: "executive application link",
+    });
+    if (execUrlError) errors.exec_application_url = execUrlError;
     if (logoFile) {
       if (!REAPP_LOGO_ALLOWED_TYPES.includes(logoFile.type)) {
         errors.logo = "Logo must be JPEG, PNG, or WebP.";
@@ -257,6 +245,13 @@ export function ClubReapplyPage() {
     if (validationError) {
       throw new Error(validationError);
     }
+
+    await assertFileMatchesDeclaredType(
+      file,
+      bucket === CLUB_LOGOS_BUCKET
+        ? REAPP_LOGO_ALLOWED_TYPES
+        : SIGNED_FORM_ALLOWED_TYPES,
+    );
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
@@ -584,7 +579,7 @@ export function ClubReapplyPage() {
           onChange={updateField}
           error={fieldErrors.member_application_url}
           disabled={submitting}
-          hint="Optional"
+          hint="Optional. Use an https:// link."
         />
 
         <TextInput
@@ -596,7 +591,7 @@ export function ClubReapplyPage() {
           onChange={updateField}
           error={fieldErrors.exec_application_url}
           disabled={submitting}
-          hint="Optional"
+          hint="Optional. Use an https:// link."
         />
 
         <fieldset

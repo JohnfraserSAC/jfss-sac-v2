@@ -5,6 +5,7 @@ import {
   SIGNED_FORM_MAX_BYTES,
 } from "../config/clubApplications";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 function extensionForMime(mime) {
@@ -54,6 +55,8 @@ export async function uploadClubApplicationDocument({
   if (!userId || !submissionId) {
     throw new Error("Missing upload destination.");
   }
+
+  await assertFileMatchesDeclaredType(file, SIGNED_FORM_ALLOWED_TYPES);
 
   const path = buildApplicationDocumentPath({
     folder,

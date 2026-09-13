@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export const ATHLETE_PHOTOS_BUCKET = "athlete-photos";
@@ -97,6 +98,7 @@ export async function createAthleteOfTheMonth({
 
   let photoStoragePath = null;
   if (photoFile) {
+    await assertFileMatchesDeclaredType(photoFile, ATHLETE_PHOTO_ALLOWED_TYPES);
     photoStoragePath = buildAthletePhotoPath(userId, photoFile);
     const { error: uploadError } = await supabase.storage
       .from(ATHLETE_PHOTOS_BUCKET)

@@ -5,6 +5,7 @@ import {
   REAPP_LOGO_MAX_BYTES,
 } from "../config/clubApplications";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 
 function extensionForMime(mime) {
   if (mime === "image/png") return "png";
@@ -47,6 +48,8 @@ export async function uploadClubLogo({ userId, clubId, file }) {
   if (!userId || !clubId) {
     throw new Error("Missing upload destination for club logo.");
   }
+
+  await assertFileMatchesDeclaredType(file, REAPP_LOGO_ALLOWED_TYPES);
 
   const path = buildClubProfileLogoPath({ userId, clubId, file });
 
@@ -113,6 +116,8 @@ export async function uploadNewClubLogo({ userId, requestId, file }) {
   if (!userId || !requestId) {
     throw new Error("Missing upload destination for club logo.");
   }
+
+  await assertFileMatchesDeclaredType(file, REAPP_LOGO_ALLOWED_TYPES);
 
   const path = buildNewClubApplicationLogoPath({ userId, requestId, file });
   const { error } = await supabase.storage

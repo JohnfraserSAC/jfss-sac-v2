@@ -1,3 +1,5 @@
+import { isAllowedApplicationUrl } from "./urls";
+
 export function validateOwnerNames(value, { required = true } = {}) {
   const text = String(value ?? "").trim();
   if (!text) {
@@ -23,5 +25,17 @@ export function validateClubSlug(slug) {
     return "Slug may only use lowercase letters, numbers, and single hyphens.";
   }
 
+  return null;
+}
+
+export function validateOptionalHttpsUrl(
+  value,
+  { previous, label = "link" } = {},
+) {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+  if (!isAllowedApplicationUrl(text, previous)) {
+    return `Enter a valid https ${label}.`;
+  }
   return null;
 }

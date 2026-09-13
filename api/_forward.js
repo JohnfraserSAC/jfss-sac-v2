@@ -1,6 +1,26 @@
-import { stripGatewaySearchParams } from "./_paths.js";
+import {
+  isAllowedUpstreamGatewayPath,
+  stripGatewaySearchParams,
+} from "./_paths.js";
 
 export const config = { runtime: "edge" };
+
+const ALLOWED_METHODS = new Set([
+  "GET",
+  "HEAD",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "OPTIONS",
+]);
+
+function jsonError(status, message) {
+  return new Response(JSON.stringify({ message }), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8" },
+  });
+}
 
 const REQUEST_HEADER_ALLOWLIST = [
   "accept",
@@ -84,16 +104,28 @@ export function buildUpstreamHeaders(request) {
 }
 
 export async function proxySupabaseRequest(request, destUrl) {
+  if (!ALLOWED_METHODS.has(request.method)) {
+    return new Response(null, { status: 405 });
+  }
+
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204 });
   }
 
   const headers = buildUpstreamHeaders(request);
   if (!headers.get("apikey")) {
-    return new Response(JSON.stringify({ message: "Service unavailable." }), {
-      status: 503,
-      headers: { "content-type": "application/json; charset=utf-8" },
-    });
+    return jsonError(503, "Service unavailable.");
+  }
+
+  let dest;
+  try {
+    dest = stripGatewaySearchParams(new URL(destUrl));
+  } catch {
+    return jsonError(400, "Invalid request.");
+  }
+
+  if (!isAllowedUpstreamGatewayPath(dest.pathname)) {
+    return jsonError(404, "Not found.");
   }
 
   const init = {
@@ -106,7 +138,6 @@ export async function proxySupabaseRequest(request, destUrl) {
     init.duplex = "half";
   }
 
-  const dest = stripGatewaySearchParams(new URL(destUrl));
   const upstream = await fetch(dest.toString(), init);
   return sanitizeUpstreamResponse(upstream);
 }

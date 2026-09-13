@@ -2,6 +2,7 @@ import { supabase } from "../lib/supabase";
 import { resolveClubLogoUrl } from "../utils/clubMedia";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { isSafeExternalHref } from "../utils/urls";
 
 async function withResolvedLogo(club) {
   if (!club) return club;
@@ -233,16 +234,10 @@ export async function updateOwnedClubProfile(clubId, values) {
     throw new Error("Enter the club Instagram handle.");
   }
 
-  if (
-    memberApplicationUrl &&
-    !/^https?:\/\/[^\s]+$/.test(memberApplicationUrl)
-  ) {
+  if (memberApplicationUrl && !isSafeExternalHref(memberApplicationUrl)) {
     throw new Error("Enter a valid member application link.");
   }
-  if (
-    execApplicationUrl &&
-    !/^https?:\/\/[^\s]+$/.test(execApplicationUrl)
-  ) {
+  if (execApplicationUrl && !isSafeExternalHref(execApplicationUrl)) {
     throw new Error("Enter a valid executive application link.");
   }
 

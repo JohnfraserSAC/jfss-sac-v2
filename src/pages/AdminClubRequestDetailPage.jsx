@@ -22,6 +22,7 @@ import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
 import { slugifyClubName } from "../utils/slug";
 import { validateClubSlug } from "../utils/validation";
+import { SafeExternalLink } from "../components/ui/SafeExternalLink";
 
 export function AdminClubRequestDetailPage({ embedded = false }) {
   const { requestId } = useParams();
@@ -267,27 +268,25 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
           {request.member_application_url ? (
             <p>
               <strong>Member application:</strong>{" "}
-              <a
+              <SafeExternalLink
                 className="text-link"
                 href={request.member_application_url}
-                target="_blank"
-                rel="noreferrer"
+                fallback={<span className="muted">Unsafe link omitted</span>}
               >
                 Open link
-              </a>
+              </SafeExternalLink>
             </p>
           ) : null}
           {request.exec_application_url ? (
             <p>
               <strong>Executive application:</strong>{" "}
-              <a
+              <SafeExternalLink
                 className="text-link"
                 href={request.exec_application_url}
-                target="_blank"
-                rel="noreferrer"
+                fallback={<span className="muted">Unsafe link omitted</span>}
               >
                 Open link
-              </a>
+              </SafeExternalLink>
             </p>
           ) : null}
           {request.instagram_handle ? (
@@ -325,14 +324,13 @@ export function AdminClubRequestDetailPage({ embedded = false }) {
           {request.constitution_url ? (
             <p>
               <strong>Constitution:</strong>{" "}
-              <a
+              <SafeExternalLink
                 className="text-link"
                 href={request.constitution_url}
-                target="_blank"
-                rel="noreferrer"
+                fallback={<span className="muted">Unsafe link omitted</span>}
               >
                 Open link
-              </a>
+              </SafeExternalLink>
             </p>
           ) : null}
           {request.review_notes ? (

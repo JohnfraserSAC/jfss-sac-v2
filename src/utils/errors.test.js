@@ -35,10 +35,13 @@ describe("getErrorMessage", () => {
 
   it("hides Vercel NOT_FOUND page text", () => {
     expect(
-      getErrorMessage({
-        message: "The page could not be found NOT_FOUND iad1::abc",
-        status: 404,
-      }),
+      getErrorMessage({ message: "The page could not be found NOT_FOUND iad1::abc", status: 404 }),
     ).toMatch(/reach the API/i);
+  });
+
+  it("maps mutation rate-limit errors to a wait message", () => {
+    expect(
+      getErrorMessage("Too many submissions. Please wait and try again."),
+    ).toMatch(/wait and try again/i);
   });
 });

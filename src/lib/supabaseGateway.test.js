@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AUTH_SESSION_BROWSER_PATH } from "./supabaseAuthProxy.js";
 import {
+  isAllowedUpstreamGatewayPath,
   rewriteBrowserGatewayUrl,
   resolveIncomingGatewayUrl,
   toUpstreamGatewayUrl,
@@ -80,5 +81,17 @@ describe("supabaseGateway", () => {
         ),
       ),
     ).toBe("https://nvpxsuafdcrobnackhnd.supabase.co/rest/v1/profiles?select=id");
+  });
+
+  it("allows REST, Auth, and Storage and blocks admin/functions/realtime", () => {
+    expect(isAllowedUpstreamGatewayPath("/rest/v1/profiles")).toBe(true);
+    expect(isAllowedUpstreamGatewayPath("/auth/v1/user")).toBe(true);
+    expect(isAllowedUpstreamGatewayPath("/storage/v1/object/sign/x")).toBe(true);
+    expect(isAllowedUpstreamGatewayPath("/auth/v1/admin/users")).toBe(false);
+    expect(isAllowedUpstreamGatewayPath("/functions/v1/secret")).toBe(false);
+    expect(isAllowedUpstreamGatewayPath("/realtime/v1/websocket")).toBe(false);
+    expect(isAllowedUpstreamGatewayPath("/rest/v1/%2e%2e/auth/v1/admin")).toBe(
+      false,
+    );
   });
 });

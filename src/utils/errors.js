@@ -111,6 +111,10 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
     }
   }
 
+  if (lower.includes("too many submissions")) {
+    return "Too many submissions. Please wait and try again.";
+  }
+
   if (lower.includes("failed to fetch") || lower.includes("network")) {
     return "Network error. Check your connection and try again.";
   }
@@ -119,5 +123,7 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
 }
 
 export function logServiceError(context, error) {
-  console.error(`[${context}]`, error);
+  if (import.meta.env.DEV) {
+    console.error(`[${context}]`, error);
+  }
 }

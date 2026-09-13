@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AUTH_SESSION_BROWSER_PATH,
+  isAllowedAuthGrant,
   rewriteBrowserAuthTokenUrl,
   toUpstreamAuthTokenPath,
   toUpstreamAuthTokenUrl,
@@ -41,5 +42,12 @@ describe("supabaseAuthProxy", () => {
     ).toBe(
       "https://nvpxsuafdcrobnackhnd.supabase.co/auth/v1/token?grant_type=id_token",
     );
+  });
+
+  it("allows Google ID-token and refresh grants only", () => {
+    expect(isAllowedAuthGrant("id_token")).toBe(true);
+    expect(isAllowedAuthGrant("refresh_token")).toBe(true);
+    expect(isAllowedAuthGrant("password")).toBe(false);
+    expect(isAllowedAuthGrant("pkce")).toBe(false);
   });
 });

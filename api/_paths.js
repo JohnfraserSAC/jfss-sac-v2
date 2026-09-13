@@ -17,6 +17,63 @@ export const GRANT_CODE_TYPES = Object.fromEntries(
   Object.entries(GRANT_TYPE_CODES).map(([grantType, code]) => [code, grantType]),
 );
 
+export const ALLOWED_AUTH_GRANT_TYPES = new Set(["id_token", "refresh_token"]);
+
+export function isAllowedAuthGrant(grantType) {
+  return ALLOWED_AUTH_GRANT_TYPES.has(String(grantType || ""));
+}
+
+function fullyDecodePathname(pathname) {
+  let current = String(pathname || "");
+  for (let i = 0; i < 3; i += 1) {
+    try {
+      const next = decodeURIComponent(current);
+      if (next === current) break;
+      current = next;
+    } catch {
+      return null;
+    }
+  }
+  return current;
+}
+
+function isBlockedUpstreamPath(pathname) {
+  return (
+    pathname === "/functions" ||
+    pathname.startsWith("/functions/") ||
+    pathname === "/realtime" ||
+    pathname.startsWith("/realtime/") ||
+    pathname === "/graphql" ||
+    pathname.startsWith("/graphql/") ||
+    pathname === "/auth/v1/admin" ||
+    pathname.startsWith("/auth/v1/admin/")
+  );
+}
+
+export function isAllowedUpstreamGatewayPath(pathname) {
+  const decoded = fullyDecodePathname(pathname);
+  if (!decoded) return false;
+
+  const path = decoded.replace(/\\/g, "/").replace(/\/+/g, "/");
+  if (!path.startsWith("/") || path.includes("..")) {
+    return false;
+  }
+
+  const lower = path.toLowerCase();
+  if (isBlockedUpstreamPath(lower)) {
+    return false;
+  }
+
+  return (
+    lower === "/rest/v1" ||
+    lower.startsWith("/rest/v1/") ||
+    lower === "/auth/v1" ||
+    lower.startsWith("/auth/v1/") ||
+    lower === "/storage/v1" ||
+    lower.startsWith("/storage/v1/")
+  );
+}
+
 const SERVICE_TO_ALIAS = {
   rest: "q",
   auth: "a",

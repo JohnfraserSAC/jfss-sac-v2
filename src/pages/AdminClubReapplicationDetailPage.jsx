@@ -16,6 +16,7 @@ import {
 } from "../services/clubReapplications";
 import { formatDate } from "../utils/format";
 import { getErrorMessage } from "../utils/errors";
+import { SafeExternalLink } from "../components/ui/SafeExternalLink";
 
 export function AdminClubReapplicationDetailPage({ embedded = false }) {
   const { requestId } = useParams();
@@ -216,14 +217,13 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
             <div>
               <dt>Member application</dt>
               <dd>
-                <a
+                <SafeExternalLink
                   className="text-link"
                   href={request.member_application_url}
-                  target="_blank"
-                  rel="noreferrer"
+                  fallback={<span className="muted">Unsafe link omitted</span>}
                 >
                   Open link
-                </a>
+                </SafeExternalLink>
               </dd>
             </div>
           ) : null}
@@ -231,14 +231,13 @@ export function AdminClubReapplicationDetailPage({ embedded = false }) {
             <div>
               <dt>Executive application</dt>
               <dd>
-                <a
+                <SafeExternalLink
                   className="text-link"
                   href={request.exec_application_url}
-                  target="_blank"
-                  rel="noreferrer"
+                  fallback={<span className="muted">Unsafe link omitted</span>}
                 >
                   Open link
-                </a>
+                </SafeExternalLink>
               </dd>
             </div>
           ) : null}

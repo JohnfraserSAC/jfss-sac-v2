@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export const CLUB_EVENT_PHOTOS_BUCKET = "club-event-photos";
@@ -82,6 +83,8 @@ export async function uploadClubEventPhoto({ userId, requestId, file }) {
   if (!userId || !requestId || !file) {
     throw new Error("Missing event photo destination.");
   }
+
+  await assertFileMatchesDeclaredType(file, CLUB_EVENT_PHOTO_ALLOWED_TYPES);
 
   const path = buildClubEventPhotoPath({ userId, requestId, file });
   const { error } = await supabase.storage

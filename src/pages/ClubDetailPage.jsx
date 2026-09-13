@@ -5,6 +5,7 @@ import { ClubRoleBadge } from "../components/clubs/ClubRoleBadge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { SafeExternalLink } from "../components/ui/SafeExternalLink";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { getClubBySlug } from "../services/clubs";
 import { getApprovedClubPromoLunchConfirmation } from "../services/clubPromoLunch";
@@ -13,6 +14,7 @@ import { isClubOwner } from "../utils/clubPermissions";
 import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
 import { getErrorMessage } from "../utils/errors";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
+import { safeExternalHref } from "../utils/urls";
 
 export function ClubDetailPage() {
   const { slug } = useParams();
@@ -109,8 +111,10 @@ export function ClubDetailPage() {
   const meetingSchedule = getVisibleMeetingSchedule(club.meeting_schedule);
   const showStatus = isAdmin || club.status !== "APPROVED";
   const canManage = isAdmin || isClubOwner(membership?.role);
-  const bannerUrl = toSameOriginSupabaseUrl(club.banner_url);
-  const logoUrl = toSameOriginSupabaseUrl(club.logo_url);
+  const bannerUrl = safeExternalHref(toSameOriginSupabaseUrl(club.banner_url));
+  const logoUrl = safeExternalHref(toSameOriginSupabaseUrl(club.logo_url));
+  const memberApplyHref = safeExternalHref(club.member_application_url);
+  const execApplyHref = safeExternalHref(club.exec_application_url);
 
   return (
     <div className="page">
@@ -141,36 +145,30 @@ export function ClubDetailPage() {
               {membership ? <ClubRoleBadge role={membership.role} /> : null}
             </div>
             </div>
-            {promoLunchConfirmed ||
-            club.member_application_url ||
-            club.exec_application_url ? (
+            {promoLunchConfirmed || memberApplyHref || execApplyHref ? (
               <div className="club-hero__actions">
                 {promoLunchConfirmed ? (
                   <p className="club-promo-confirmation">
                     Confirmed for Club Promo Lunch
                   </p>
                 ) : null}
-                {club.member_application_url || club.exec_application_url ? (
+                {memberApplyHref || execApplyHref ? (
                   <div className="club-hero__applications">
-                    {club.member_application_url ? (
-                      <a
+                    {memberApplyHref ? (
+                      <SafeExternalLink
                         className="button button--primary"
-                        href={club.member_application_url}
-                        target="_blank"
-                        rel="noreferrer"
+                        href={memberApplyHref}
                       >
                         Member Apply
-                      </a>
+                      </SafeExternalLink>
                     ) : null}
-                    {club.exec_application_url ? (
-                      <a
+                    {execApplyHref ? (
+                      <SafeExternalLink
                         className="button button--secondary"
-                        href={club.exec_application_url}
-                        target="_blank"
-                        rel="noreferrer"
+                        href={execApplyHref}
                       >
                         Exec Apply
-                      </a>
+                      </SafeExternalLink>
                     ) : null}
                   </div>
                 ) : null}

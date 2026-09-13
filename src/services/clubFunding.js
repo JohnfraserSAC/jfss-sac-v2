@@ -5,6 +5,7 @@ import {
   normalizeFundingRows,
 } from "../utils/clubFunding";
 import { getErrorMessage, logServiceError } from "../utils/errors";
+import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export const CLUB_FUNDING_SIGNATURES_BUCKET = "club-funding-signatures";
@@ -70,6 +71,8 @@ export async function uploadFundingSignature({
   if (!userId || !requestId || !kind) {
     throw new Error("Missing funding signature destination.");
   }
+
+  await assertFileMatchesDeclaredType(file, FUNDING_SIGNATURE_ALLOWED_TYPES);
 
   const path = buildFundingSignaturePath({ userId, requestId, kind, file });
   const { error } = await supabase.storage
