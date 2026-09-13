@@ -68,7 +68,7 @@ const execTeam = [
     role: "Technology Liaison",
     grade: "Grade 12",
     initials: "JC",
-    color: "#1a7a5e",
+    color: "#22896c",
     photo: null,
   },
   {
