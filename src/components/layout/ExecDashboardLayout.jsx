@@ -34,13 +34,6 @@ const PRIMARY_TABS = [
     visible: ({ isSacAdmin, isSacExec }) => isSacAdmin || isSacExec,
   },
   {
-    id: "clubs",
-    to: "/exec-dashboard/clubs",
-    label: "Clubs",
-    matchPrefix: "/exec-dashboard/clubs",
-    visible: ({ isSacAdmin }) => isSacAdmin,
-  },
-  {
     id: "archived",
     to: "/exec-dashboard/archived/clubs",
     label: "Archived",

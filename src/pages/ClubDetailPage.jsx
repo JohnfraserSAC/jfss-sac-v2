@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ArchiveClubDialog } from "../components/clubs/ArchiveClubDialog";
 import { ClubRoleBadge } from "../components/clubs/ClubRoleBadge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
@@ -10,25 +9,19 @@ import { StatusBadge } from "../components/ui/StatusBadge";
 import { getClubBySlug } from "../services/clubs";
 import { getApprovedClubPromoLunchConfirmation } from "../services/clubPromoLunch";
 import { getMyMembershipForClub } from "../services/memberships";
-import {
-  canArchiveOwnedClub,
-  isClubOwner,
-} from "../utils/clubPermissions";
-import { archiveSuccessNotice } from "../utils/clubOrigin";
+import { isClubOwner } from "../utils/clubPermissions";
 import { getVisibleMeetingSchedule } from "../utils/clubSchedule";
 import { getErrorMessage } from "../utils/errors";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export function ClubDetailPage() {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin } = useAuth();
   const [club, setClub] = useState(null);
   const [promoLunchConfirmed, setPromoLunchConfirmed] = useState(false);
   const [membership, setMembership] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [archiveOpen, setArchiveOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -116,12 +109,6 @@ export function ClubDetailPage() {
   const meetingSchedule = getVisibleMeetingSchedule(club.meeting_schedule);
   const showStatus = isAdmin || club.status !== "APPROVED";
   const canManage = isAdmin || isClubOwner(membership?.role);
-  const canArchive = canArchiveOwnedClub({
-    clubRole: membership?.role,
-    membershipStatus: membership?.status,
-    clubStatus: club.status,
-    isSacAdmin: isAdmin,
-  });
   const bannerUrl = toSameOriginSupabaseUrl(club.banner_url);
   const logoUrl = toSameOriginSupabaseUrl(club.logo_url);
 
@@ -235,15 +222,6 @@ export function ClubDetailPage() {
             >
               Manage Club
             </Link>
-            {canArchive ? (
-              <button
-                type="button"
-                className="button button--danger"
-                onClick={() => setArchiveOpen(true)}
-              >
-                Archive Club
-              </button>
-            ) : null}
           </div>
         ) : null}
       </section>
@@ -251,20 +229,6 @@ export function ClubDetailPage() {
       <Link className="text-link" to="/clubs">
         Back to clubs
       </Link>
-
-      <ArchiveClubDialog
-        open={archiveOpen}
-        club={club}
-        onClose={() => setArchiveOpen(false)}
-        onSuccess={({ clubName, outcome }) => {
-          navigate(isAdmin ? "/exec-dashboard/clubs" : "/clubs/my-clubs", {
-            replace: true,
-            state: {
-              notice: archiveSuccessNotice(clubName, outcome),
-            },
-          });
-        }}
-      />
     </div>
   );
 }

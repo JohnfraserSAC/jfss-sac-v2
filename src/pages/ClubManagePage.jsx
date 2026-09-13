@@ -481,7 +481,7 @@ export function ClubManagePage() {
         club={club}
         onClose={() => setArchiveOpen(false)}
         onSuccess={({ clubName, outcome }) => {
-          navigate(isSacAdmin ? "/exec-dashboard/clubs" : "/clubs/my-clubs", {
+          navigate("/clubs", {
             replace: true,
             state: {
               notice: archiveSuccessNotice(clubName, outcome),

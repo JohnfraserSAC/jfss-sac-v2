@@ -311,17 +311,3 @@ export async function listArchivedClubs(search = "") {
 
   return data ?? [];
 }
-
-/** Site-admin inventory of every non-archived club, including clubs they do not own. */
-export async function listAdminClubs(search = "") {
-  const { data, error } = await supabase.rpc("list_admin_clubs", {
-    p_search: search.trim() || null,
-  });
-
-  if (error) {
-    logServiceError("listAdminClubs", error);
-    throw new Error(getErrorMessage(error, "Could not load clubs."));
-  }
-
-  return data ?? [];
-}
