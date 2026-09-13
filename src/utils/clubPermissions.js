@@ -59,19 +59,25 @@ export function canSubmitClubRequestForms({
   return annualStatus === "ACTIVE" || annualStatus === "PENDING_SUPERVISOR";
 }
 
-/** Active OWNER may archive a club (never permanently delete). */
+/** Active OWNER or site admin may archive a club (never permanently delete). */
 export function canArchiveOwnedClub({
   clubRole,
   membershipStatus,
   annualStatus,
+  isSacAdmin = false,
 }) {
-  if (!isClubOwner(clubRole) || membershipStatus !== "ACTIVE") {
+  if (
+    annualStatus !== "ACTIVE" &&
+    annualStatus !== "PENDING_SUPERVISOR"
+  ) {
     return false;
   }
 
-  return (
-    annualStatus === "ACTIVE" || annualStatus === "PENDING_SUPERVISOR"
-  );
+  if (isSacAdmin) {
+    return true;
+  }
+
+  return isClubOwner(clubRole) && membershipStatus === "ACTIVE";
 }
 
 export function isClubExec(role) {

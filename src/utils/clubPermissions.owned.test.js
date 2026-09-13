@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canArchiveOwnedClub,
   canSubmitClubRequestForms,
   getOwnedApprovedClubs,
 } from "./clubPermissions.js";
@@ -66,6 +67,72 @@ describe("canSubmitClubRequestForms", () => {
       canSubmitClubRequestForms({
         clubRole: "OWNER",
         membershipStatus: "ACTIVE",
+        annualStatus: "INACTIVE",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("canArchiveOwnedClub", () => {
+  it("allows active owners of ACTIVE or pending-supervisor clubs", () => {
+    expect(
+      canArchiveOwnedClub({
+        clubRole: "OWNER",
+        membershipStatus: "ACTIVE",
+        annualStatus: "ACTIVE",
+      }),
+    ).toBe(true);
+    expect(
+      canArchiveOwnedClub({
+        clubRole: "OWNER",
+        membershipStatus: "ACTIVE",
+        annualStatus: "PENDING_SUPERVISOR",
+      }),
+    ).toBe(true);
+  });
+
+  it("blocks executives, inactive memberships, and inactive annual clubs", () => {
+    expect(
+      canArchiveOwnedClub({
+        clubRole: "EXEC",
+        membershipStatus: "ACTIVE",
+        annualStatus: "ACTIVE",
+      }),
+    ).toBe(false);
+    expect(
+      canArchiveOwnedClub({
+        clubRole: "OWNER",
+        membershipStatus: "INACTIVE",
+        annualStatus: "ACTIVE",
+      }),
+    ).toBe(false);
+    expect(
+      canArchiveOwnedClub({
+        clubRole: "OWNER",
+        membershipStatus: "ACTIVE",
+        annualStatus: "INACTIVE",
+      }),
+    ).toBe(false);
+  });
+
+  it("allows site admins to archive without a club membership", () => {
+    expect(
+      canArchiveOwnedClub({
+        isSacAdmin: true,
+        annualStatus: "ACTIVE",
+      }),
+    ).toBe(true);
+    expect(
+      canArchiveOwnedClub({
+        isSacAdmin: true,
+        clubRole: "MEMBER",
+        membershipStatus: "ACTIVE",
+        annualStatus: "PENDING_SUPERVISOR",
+      }),
+    ).toBe(true);
+    expect(
+      canArchiveOwnedClub({
+        isSacAdmin: true,
         annualStatus: "INACTIVE",
       }),
     ).toBe(false);

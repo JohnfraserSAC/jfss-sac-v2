@@ -206,6 +206,7 @@ export function ClubManagePage() {
     clubRole: membership?.role,
     membershipStatus: membership?.status,
     annualStatus: annual?.status,
+    isSacAdmin,
   });
   const canOwnerWithdrawPending =
     isPendingSupervisor &&

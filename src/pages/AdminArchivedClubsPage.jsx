@@ -73,7 +73,7 @@ export function AdminArchivedClubsPage({ embedded = false }) {
 
       {rows.length === 0 ? (
         <EmptyState title="No archived clubs">
-          Owner-archived clubs appear here with their history preserved.
+          Archived clubs appear here with their history preserved.
         </EmptyState>
       ) : (
         <div className="announcement-grid">

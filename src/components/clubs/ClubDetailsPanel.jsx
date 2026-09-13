@@ -437,7 +437,7 @@ export function ClubDetailsPanel({
         </section>
       ) : null}
 
-      {canArchive ? (
+      {canArchive && !isArchived ? (
         <section
           className="panel danger-zone"
           aria-labelledby="owner-archive-title"

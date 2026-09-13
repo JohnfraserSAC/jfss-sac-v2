@@ -279,8 +279,8 @@ export async function updateOwnedClubProfile(clubId, values) {
 }
 
 /**
- * Owner archive via secure RPC. Archived clubs remain available for
- * re-registration.
+ * Owner or site-admin archive via secure RPC. Archived clubs remain
+ * available for re-registration.
  */
 export async function archiveOwnedClub(clubId) {
   const { data, error } = await supabase.rpc("archive_owned_club", {
