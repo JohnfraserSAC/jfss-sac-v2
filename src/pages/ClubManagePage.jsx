@@ -206,6 +206,7 @@ export function ClubManagePage() {
     clubRole: membership?.role,
     membershipStatus: membership?.status,
     annualStatus: annual?.status,
+    clubStatus: club?.status,
     isSacAdmin,
   });
   const canOwnerWithdrawPending =
@@ -480,7 +481,7 @@ export function ClubManagePage() {
         club={club}
         onClose={() => setArchiveOpen(false)}
         onSuccess={({ clubName, outcome }) => {
-          navigate("/clubs/my-clubs", {
+          navigate(isSacAdmin ? "/exec-dashboard/clubs" : "/clubs/my-clubs", {
             replace: true,
             state: {
               notice: archiveSuccessNotice(clubName, outcome),

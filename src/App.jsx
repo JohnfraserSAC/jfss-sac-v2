@@ -39,6 +39,7 @@ import { AdminClubRequestDetailPage } from "./pages/AdminClubRequestDetailPage";
 import { AdminClubReapplicationsPage } from "./pages/AdminClubReapplicationsPage";
 import { AdminClubReapplicationDetailPage } from "./pages/AdminClubReapplicationDetailPage";
 import { AdminArchivedClubsPage } from "./pages/AdminArchivedClubsPage";
+import { AdminClubsPage } from "./pages/AdminClubsPage";
 import { AdminArchivedAnnouncementsPage } from "./pages/AdminArchivedAnnouncementsPage";
 import { AdminSupervisorRequestsPage } from "./pages/AdminSupervisorRequestsPage";
 import { AdminClubSupervisorRequestsDetailPage } from "./pages/AdminClubSupervisorRequestsDetailPage";
@@ -292,6 +293,11 @@ export default function App() {
                 element={<AdminSchoolDayPage embedded />}
               />
 
+              <Route
+                path="clubs"
+                element={<AdminClubsPage embedded />}
+              />
+
               <Route path="archived" element={<ExecArchivedLayout />}>
                 <Route index element={<ExecArchivedIndexRedirect />} />
                 <Route
@@ -312,12 +318,6 @@ export default function App() {
                     to="/exec-dashboard/requests/announcements"
                     replace
                   />
-                }
-              />
-              <Route
-                path="clubs"
-                element={
-                  <Navigate to="/exec-dashboard/applications/new" replace />
                 }
               />
               <Route

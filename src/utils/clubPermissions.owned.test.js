@@ -115,7 +115,7 @@ describe("canArchiveOwnedClub", () => {
     ).toBe(false);
   });
 
-  it("allows site admins to archive without a club membership", () => {
+  it("allows site admins to archive any club they do not own", () => {
     expect(
       canArchiveOwnedClub({
         isSacAdmin: true,
@@ -133,6 +133,24 @@ describe("canArchiveOwnedClub", () => {
     expect(
       canArchiveOwnedClub({
         isSacAdmin: true,
+        annualStatus: "INACTIVE",
+      }),
+    ).toBe(true);
+    expect(
+      canArchiveOwnedClub({
+        isSacAdmin: true,
+        annualStatus: "SUSPENDED",
+      }),
+    ).toBe(true);
+    expect(
+      canArchiveOwnedClub({
+        isSacAdmin: true,
+      }),
+    ).toBe(true);
+    expect(
+      canArchiveOwnedClub({
+        isSacAdmin: true,
+        clubStatus: "ARCHIVED",
         annualStatus: "INACTIVE",
       }),
     ).toBe(false);

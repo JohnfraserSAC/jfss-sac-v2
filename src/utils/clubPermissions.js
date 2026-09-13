@@ -64,12 +64,10 @@ export function canArchiveOwnedClub({
   clubRole,
   membershipStatus,
   annualStatus,
+  clubStatus,
   isSacAdmin = false,
 }) {
-  if (
-    annualStatus !== "ACTIVE" &&
-    annualStatus !== "PENDING_SUPERVISOR"
-  ) {
+  if (clubStatus === "ARCHIVED") {
     return false;
   }
 
@@ -77,7 +75,11 @@ export function canArchiveOwnedClub({
     return true;
   }
 
-  return isClubOwner(clubRole) && membershipStatus === "ACTIVE";
+  if (!isClubOwner(clubRole) || membershipStatus !== "ACTIVE") {
+    return false;
+  }
+
+  return annualStatus === "ACTIVE" || annualStatus === "PENDING_SUPERVISOR";
 }
 
 export function isClubExec(role) {
