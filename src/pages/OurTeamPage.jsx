@@ -49,7 +49,7 @@ const execTeam = [
   },
   {
     name: "Rasleen Kaur",
-    role: "Clubs Liaison",
+    role: "Clubs Liason",
     grade: "Grade 12",
     initials: "RK",
     color: "#2f4b9e",
@@ -57,7 +57,7 @@ const execTeam = [
   },
   {
     name: "Harshad Mahajan",
-    role: "Technology Liaison",
+    role: "Technology Liason",
     grade: "Grade 12",
     initials: "HM",
     color: "#5c2d82",
@@ -65,10 +65,10 @@ const execTeam = [
   },
   {
     name: "Jason Chou",
-    role: "Technology Liaison",
+    role: "Technology Liason",
     grade: "Grade 12",
     initials: "JC",
-    color: "#22896c",
+    color: "#1a7a5e",
     photo: null,
   },
   {
@@ -89,7 +89,7 @@ const execTeam = [
   },
   {
     name: "Yasmine Avery D'Elia",
-    role: "Atheletics Liaison",
+    role: "Atheletics Liason",
     grade: "Grade 12",
     initials: "YD",
     color: "#b5651d",
@@ -97,7 +97,7 @@ const execTeam = [
   },
   {
     name: "Arhum Saleem",
-    role: "Arts Liaison",
+    role: "Arts Liason",
     grade: "Grade 11",
     initials: "AS",
     color: "#2f4b9e",
