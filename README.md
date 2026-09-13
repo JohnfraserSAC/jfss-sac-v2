@@ -2,10 +2,7 @@
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-JSX-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![React Router](https://img.shields.io/badge/React_Router-7-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white)
-![Supabase Auth](https://img.shields.io/badge/Supabase-Authentication-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Supabase Storage](https://img.shields.io/badge/Supabase-Storage-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Supabase RPC](https://img.shields.io/badge/Supabase-RPC_Functions-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Row Level Security](https://img.shields.io/badge/PostgreSQL-Row_Level_Security-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 # JFSS SAC Portal
 

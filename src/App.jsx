@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./context/AuthContext";
 import { AuthRedirectProvider } from "./context/AuthRedirectContext";
 import { AppShell } from "./components/layout/AppShell";
@@ -407,6 +408,7 @@ export default function App() {
           </Route>
           </Routes>
           </AuthRedirectProvider>
+          <Analytics />
         </BrowserRouter>
       </AuthProvider>
     </AppProviders>
