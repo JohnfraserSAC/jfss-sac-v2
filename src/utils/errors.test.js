@@ -18,6 +18,14 @@ describe("getErrorMessage", () => {
     );
   });
 
+  it("maps a blocking re-application unique constraint to a progress message", () => {
+    expect(
+      getErrorMessage(
+        'duplicate key value violates unique constraint "club_reapp_v2_blocking_club_year_uidx"',
+      ),
+    ).toBe("A re-application for this club is already in progress.");
+  });
+
   it("asks signed-out users to sign in instead of showing a permission warning", () => {
     expect(getErrorMessage("permission denied for table profiles")).toBe(
       "Sign in to see this.",

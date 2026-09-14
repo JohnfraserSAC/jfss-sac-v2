@@ -55,6 +55,12 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
     ) {
       return "This student is already a member of this club.";
     }
+    if (
+      lower.includes("club_reapp") ||
+      lower.includes("club_reapplication")
+    ) {
+      return "A re-application for this club is already in progress.";
+    }
     if (lower.includes("slug") || lower.includes("clubs_slug")) {
       return "That club slug is already taken. Choose a different slug.";
     }
@@ -62,6 +68,10 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
       return CLUB_NAME_TAKEN_MESSAGE;
     }
     return "That value is already in use. Please choose another.";
+  }
+
+  if (lower.includes("a re-application for this club is already in progress")) {
+    return "A re-application for this club is already in progress.";
   }
 
   if (lower.includes("a club with that name already exists")) {

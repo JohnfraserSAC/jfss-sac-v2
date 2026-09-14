@@ -161,7 +161,16 @@ export function MyClubReapplicationsPage() {
             ) : null}
             {request.status === "REJECTED" || request.status === "WITHDRAWN" ? (
               <p className="request-card__new-action">
-                <Link to="/clubs/reapply">Create a new re-application</Link>.
+                <Link
+                  to={
+                    request.club_id
+                      ? `/clubs/reapply?club=${encodeURIComponent(request.club_id)}`
+                      : "/clubs/reapply"
+                  }
+                >
+                  Re-apply for this club
+                </Link>
+                . A rejected or withdrawn re-application can be submitted again.
               </p>
             ) : null}
             {canWithdraw ? (

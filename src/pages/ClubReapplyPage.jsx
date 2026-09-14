@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ClubApplyNotice } from "../components/clubs/ClubApplyNotice";
 import { ClubLogoUpload } from "../components/clubs/ClubLogoUpload";
@@ -53,6 +53,12 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
+function isClubIdParam(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    String(value || ""),
+  );
+}
+
 /** Backend still stores short_description separately — derive from the one field. */
 function deriveShortDescription(description) {
   const text = String(description || "")
@@ -64,12 +70,17 @@ function deriveShortDescription(description) {
 
 export function ClubReapplyPage() {
   const { user, profile } = useAuth();
+  const [searchParams] = useSearchParams();
   const listboxId = useId();
   const comboboxRef = useRef(null);
+  const appliedPresetClubRef = useRef(false);
+  const presetClubId = isClubIdParam(searchParams.get("club"))
+    ? searchParams.get("club")
+    : "";
 
   const [search, setSearch] = useState("");
   const [options, setOptions] = useState([]);
-  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsLoading, setOptionsLoading] = useState(true);
   const [listOpen, setListOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedClub, setSelectedClub] = useState(null);
@@ -158,6 +169,26 @@ export function ClubReapplyPage() {
       description: undefined,
     }));
   }
+
+  useEffect(() => {
+    if (!presetClubId || appliedPresetClubRef.current || optionsLoading) {
+      return;
+    }
+
+    const match = options.find((club) => club.id === presetClubId);
+    if (match) {
+      appliedPresetClubRef.current = true;
+      selectClub(match);
+      return;
+    }
+
+    if (error) {
+      return;
+    }
+
+    appliedPresetClubRef.current = true;
+    setError("This club is not currently available for re-application.");
+  }, [presetClubId, options, optionsLoading, error]);
 
   function clearClub() {
     setSelectedClub(null);
