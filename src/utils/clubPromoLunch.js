@@ -1,11 +1,21 @@
+export const PROMO_LUNCH_DEADLINE_TEXT = "October 1, 2026";
+
 export const PROMO_LUNCH_DAYS = [
-  { value: "OCTOBER_1", label: "October 1st" },
-  { value: "OCTOBER_2", label: "October 2nd" },
+  { value: "OCTOBER_6", label: "October 6th" },
+  { value: "OCTOBER_7", label: "October 7th" },
   { value: "BOTH", label: "Both" },
 ];
 
+const PROMO_LUNCH_DAY_LABELS = {
+  OCTOBER_6: "October 6th",
+  OCTOBER_7: "October 7th",
+  BOTH: "Both",
+  OCTOBER_1: "October 6th",
+  OCTOBER_2: "October 7th",
+};
+
 export function getPromoLunchDaysLabel(value) {
-  return PROMO_LUNCH_DAYS.find((day) => day.value === value)?.label || value || "—";
+  return PROMO_LUNCH_DAY_LABELS[value] || value || "—";
 }
 
 export function validateClubPromoLunchForm(values) {

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   getPromoLunchDaysLabel,
   PROMO_LUNCH_DAYS,
+  PROMO_LUNCH_DEADLINE_TEXT,
   validateClubPromoLunchForm,
 } from "../../utils/clubPromoLunch";
 import {
@@ -87,7 +88,7 @@ export function ClubPromoLunchForm({ club, canSubmit = true }) {
     <form className="stack" onSubmit={handleSubmit} noValidate>
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       <div className="alert alert--warning" role="status">
-        Club Promo Lunch sign-ups are due September 27, 2026.
+        Club Promo Lunch sign-ups are due {PROMO_LUNCH_DEADLINE_TEXT}.
       </div>
       <section className="panel form-stack">
         <TextInput
