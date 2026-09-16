@@ -175,6 +175,10 @@ export function AdminClubEventDetailPage({ embedded = false }) {
             <dt>SAC/school materials</dt>
             <dd>{request.requested_materials}</dd>
           </div>
+          <div>
+            <dt>Charitable event</dt>
+            <dd>{request.is_charitable_event ? "Yes" : "No"}</dd>
+          </div>
         </dl>
 
         {photoUrl ? (

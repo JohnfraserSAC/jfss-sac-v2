@@ -117,6 +117,10 @@ export function MyEventRequestsPage() {
                   </dd>
                 </div>
                 <div>
+                  <dt>Charitable event</dt>
+                  <dd>{request.is_charitable_event ? "Yes" : "No"}</dd>
+                </div>
+                <div>
                   <dt>Updated</dt>
                   <dd>{formatDate(request.updated_at)}</dd>
                 </div>

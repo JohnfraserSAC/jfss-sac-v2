@@ -7,6 +7,7 @@ export function validateClubEventForm(values) {
   const eventStartDate = String(values.eventStartDate || "").trim();
   const eventEndDate = String(values.eventEndDate || "").trim();
   const requestedMaterials = String(values.requestedMaterials || "").trim();
+  const isCharitableEvent = Boolean(values.isCharitableEvent);
 
   if (eventName.length < 2 || eventName.length > 160) {
     errors.eventName = "Event name must be between 2 and 160 characters.";
@@ -39,6 +40,7 @@ export function validateClubEventForm(values) {
       eventStartDate,
       eventEndDate,
       requestedMaterials,
+      isCharitableEvent,
     },
   };
 }

@@ -7,6 +7,7 @@ import { LocalFilePreview } from "../ui/LocalFilePreview";
 import { Spinner } from "../ui/Spinner";
 import { TextArea } from "../ui/TextArea";
 import { TextInput } from "../ui/TextInput";
+import { FUNDING_REQUEST_FORM_URL } from "../../config/clubApplications";
 import {
   deleteFundingSignature,
   submitClubFundingRequest,
@@ -230,7 +231,10 @@ export function ClubFundingForm({
             Applications over $500.00 must be reviewed by the Principal.
             Clubs can receive up to $500; approval is not guaranteed.
           </li>
-          <li>Funding cannot be used for food or drinks.</li>
+          <li>
+            Funding cannot be used for food or beverages intended for internal
+            club use (e.g., meeting snacks).
+          </li>
           <li>Funding cannot be used for club outfits or clothing.</li>
           <li>
             Funding is exclusively for school-related purposes. Students may
@@ -338,6 +342,17 @@ export function ClubFundingForm({
 
         <section className="panel form-stack">
           <h3>Part 4: Staff Supervision &amp; Club Leader Acknowledgement</h3>
+          <p className="muted teacher-supervisor-section__link-line">
+            <a
+              className="text-link"
+              href={FUNDING_REQUEST_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open the Teacher Approval Form
+            </a>
+            {" — complete, sign, and upload the form below."}
+          </p>
           <p className="muted">
             Attach each signature together with its date of signature.
           </p>

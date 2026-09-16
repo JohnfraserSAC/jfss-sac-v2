@@ -418,8 +418,8 @@ export function ClubManagePage() {
           <section className="panel">
             <h2>Funding request</h2>
             <p className="muted">
-              Request school-related materials for your club. Food, drinks,
-              and clothing are not eligible.
+              Request school-related materials for your club. Food or
+              beverages for internal club use and clothing are not eligible.
             </p>
             <ClubFundingForm
               club={club}

@@ -16,6 +16,7 @@ describe("validateClubEventForm", () => {
 
     expect(result.isValid).toBe(true);
     expect(result.errors).toEqual({});
+    expect(result.data.isCharitableEvent).toBe(false);
   });
 
   it("requires a future-or-today date", () => {
@@ -38,5 +39,15 @@ describe("validateClubEventForm", () => {
 
     expect(result.isValid).toBe(false);
     expect(result.errors.eventEndDate).toBeDefined();
+  });
+
+  it("passes through whether the event is charitable", () => {
+    const result = validateClubEventForm({
+      ...validValues,
+      isCharitableEvent: true,
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.data.isCharitableEvent).toBe(true);
   });
 });

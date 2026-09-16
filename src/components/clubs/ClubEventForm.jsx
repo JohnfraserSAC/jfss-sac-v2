@@ -7,6 +7,7 @@ import { LocalFilePreview } from "../ui/LocalFilePreview";
 import { Spinner } from "../ui/Spinner";
 import { TextArea } from "../ui/TextArea";
 import { TextInput } from "../ui/TextInput";
+import { EVENT_APPROVAL_FORM_URL } from "../../config/clubApplications";
 import {
   deleteClubEventPhoto,
   submitClubEventRequest,
@@ -29,6 +30,7 @@ export function ClubEventForm({
   const [eventStartDate, setEventStartDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
   const [requestedMaterials, setRequestedMaterials] = useState("");
+  const [isCharitableEvent, setIsCharitableEvent] = useState(false);
   const [photo, setPhoto] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [photoError, setPhotoError] = useState("");
@@ -53,6 +55,7 @@ export function ClubEventForm({
       eventStartDate,
       eventEndDate,
       requestedMaterials,
+      isCharitableEvent,
     });
     setFieldErrors(validation.errors);
     setError("");
@@ -85,6 +88,7 @@ export function ClubEventForm({
         eventStartDate: validation.data.eventStartDate,
         eventEndDate: validation.data.eventEndDate,
         requestedMaterials: validation.data.requestedMaterials,
+        isCharitableEvent: validation.data.isCharitableEvent,
         photoStoragePath: photoPath,
       });
 
@@ -162,6 +166,17 @@ export function ClubEventForm({
       </section>
 
       <section className="panel form-stack">
+        <p className="muted teacher-supervisor-section__link-line">
+          <a
+            className="text-link"
+            href={EVENT_APPROVAL_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open the Event Approval Signature Form
+          </a>
+          {" — complete and sign this form before submitting."}
+        </p>
         <TextInput
           id={`event-club-name-${club.id}`}
           label="Name of club"
@@ -221,6 +236,17 @@ export function ClubEventForm({
           required
           disabled={fieldsDisabled}
         />
+        <label className="checkbox" htmlFor={`event-charitable-${club.id}`}>
+          <input
+            id={`event-charitable-${club.id}`}
+            type="checkbox"
+            name="is_charitable_event"
+            checked={isCharitableEvent}
+            onChange={(event) => setIsCharitableEvent(event.target.checked)}
+            disabled={fieldsDisabled}
+          />
+          Is this a charitable event?
+        </label>
         <FilePicker
           id={`event-photo-${club.id}`}
           label="Event photo"

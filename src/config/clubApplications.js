@@ -6,6 +6,12 @@ export const CLUB_APPLICATION_DEADLINE_TEXT = "September 30, 2026";
 export const TEACHER_SUPERVISOR_FORM_URL =
   "https://docs.google.com/document/d/1CY38S_PvswNe8xEwzLI_c0O7d9_RBMke0Pwo4xmx2dM/edit?tab=t.887naxm1onnx";
 
+export const EVENT_APPROVAL_FORM_URL =
+  "https://docs.google.com/document/d/1qCtEwrjB28tZBkXjeyTUjFmjRJh1V9bw0QkgbmB5D0M/edit?usp=sharing";
+
+export const FUNDING_REQUEST_FORM_URL =
+  "https://docs.google.com/document/d/1WOoaa9cQy4K13iApr7Ha2QOVJ9DpKz57l9W8SM8MUWg/edit?usp=sharing";
+
 export const CLUB_LIAISONS = [
   {
     name: "Eshaal Cheema",

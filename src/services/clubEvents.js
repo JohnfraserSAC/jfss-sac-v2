@@ -22,6 +22,7 @@ const EVENT_FIELDS = `
   event_date,
   event_end_date,
   requested_materials,
+  is_charitable_event,
   photo_storage_path,
   status,
   review_notes,
@@ -134,6 +135,7 @@ export async function submitClubEventRequest(payload) {
     p_requested_materials: payload.requestedMaterials,
     p_photo_storage_path: payload.photoStoragePath || null,
     p_school_year: payload.schoolYear || "2026-2027",
+    p_is_charitable_event: Boolean(payload.isCharitableEvent),
   });
 
   if (error) {
