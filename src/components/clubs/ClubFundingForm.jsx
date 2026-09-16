@@ -167,6 +167,15 @@ export function ClubFundingForm({
     }
   }
 
+  if (!canSubmit) {
+    return (
+      <p className="muted">
+        {blockedMessage ||
+          "Only active club owners can submit funding requests."}
+      </p>
+    );
+  }
+
   if (success) {
     return (
       <div className="alert alert--success" role="status">
@@ -182,16 +191,10 @@ export function ClubFundingForm({
     );
   }
 
-  const fieldsDisabled = submitting || !canSubmit;
+  const fieldsDisabled = submitting;
 
   return (
     <div className="stack">
-      {!canSubmit ? (
-        <p className="alert alert--warning" role="status">
-          {blockedMessage ||
-            "Only active club owners can submit funding requests."}
-        </p>
-      ) : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <section className="panel funding-guidelines" aria-labelledby="funding-guidelines-title">

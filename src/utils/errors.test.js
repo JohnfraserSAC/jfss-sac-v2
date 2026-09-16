@@ -35,6 +35,17 @@ describe("getErrorMessage", () => {
     ).toBe("Sign in to see this.");
   });
 
+  it("keeps archived and unofficial-club request blocks visible", () => {
+    expect(getErrorMessage("Archived clubs cannot submit requests")).toBe(
+      "Archived clubs cannot submit requests",
+    );
+    expect(
+      getErrorMessage(
+        "Requests are available only after the club is officially active. Current status: PENDING_SUPERVISOR",
+      ),
+    ).toMatch(/officially active/i);
+  });
+
   it("maps existing club names to a clear application error", () => {
     expect(getErrorMessage("A club with that name already exists")).toBe(
       "A club with that name already exists.",

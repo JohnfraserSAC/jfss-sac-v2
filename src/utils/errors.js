@@ -90,7 +90,9 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
 
   if (
     lower.includes("only an active club owner") ||
-    lower.includes("club details can only be edited while")
+    lower.includes("club details can only be edited while") ||
+    lower.includes("officially active") ||
+    lower.includes("archived clubs cannot")
   ) {
     return message;
   }

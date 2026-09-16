@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { getCurrentClubSchoolYear } from "./clubs";
 import { getErrorMessage, logServiceError } from "../utils/errors";
 import { validateAnnouncementForm } from "../utils/announcementPermissions";
 
@@ -272,6 +273,7 @@ export async function getArchivedAnnouncements({ search = "" } = {}) {
 }
 
 export async function getOwnedClubsForAnnouncements(userId) {
+  const schoolYear = await getCurrentClubSchoolYear();
   const { data, error } = await supabase
     .from("club_memberships")
     .select(
@@ -284,7 +286,11 @@ export async function getOwnedClubsForAnnouncements(userId) {
         name,
         slug,
         logo_url,
-        status
+        status,
+        club_school_years (
+          school_year,
+          status
+        )
       )
     `,
     )
@@ -301,14 +307,27 @@ export async function getOwnedClubsForAnnouncements(userId) {
 
   return (data ?? [])
     .map((row) => row.clubs)
-    .filter((club) => club && club.status === "APPROVED");
+    .filter(
+      (club) =>
+        club &&
+        club.status === "APPROVED" &&
+        (club.club_school_years || []).some(
+          (year) => year.school_year === schoolYear && year.status === "ACTIVE",
+        ),
+    )
+    .map((club) => ({
+      id: club.id,
+      name: club.name,
+      slug: club.slug,
+      logo_url: club.logo_url,
+      status: club.status,
+    }));
 }
 
 export async function getApprovedClubsForStaffAnnouncements() {
   const { data, error } = await supabase
-    .from("clubs")
-    .select("id, name, slug, logo_url, status")
-    .eq("status", "APPROVED")
+    .from("public_active_clubs")
+    .select("id, name, slug, logo_url, club_record_status")
     .order("name", { ascending: true });
 
   if (error) {
@@ -318,7 +337,13 @@ export async function getApprovedClubsForStaffAnnouncements() {
     );
   }
 
-  return data ?? [];
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    logo_url: row.logo_url,
+    status: row.club_record_status || "APPROVED",
+  }));
 }
 
 export async function createAnnouncement(values, action) {

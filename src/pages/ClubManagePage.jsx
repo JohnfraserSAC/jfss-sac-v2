@@ -40,6 +40,7 @@ import {
   canArchiveOwnedClub,
   canSearchStudents,
   canSubmitClubRequestForms,
+  getClubRequestBlockedMessage,
   getAddableRoles,
   isClubOwner,
 } from "../utils/clubPermissions";
@@ -219,6 +220,13 @@ export function ClubManagePage() {
     clubRole: membership?.role,
     membershipStatus: membership?.status,
     annualStatus: annual?.status,
+    clubStatus: club?.status,
+    deletedAt: club?.deleted_at,
+  });
+  const requestBlockedMessage = getClubRequestBlockedMessage({
+    clubStatus: club?.status,
+    annualStatus: annual?.status,
+    noun: "requests",
   });
 
   function handleTabChange(tab) {
@@ -303,10 +311,10 @@ export function ClubManagePage() {
               : "Pending Teacher Supervisor"}
           </strong>
           <p>
-            This club is not public in Explore. Announcements stay blocked
-            until SAC approves at least one teacher supervisor. Owners may
-            still manage members, submit supervisor information, and send
-            event and funding requests.
+            This club is not public in Explore. Funding, events, promo lunch,
+            and announcements stay blocked until SAC approves at least one
+            teacher supervisor. Owners may still manage members and submit
+            supervisor information.
           </p>
         </div>
       ) : null}
@@ -424,7 +432,7 @@ export function ClubManagePage() {
             <ClubFundingForm
               club={club}
               canSubmit={canSubmitRequests}
-              blockedMessage="Only an active owner of this club can submit a funding request."
+              blockedMessage={requestBlockedMessage}
             />
           </section>
         </div>
@@ -445,7 +453,7 @@ export function ClubManagePage() {
             <ClubEventForm
               club={club}
               canSubmit={canSubmitRequests}
-              blockedMessage="Only an active owner of this club can submit an event proposal."
+              blockedMessage={requestBlockedMessage}
             />
           </section>
         </div>
@@ -466,11 +474,8 @@ export function ClubManagePage() {
             </p>
             <ClubPromoLunchForm
               club={club}
-              canSubmit={
-                isClubOwner(membership?.role) &&
-                membership?.status === "ACTIVE" &&
-                annual?.status === "ACTIVE"
-              }
+              canSubmit={canSubmitRequests}
+              blockedMessage={requestBlockedMessage}
             />
           </section>
         </div>

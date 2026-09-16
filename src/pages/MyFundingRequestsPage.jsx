@@ -65,8 +65,7 @@ export function MyFundingRequestsPage() {
 
       {leaderClubs.length === 0 ? (
         <EmptyState title="No funding clubs yet">
-          Funding requests are available for clubs where you are an active
-          owner.
+          Funding requests are available for officially active clubs you own.
         </EmptyState>
       ) : (
         <OwnedClubRequestForm clubs={leaderClubs}>

@@ -1,4 +1,4 @@
-import { isClubOwner } from "./clubPermissions";
+import { isClubOwner, canSubmitClubRequestFormsFromMembership } from "./clubPermissions";
 
 /**
  * Subtabs for My Requests — only kinds the user can submit with their roles.
@@ -11,18 +11,15 @@ export function buildMyRequestTabs({
   const activeMemberships = (memberships || []).filter(
     (membership) => membership.status === "ACTIVE" && membership.clubs,
   );
+  const canSubmitOfficialClubRequests = activeMemberships.some((membership) =>
+    canSubmitClubRequestFormsFromMembership(membership),
+  );
   const canSubmitSupervisor = activeMemberships.some((membership) =>
     isClubOwner(membership.role),
   );
-  const canSubmitFunding = activeMemberships.some((membership) =>
-    isClubOwner(membership.role),
-  );
-  const canSubmitEvents = activeMemberships.some((membership) =>
-    isClubOwner(membership.role),
-  );
-  const canSubmitPromoLunch = activeMemberships.some((membership) =>
-    isClubOwner(membership.role),
-  );
+  const canSubmitFunding = canSubmitOfficialClubRequests;
+  const canSubmitEvents = canSubmitOfficialClubRequests;
+  const canSubmitPromoLunch = canSubmitOfficialClubRequests;
 
   return [
     {

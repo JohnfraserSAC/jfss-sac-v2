@@ -1,3 +1,5 @@
+import { CLUB_APPLICATION_SCHOOL_YEAR } from "../config/clubApplications";
+
 export const CLUB_ROLE_ORDER = {
   OWNER: 0,
   EXEC: 1,
@@ -34,29 +36,67 @@ export function isClubOwner(role) {
 /** Approved clubs the user currently owns (for event/funding/supervisor forms). */
 export function getOwnedApprovedClubs(memberships = []) {
   return (memberships || [])
-    .filter(
-      (membership) =>
-        membership.status === "ACTIVE" &&
-        isClubOwner(membership.role) &&
-        membership.clubs?.status === "APPROVED" &&
-        !membership.clubs.deleted_at,
-    )
-    .map((membership) => membership.clubs);
+    .filter((membership) => canSubmitClubRequestFormsFromMembership(membership))
+    .map((membership) => membership.clubs)
+    .filter(Boolean);
 }
 
-/** Active owners may submit event/funding forms for this year's club. */
+export function getMembershipAnnualStatus(
+  membership,
+  schoolYear = CLUB_APPLICATION_SCHOOL_YEAR,
+) {
+  const years = membership?.clubs?.club_school_years;
+  if (Array.isArray(years)) {
+    return years.find((row) => row.school_year === schoolYear)?.status ?? null;
+  }
+  return membership?.annualStatus ?? null;
+}
+
+/** Official, currently active clubs may submit event/funding/promo-lunch forms. */
 export function canSubmitClubRequestForms({
   clubRole,
   membershipStatus,
   annualStatus,
+  clubStatus,
+  deletedAt = null,
 } = {}) {
+  if (deletedAt) return false;
+  if (clubStatus && clubStatus !== "APPROVED") return false;
   if (!isClubOwner(clubRole) || membershipStatus !== "ACTIVE") {
     return false;
   }
 
-  if (!annualStatus) return true;
+  return annualStatus === "ACTIVE";
+}
 
-  return annualStatus === "ACTIVE" || annualStatus === "PENDING_SUPERVISOR";
+export function canSubmitClubRequestFormsFromMembership(membership) {
+  return canSubmitClubRequestForms({
+    clubRole: membership?.role,
+    membershipStatus: membership?.status,
+    annualStatus: getMembershipAnnualStatus(membership),
+    clubStatus: membership?.clubs?.status,
+    deletedAt: membership?.clubs?.deleted_at,
+  });
+}
+
+export function getClubRequestBlockedMessage({
+  clubStatus,
+  annualStatus,
+  noun = "requests",
+} = {}) {
+  if (clubStatus === "ARCHIVED") {
+    return `Archived clubs cannot submit ${noun}.`;
+  }
+  if (annualStatus === "PENDING_SUPERVISOR") {
+    return `This club is not officially on the site yet. ${capitalize(noun)} unlock after teacher supervisor approval.`;
+  }
+  return `Only an active owner of an officially active club can submit ${noun}.`;
+}
+
+function capitalize(value) {
+  const text = String(value || "");
+  if (!text) return text;
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 /** Active OWNER or site admin may archive a club (never permanently delete). */

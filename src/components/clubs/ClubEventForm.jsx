@@ -106,6 +106,15 @@ export function ClubEventForm({
     }
   }
 
+  if (!canSubmit) {
+    return (
+      <p className="muted">
+        {blockedMessage ||
+          "Only active club owners can submit event proposals."}
+      </p>
+    );
+  }
+
   if (success) {
     return (
       <div className="alert alert--success" role="status">
@@ -120,16 +129,10 @@ export function ClubEventForm({
     );
   }
 
-  const fieldsDisabled = submitting || !canSubmit;
+  const fieldsDisabled = submitting;
 
   return (
     <form className="stack" onSubmit={handleSubmit} noValidate>
-      {!canSubmit ? (
-        <p className="alert alert--warning" role="status">
-          {blockedMessage ||
-            "Only active club owners can submit event proposals."}
-        </p>
-      ) : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <section

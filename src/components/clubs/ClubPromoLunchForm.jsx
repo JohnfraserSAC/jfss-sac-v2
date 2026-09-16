@@ -17,7 +17,11 @@ import { Spinner } from "../ui/Spinner";
 import { TextArea } from "../ui/TextArea";
 import { TextInput } from "../ui/TextInput";
 
-export function ClubPromoLunchForm({ club, canSubmit = true }) {
+export function ClubPromoLunchForm({
+  club,
+  canSubmit = true,
+  blockedMessage,
+}) {
   const { user } = useAuth();
   const [boothDays, setBoothDays] = useState("");
   const [approvalEmailReceived, setApprovalEmailReceived] = useState(null);
@@ -67,7 +71,8 @@ export function ClubPromoLunchForm({ club, canSubmit = true }) {
   if (!canSubmit) {
     return (
       <p className="muted">
-        Only active club owners can submit this Club Promo Lunch sign-up.
+        {blockedMessage ||
+          "Only active club owners can submit this Club Promo Lunch sign-up."}
       </p>
     );
   }

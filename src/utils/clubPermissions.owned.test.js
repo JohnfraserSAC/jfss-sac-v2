@@ -2,65 +2,100 @@ import { describe, expect, it } from "vitest";
 import {
   canArchiveOwnedClub,
   canSubmitClubRequestForms,
+  getClubRequestBlockedMessage,
   getOwnedApprovedClubs,
 } from "./clubPermissions.js";
 
 describe("getOwnedApprovedClubs", () => {
-  it("returns approved clubs the user actively owns", () => {
+  it("returns officially active clubs the user owns", () => {
     const clubs = getOwnedApprovedClubs([
       {
         status: "ACTIVE",
         role: "OWNER",
-        clubs: { id: "1", name: "Chess", status: "APPROVED", deleted_at: null },
+        clubs: {
+          id: "1",
+          name: "Chess",
+          status: "APPROVED",
+          deleted_at: null,
+          club_school_years: [
+            { school_year: "2026-2027", status: "ACTIVE" },
+          ],
+        },
       },
       {
         status: "ACTIVE",
         role: "EXEC",
-        clubs: { id: "2", name: "Drama", status: "APPROVED", deleted_at: null },
+        clubs: {
+          id: "2",
+          name: "Drama",
+          status: "APPROVED",
+          deleted_at: null,
+          club_school_years: [
+            { school_year: "2026-2027", status: "ACTIVE" },
+          ],
+        },
       },
       {
         status: "ACTIVE",
         role: "OWNER",
-        clubs: { id: "3", name: "Old", status: "ARCHIVED", deleted_at: null },
+        clubs: {
+          id: "3",
+          name: "Old",
+          status: "ARCHIVED",
+          deleted_at: null,
+          club_school_years: [
+            { school_year: "2026-2027", status: "INACTIVE" },
+          ],
+        },
+      },
+      {
+        status: "ACTIVE",
+        role: "OWNER",
+        clubs: {
+          id: "4",
+          name: "Pending",
+          status: "APPROVED",
+          deleted_at: null,
+          club_school_years: [
+            { school_year: "2026-2027", status: "PENDING_SUPERVISOR" },
+          ],
+        },
       },
     ]);
 
     expect(clubs).toEqual([
-      { id: "1", name: "Chess", status: "APPROVED", deleted_at: null },
+      expect.objectContaining({ id: "1", name: "Chess" }),
     ]);
   });
 });
 
 describe("canSubmitClubRequestForms", () => {
-  it("allows active owners of ACTIVE or pending-supervisor clubs", () => {
+  it("allows active owners of officially active clubs", () => {
     expect(
       canSubmitClubRequestForms({
         clubRole: "OWNER",
         membershipStatus: "ACTIVE",
         annualStatus: "ACTIVE",
+        clubStatus: "APPROVED",
       }),
     ).toBe(true);
+  });
+
+  it("blocks pending-supervisor, archived, and inactive clubs", () => {
     expect(
       canSubmitClubRequestForms({
         clubRole: "OWNER",
         membershipStatus: "ACTIVE",
         annualStatus: "PENDING_SUPERVISOR",
+        clubStatus: "APPROVED",
       }),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       canSubmitClubRequestForms({
         clubRole: "OWNER",
         membershipStatus: "ACTIVE",
-      }),
-    ).toBe(true);
-  });
-
-  it("blocks executives and inactive annual clubs", () => {
-    expect(
-      canSubmitClubRequestForms({
-        clubRole: "EXEC",
-        membershipStatus: "ACTIVE",
         annualStatus: "ACTIVE",
+        clubStatus: "ARCHIVED",
       }),
     ).toBe(false);
     expect(
@@ -68,8 +103,42 @@ describe("canSubmitClubRequestForms", () => {
         clubRole: "OWNER",
         membershipStatus: "ACTIVE",
         annualStatus: "INACTIVE",
+        clubStatus: "APPROVED",
       }),
     ).toBe(false);
+    expect(
+      canSubmitClubRequestForms({
+        clubRole: "OWNER",
+        membershipStatus: "ACTIVE",
+      }),
+    ).toBe(false);
+  });
+
+  it("blocks executives", () => {
+    expect(
+      canSubmitClubRequestForms({
+        clubRole: "EXEC",
+        membershipStatus: "ACTIVE",
+        annualStatus: "ACTIVE",
+        clubStatus: "APPROVED",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("getClubRequestBlockedMessage", () => {
+  it("explains archived and pending-supervisor clubs", () => {
+    expect(
+      getClubRequestBlockedMessage({ clubStatus: "ARCHIVED", noun: "requests" }),
+    ).toBe("Archived clubs cannot submit requests.");
+    expect(
+      getClubRequestBlockedMessage({
+        annualStatus: "PENDING_SUPERVISOR",
+        noun: "announcements",
+      }),
+    ).toBe(
+      "This club is not officially on the site yet. Announcements unlock after teacher supervisor approval.",
+    );
   });
 });
 

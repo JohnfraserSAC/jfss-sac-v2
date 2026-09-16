@@ -6,7 +6,10 @@ import {
   canPublishDirectly,
   validateAnnouncementForm,
 } from "../../utils/announcementPermissions";
-import { isClubOwner } from "../../utils/clubPermissions";
+import {
+  getClubRequestBlockedMessage,
+  isClubOwner,
+} from "../../utils/clubPermissions";
 import { getErrorMessage } from "../../utils/errors";
 
 const EMPTY_ANNOUNCEMENT = {
@@ -25,7 +28,8 @@ export function ClubAnnouncementsPanel({
   isSacAdmin = false,
   isFacultyAdvisor = false,
 }) {
-  const operationsAllowed = annual?.status === "ACTIVE";
+  const operationsAllowed =
+    club?.status === "APPROVED" && annual?.status === "ACTIVE";
   const isOwner =
     isClubOwner(membership?.role) && membership?.status === "ACTIVE";
   const isStaff = canPublishDirectly({ isSacAdmin, isFacultyAdvisor });
@@ -57,9 +61,13 @@ export function ClubAnnouncementsPanel({
 
   async function handleSubmitAction(action) {
     if (submittingAction) return;
-    if (!operationsAllowed && !isStaff) {
+    if (!operationsAllowed) {
       setError(
-        "Announcements unlock after the club is ACTIVE for the school year.",
+        getClubRequestBlockedMessage({
+          clubStatus: club?.status,
+          annualStatus: annual?.status,
+          noun: "announcements",
+        }),
       );
       return;
     }
@@ -122,13 +130,17 @@ export function ClubAnnouncementsPanel({
           approved, or a future date to schedule midnight go-live.
         </p>
 
-        {!operationsAllowed && !isStaff ? (
+        {!operationsAllowed ? (
           <p className="muted">
-            Announcement requests unlock after the club is ACTIVE.
+            {getClubRequestBlockedMessage({
+              clubStatus: club?.status,
+              annualStatus: annual?.status,
+              noun: "announcements",
+            })}
           </p>
         ) : null}
 
-        {canCreateClubAnnouncement && (operationsAllowed || isStaff) ? (
+        {canCreateClubAnnouncement && operationsAllowed ? (
           <>
             {error ? <ErrorMessage>{error}</ErrorMessage> : null}
             {success ? (
@@ -154,11 +166,11 @@ export function ClubAnnouncementsPanel({
               error=""
             />
           </>
-        ) : (
+        ) : operationsAllowed ? (
           <p className="muted">
             Only club owners can draft and submit announcements for this club.
           </p>
-        )}
+        ) : null}
       </section>
     </div>
   );

@@ -77,7 +77,11 @@ export async function getMyClubMemberships(userId) {
         status,
         deleted_at,
         meeting_location,
-        meeting_schedule
+        meeting_schedule,
+        club_school_years (
+          school_year,
+          status
+        )
       )
     `,
     )

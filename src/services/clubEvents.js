@@ -45,7 +45,11 @@ function mapEventError(error, fallback) {
   if (lower.includes("only an active club owner")) {
     return "Only active club owners can submit event proposals.";
   }
-  if (lower.includes("event proposals are available only")) {
+  if (
+    lower.includes("event proposals are available only") ||
+    lower.includes("officially active") ||
+    lower.includes("archived clubs cannot")
+  ) {
     return message;
   }
   if (lower.includes("event date")) {
