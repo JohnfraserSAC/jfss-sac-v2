@@ -71,8 +71,7 @@ export function validateFundingRows(rows = []) {
 export function validateFundingForm({
   usageOfFunding,
   costRows,
-  supervisorSignature,
-  applicantSignature,
+  signedForm,
 }) {
   const errors = {};
   const usage = String(usageOfFunding || "").trim();
@@ -89,12 +88,8 @@ export function validateFundingForm({
     errors.costRows = rowValidation.rowErrors;
   }
 
-  if (!supervisorSignature) {
-    errors.supervisorSignature =
-      "Attach the approved supervisor signature and date.";
-  }
-  if (!applicantSignature) {
-    errors.applicantSignature = "Attach your signature and date.";
+  if (!signedForm) {
+    errors.signedForm = "Attach the signed Teacher Approval Form.";
   }
 
   return {

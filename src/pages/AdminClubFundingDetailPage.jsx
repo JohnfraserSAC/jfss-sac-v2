@@ -188,16 +188,15 @@ export function AdminClubFundingDetailPage({ embedded = false }) {
         </section>
 
         <section className="funding-signature-review">
-          <h3>Signatures</h3>
-          <div className="funding-signature-review__grid">
-            <div>
-              <h4>Approved supervisor signature and date</h4>
-              <AttachmentPreview
-                path={request.supervisor_signature_path}
-                getSignedUrl={createSignedFundingSignatureUrl}
-                alt="Approved supervisor signature and date"
-              />
-            </div>
+          <h3>Teacher Approval Form</h3>
+          <AttachmentPreview
+            path={request.supervisor_signature_path}
+            getSignedUrl={createSignedFundingSignatureUrl}
+            alt="Signed Teacher Approval Form"
+          />
+          {request.applicant_signature_path &&
+          request.applicant_signature_path !==
+            request.supervisor_signature_path ? (
             <div>
               <h4>Applicant signature and date</h4>
               <AttachmentPreview
@@ -206,7 +205,7 @@ export function AdminClubFundingDetailPage({ embedded = false }) {
                 alt="Applicant signature and date"
               />
             </div>
-          </div>
+          ) : null}
         </section>
 
         {request.review_notes ? (

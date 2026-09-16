@@ -39,8 +39,7 @@ describe("club funding validation", () => {
     const result = validateFundingForm({
       usageOfFunding: "This supports student learning.",
       costRows: [{ item: "Projector", unitPrice: "600", quantity: "1" }],
-      supervisorSignature: {},
-      applicantSignature: {},
+      signedForm: {},
     });
 
     expect(result.isValid).toBe(true);
@@ -52,11 +51,22 @@ describe("club funding validation", () => {
     const result = validateFundingForm({
       usageOfFunding: Array.from({ length: 301 }, () => "word").join(" "),
       costRows: [{ item: "Notebook", unitPrice: "2", quantity: "1" }],
-      supervisorSignature: {},
-      applicantSignature: {},
+      signedForm: {},
     });
 
     expect(result.isValid).toBe(false);
     expect(result.errors.usageOfFunding).toContain("300 words or fewer");
+  });
+
+  it("requires the signed Teacher Approval Form", () => {
+    const result = validateFundingForm({
+      usageOfFunding: "This supports student learning.",
+      costRows: [{ item: "Notebook", unitPrice: "2", quantity: "1" }],
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors.signedForm).toBe(
+      "Attach the signed Teacher Approval Form.",
+    );
   });
 });

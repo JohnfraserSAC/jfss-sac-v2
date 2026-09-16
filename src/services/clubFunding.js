@@ -44,13 +44,13 @@ function extensionForMime(mime) {
 
 export function validateFundingSignatureFile(file) {
   if (!file) {
-    return "Attach a signature file.";
+    return "Attach the signed Teacher Approval Form.";
   }
   if (!FUNDING_SIGNATURE_ALLOWED_TYPES.includes(file.type)) {
-    return "Signature must be a JPEG, PNG, WebP, or PDF.";
+    return "The signed form must be a JPEG, PNG, WebP, or PDF.";
   }
   if (file.size > FUNDING_SIGNATURE_MAX_BYTES) {
-    return "Signature files must be 10 MB or smaller.";
+    return "The signed form must be 10 MB or smaller.";
   }
   return null;
 }

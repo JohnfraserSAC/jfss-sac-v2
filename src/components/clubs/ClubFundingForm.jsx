@@ -50,8 +50,8 @@ function SignatureUpload({
         disabled={disabled}
         files={file}
         buttonLabel="Choose file"
-        emptyLabel="No signature file chosen"
-        hint="Upload an image or PDF containing the signature and date (max 10 MB)."
+        emptyLabel="No form file chosen"
+        hint="Upload the completed signed form as an image or PDF (max 10 MB)."
         error={error}
         onChange={onChange}
       />
@@ -77,10 +77,9 @@ export function ClubFundingForm({
   const { user } = useAuth();
   const [usageOfFunding, setUsageOfFunding] = useState("");
   const [costRows, setCostRows] = useState([INITIAL_ROW]);
-  const [supervisorSignature, setSupervisorSignature] = useState(null);
-  const [applicantSignature, setApplicantSignature] = useState(null);
+  const [signedForm, setSignedForm] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
-  const [signatureErrors, setSignatureErrors] = useState({});
+  const [signatureError, setSignatureError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [error, setError] = useState("");
@@ -108,19 +107,11 @@ export function ClubFundingForm({
     );
   }
 
-  function updateSignature(kind, file) {
+  function updateSignedForm(file) {
     const validationError = file ? validateFundingSignatureFile(file) : null;
-    setSignatureErrors((current) => ({
-      ...current,
-      [kind]: validationError || "",
-    }));
+    setSignatureError(validationError || "");
     if (validationError) return;
-
-    if (kind === "supervisorSignature") {
-      setSupervisorSignature(file);
-    } else {
-      setApplicantSignature(file);
-    }
+    setSignedForm(file);
   }
 
   async function handleSubmit(event) {
@@ -131,38 +122,25 @@ export function ClubFundingForm({
     const validation = validateFundingForm({
       usageOfFunding,
       costRows,
-      supervisorSignature,
-      applicantSignature,
+      signedForm,
     });
     setFieldErrors(validation.errors);
-    if (
-      !validation.isValid ||
-      Object.values(signatureErrors).some(Boolean)
-    ) {
+    if (!validation.isValid || signatureError) {
       setError("Please fix the highlighted fields before submitting.");
       return;
     }
 
     const requestId = crypto.randomUUID();
-    let supervisorPath = null;
-    let applicantPath = null;
+    let signedFormPath = null;
     setSubmitting(true);
 
     try {
-      setUploadProgress("Uploading approved supervisor signature…");
-      supervisorPath = await uploadFundingSignature({
+      setUploadProgress("Uploading signed Teacher Approval Form…");
+      signedFormPath = await uploadFundingSignature({
         userId: user.id,
         requestId,
-        kind: "supervisor",
-        file: supervisorSignature,
-      });
-
-      setUploadProgress("Uploading applicant signature…");
-      applicantPath = await uploadFundingSignature({
-        userId: user.id,
-        requestId,
-        kind: "applicant",
-        file: applicantSignature,
+        kind: "form",
+        file: signedForm,
       });
 
       setUploadProgress("Submitting funding request…");
@@ -171,16 +149,15 @@ export function ClubFundingForm({
         clubId: club.id,
         usageOfFunding,
         costRows,
-        supervisorSignaturePath: supervisorPath,
-        applicantSignaturePath: applicantPath,
+        supervisorSignaturePath: signedFormPath,
+        applicantSignaturePath: signedFormPath,
       });
 
       setSuccess(true);
       setFieldErrors({});
       onSubmitted?.();
     } catch (submitError) {
-      if (supervisorPath) await deleteFundingSignature(supervisorPath);
-      if (applicantPath) await deleteFundingSignature(applicantPath);
+      if (signedFormPath) await deleteFundingSignature(signedFormPath);
       setError(
         getErrorMessage(submitError, "Could not submit the funding request."),
       );
@@ -353,32 +330,14 @@ export function ClubFundingForm({
             </a>
             {" — complete, sign, and upload the form below."}
           </p>
-          <p className="muted">
-            Attach each signature together with its date of signature.
-          </p>
           <SignatureUpload
-            id={`funding-supervisor-signature-${club.id}`}
-            label="Attach approved supervisor signature and date of signature"
-            file={supervisorSignature}
-            error={
-              signatureErrors.supervisorSignature ||
-              fieldErrors.supervisorSignature
-            }
+            id={`funding-signed-form-${club.id}`}
+            label="Teacher Approval Form attachment"
+            file={signedForm}
+            error={signatureError || fieldErrors.signedForm}
             disabled={fieldsDisabled}
-            onChange={(file) => updateSignature("supervisorSignature", file)}
-            onRemove={() => updateSignature("supervisorSignature", null)}
-          />
-          <SignatureUpload
-            id={`funding-applicant-signature-${club.id}`}
-            label="Attach your signature and date of signature"
-            file={applicantSignature}
-            error={
-              signatureErrors.applicantSignature ||
-              fieldErrors.applicantSignature
-            }
-            disabled={fieldsDisabled}
-            onChange={(file) => updateSignature("applicantSignature", file)}
-            onRemove={() => updateSignature("applicantSignature", null)}
+            onChange={updateSignedForm}
+            onRemove={() => updateSignedForm(null)}
           />
         </section>
 
