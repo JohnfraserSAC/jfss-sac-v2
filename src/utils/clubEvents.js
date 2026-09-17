@@ -30,6 +30,9 @@ export function validateClubEventForm(values) {
     errors.requestedMaterials =
       "Requested materials must be between 2 and 5,000 characters.";
   }
+  if (!values.signedForm) {
+    errors.signedForm = "Attach the signed Event Approval Form.";
+  }
 
   return {
     isValid: Object.keys(errors).length === 0,

@@ -8,6 +8,7 @@ const validValues = {
   eventStartDate: getTorontoTodayYmd(),
   eventEndDate: getTorontoTodayYmd(),
   requestedMaterials: "Tables and chairs",
+  signedForm: {},
 };
 
 describe("validateClubEventForm", () => {
@@ -49,5 +50,17 @@ describe("validateClubEventForm", () => {
 
     expect(result.isValid).toBe(true);
     expect(result.data.isCharitableEvent).toBe(true);
+  });
+
+  it("requires the signed Event Approval Form", () => {
+    const result = validateClubEventForm({
+      ...validValues,
+      signedForm: null,
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors.signedForm).toBe(
+      "Attach the signed Event Approval Form.",
+    );
   });
 });

@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { AttachmentPreview } from "../components/ui/AttachmentPreview";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { TextArea } from "../components/ui/TextArea";
 import {
+  createSignedEventSignatureUrl,
   getAdminClubEventRequestById,
   getClubEventPhotoUrl,
   reviewClubEventRequest,
@@ -180,6 +182,17 @@ export function AdminClubEventDetailPage({ embedded = false }) {
             <dd>{request.is_charitable_event ? "Yes" : "No"}</dd>
           </div>
         </dl>
+
+        {request.signed_form_storage_path ? (
+          <section className="admin-request-subsection">
+            <h3>Event Approval Form</h3>
+            <AttachmentPreview
+              path={request.signed_form_storage_path}
+              getSignedUrl={createSignedEventSignatureUrl}
+              alt="Signed Event Approval Form"
+            />
+          </section>
+        ) : null}
 
         {photoUrl ? (
           <section className="admin-request-subsection">

@@ -10,13 +10,53 @@ import { TextInput } from "../ui/TextInput";
 import { EVENT_APPROVAL_FORM_URL } from "../../config/clubApplications";
 import {
   deleteClubEventPhoto,
+  deleteClubEventSignature,
   submitClubEventRequest,
   uploadClubEventPhoto,
+  uploadClubEventSignature,
   validateClubEventPhoto,
+  validateClubEventSignatureFile,
 } from "../../services/clubEvents";
 import { validateClubEventForm } from "../../utils/clubEvents";
 import { getTorontoTodayYmd } from "../../utils/torontoDate";
 import { getErrorMessage } from "../../utils/errors";
+
+function SignatureUpload({
+  id,
+  label,
+  file,
+  error,
+  disabled,
+  onChange,
+  onRemove,
+}) {
+  return (
+    <div className="stack">
+      <FilePicker
+        id={id}
+        label={label}
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        required
+        disabled={disabled}
+        files={file}
+        buttonLabel="Choose file"
+        emptyLabel="No form file chosen"
+        hint="Upload the completed signed form as an image or PDF (max 10 MB)."
+        error={error}
+        onChange={onChange}
+      />
+      {file ? (
+        <LocalFilePreview
+          file={file}
+          disabled={disabled}
+          alt={label}
+          removeLabel="Remove file"
+          onRemove={onRemove}
+        />
+      ) : null}
+    </div>
+  );
+}
 
 export function ClubEventForm({
   club,
@@ -32,13 +72,22 @@ export function ClubEventForm({
   const [eventEndDate, setEventEndDate] = useState("");
   const [requestedMaterials, setRequestedMaterials] = useState("");
   const [isCharitableEvent, setIsCharitableEvent] = useState(false);
+  const [signedForm, setSignedForm] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [signatureError, setSignatureError] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [success, setSuccess] = useState(false);
+
+  function updateSignedForm(file) {
+    const nextError = file ? validateClubEventSignatureFile(file) : null;
+    setSignatureError(nextError || "");
+    if (nextError) return;
+    setSignedForm(file);
+  }
 
   function handlePhotoChange(file) {
     const nextError = validateClubEventPhoto(file);
@@ -57,20 +106,29 @@ export function ClubEventForm({
       eventEndDate,
       requestedMaterials,
       isCharitableEvent,
+      signedForm,
     });
     setFieldErrors(validation.errors);
     setError("");
 
-    if (!validation.isValid || photoError) {
+    if (!validation.isValid || signatureError || photoError) {
       setError("Please fix the highlighted fields before submitting.");
       return;
     }
 
     const requestId = crypto.randomUUID();
+    let signedFormPath = null;
     let photoPath = null;
     setSubmitting(true);
 
     try {
+      setUploadProgress("Uploading signed Event Approval Form…");
+      signedFormPath = await uploadClubEventSignature({
+        userId: user.id,
+        requestId,
+        file: signedForm,
+      });
+
       if (photo) {
         setUploadProgress("Uploading event photo…");
         photoPath = await uploadClubEventPhoto({
@@ -90,6 +148,7 @@ export function ClubEventForm({
         eventEndDate: validation.data.eventEndDate,
         requestedMaterials: validation.data.requestedMaterials,
         isCharitableEvent: validation.data.isCharitableEvent,
+        signedFormStoragePath: signedFormPath,
         photoStoragePath: photoPath,
       });
 
@@ -97,6 +156,7 @@ export function ClubEventForm({
       setFieldErrors({});
       onSubmitted?.();
     } catch (submitError) {
+      if (signedFormPath) await deleteClubEventSignature(signedFormPath);
       if (photoPath) await deleteClubEventPhoto(photoPath);
       setError(
         getErrorMessage(submitError, "Could not submit the event proposal."),
@@ -161,6 +221,9 @@ export function ClubEventForm({
           We encourage you to provide as much detail as possible to help us
           review your proposal efficiently.
         </p>
+        <ul>
+          <li>Club fundraisers may only be scheduled for Fridays.</li>
+        </ul>
         <p>
           If you have any questions, please contact our club liaisons through
           email or Instagram:
@@ -185,8 +248,17 @@ export function ClubEventForm({
           >
             Open the Event Approval Signature Form
           </a>
-          {" — complete and sign this form before submitting."}
+          {" — complete, sign, and upload the form below."}
         </p>
+        <SignatureUpload
+          id={`event-signed-form-${club.id}`}
+          label="Event Approval Form attachment"
+          file={signedForm}
+          error={signatureError || fieldErrors.signedForm}
+          disabled={fieldsDisabled}
+          onChange={updateSignedForm}
+          onRemove={() => updateSignedForm(null)}
+        />
         <TextInput
           id={`event-club-name-${club.id}`}
           label="Name of club"

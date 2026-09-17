@@ -4,11 +4,19 @@ import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 import { toSameOriginSupabaseUrl } from "../utils/proxiedSupabaseUrl";
 
 export const CLUB_EVENT_PHOTOS_BUCKET = "club-event-photos";
+export const CLUB_EVENT_SIGNATURES_BUCKET = "club-event-signatures";
 export const CLUB_EVENT_PHOTO_MAX_BYTES = 10 * 1024 * 1024;
+export const CLUB_EVENT_SIGNATURE_MAX_BYTES = 10 * 1024 * 1024;
 export const CLUB_EVENT_PHOTO_ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
+];
+export const CLUB_EVENT_SIGNATURE_ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
 ];
 
 const EVENT_FIELDS = `
@@ -24,6 +32,7 @@ const EVENT_FIELDS = `
   requested_materials,
   is_charitable_event,
   photo_storage_path,
+  signed_form_storage_path,
   status,
   review_notes,
   reviewed_by,
@@ -75,7 +84,21 @@ export function validateClubEventPhoto(file) {
 function extensionForMime(mime) {
   if (mime === "image/png") return "png";
   if (mime === "image/webp") return "webp";
+  if (mime === "application/pdf") return "pdf";
   return "jpg";
+}
+
+export function validateClubEventSignatureFile(file) {
+  if (!file) {
+    return "Attach the signed Event Approval Form.";
+  }
+  if (!CLUB_EVENT_SIGNATURE_ALLOWED_TYPES.includes(file.type)) {
+    return "The signed form must be a JPEG, PNG, WebP, or PDF.";
+  }
+  if (file.size > CLUB_EVENT_SIGNATURE_MAX_BYTES) {
+    return "The signed form must be 10 MB or smaller.";
+  }
+  return null;
 }
 
 export function buildClubEventPhotoPath({ userId, requestId, file }) {
@@ -128,6 +151,64 @@ export async function getClubEventPhotoUrl(path) {
   return toSameOriginSupabaseUrl(data?.signedUrl) || null;
 }
 
+export function buildClubEventSignaturePath({ userId, requestId, file }) {
+  return `event-signatures/${userId}/${requestId}/${crypto.randomUUID()}.${extensionForMime(file.type)}`;
+}
+
+export async function uploadClubEventSignature({ userId, requestId, file }) {
+  const validationError = validateClubEventSignatureFile(file);
+  if (validationError) throw new Error(validationError);
+  if (!userId || !requestId || !file) {
+    throw new Error("Missing event signature destination.");
+  }
+
+  await assertFileMatchesDeclaredType(file, CLUB_EVENT_SIGNATURE_ALLOWED_TYPES);
+
+  const path = buildClubEventSignaturePath({ userId, requestId, file });
+  const { error } = await supabase.storage
+    .from(CLUB_EVENT_SIGNATURES_BUCKET)
+    .upload(path, file, {
+      cacheControl: "3600",
+      contentType: file.type,
+      upsert: false,
+    });
+
+  if (error) {
+    logServiceError("uploadClubEventSignature", error);
+    throw new Error(
+      getErrorMessage(error, "Could not upload the signed Event Approval Form."),
+    );
+  }
+
+  return path;
+}
+
+export async function deleteClubEventSignature(path) {
+  if (!path) return;
+  const { error } = await supabase.storage
+    .from(CLUB_EVENT_SIGNATURES_BUCKET)
+    .remove([path]);
+  if (error) logServiceError("deleteClubEventSignature", error);
+}
+
+export async function createSignedEventSignatureUrl(
+  path,
+  expiresIn = 10 * 60,
+) {
+  if (!path) throw new Error("An event signature path is required.");
+
+  const { data, error } = await supabase.storage
+    .from(CLUB_EVENT_SIGNATURES_BUCKET)
+    .createSignedUrl(path, expiresIn);
+  if (error) {
+    logServiceError("createSignedEventSignatureUrl", error);
+    throw new Error(
+      getErrorMessage(error, "Could not open the signed Event Approval Form."),
+    );
+  }
+  return toSameOriginSupabaseUrl(data?.signedUrl) ?? null;
+}
+
 export async function submitClubEventRequest(payload) {
   const { data, error } = await supabase.rpc("submit_club_event_request", {
     p_request_id: payload.requestId,
@@ -137,6 +218,7 @@ export async function submitClubEventRequest(payload) {
     p_event_start_date: payload.eventStartDate,
     p_event_end_date: payload.eventEndDate,
     p_requested_materials: payload.requestedMaterials,
+    p_signed_form_storage_path: payload.signedFormStoragePath,
     p_photo_storage_path: payload.photoStoragePath || null,
     p_school_year: payload.schoolYear || "2026-2027",
     p_is_charitable_event: Boolean(payload.isCharitableEvent),
