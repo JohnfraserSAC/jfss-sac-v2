@@ -61,7 +61,7 @@ export function ClubManagePage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, isSacAdmin, isAdmin, isFacultyAdvisor } = useAuth();
+  const { user, isSacAdmin, isAdmin } = useAuth();
 
   const [activeTab, setActiveTab] = useState(() => {
     const requestedTab = searchParams.get("tab");
@@ -223,10 +223,12 @@ export function ClubManagePage() {
     clubStatus: club?.status,
     deletedAt: club?.deleted_at,
   });
+  const canViewRequests = isSacAdmin || canSubmitRequests;
   const requestBlockedMessage = getClubRequestBlockedMessage({
     clubStatus: club?.status,
     annualStatus: annual?.status,
     noun: "requests",
+    isSacAdmin,
   });
 
   function handleTabChange(tab) {
@@ -412,7 +414,6 @@ export function ClubManagePage() {
           membership={membership}
           annual={annual}
           isSacAdmin={isSacAdmin}
-          isFacultyAdvisor={isFacultyAdvisor}
         />
       ) : null}
 
@@ -432,6 +433,7 @@ export function ClubManagePage() {
             <ClubFundingForm
               club={club}
               canSubmit={canSubmitRequests}
+              canView={canViewRequests}
               blockedMessage={requestBlockedMessage}
             />
           </section>
@@ -453,6 +455,7 @@ export function ClubManagePage() {
             <ClubEventForm
               club={club}
               canSubmit={canSubmitRequests}
+              canView={canViewRequests}
               blockedMessage={requestBlockedMessage}
             />
           </section>
@@ -475,6 +478,7 @@ export function ClubManagePage() {
             <ClubPromoLunchForm
               club={club}
               canSubmit={canSubmitRequests}
+              canView={canViewRequests}
               blockedMessage={requestBlockedMessage}
             />
           </section>

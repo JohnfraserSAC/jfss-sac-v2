@@ -124,6 +124,17 @@ describe("canSubmitClubRequestForms", () => {
       }),
     ).toBe(false);
   });
+
+  it("does not let site admins submit as a non-owner", () => {
+    expect(
+      canSubmitClubRequestForms({
+        clubRole: "MEMBER",
+        membershipStatus: "ACTIVE",
+        annualStatus: "ACTIVE",
+        clubStatus: "APPROVED",
+      }),
+    ).toBe(false);
+  });
 });
 
 describe("getClubRequestBlockedMessage", () => {
@@ -138,6 +149,16 @@ describe("getClubRequestBlockedMessage", () => {
       }),
     ).toBe(
       "This club is not officially on the site yet. Announcements unlock after teacher supervisor approval.",
+    );
+    expect(
+      getClubRequestBlockedMessage({
+        clubStatus: "APPROVED",
+        annualStatus: "ACTIVE",
+        isSacAdmin: true,
+        noun: "requests",
+      }),
+    ).toBe(
+      "You can view this form, but only an active owner of this club can submit requests.",
     );
   });
 });

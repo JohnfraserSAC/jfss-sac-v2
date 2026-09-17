@@ -419,10 +419,12 @@ export function ClubDetailsPanel({
         </section>
       ) : null}
 
-      {!isArchived && (canSubmitSupervisor || requestHistory.length > 0) ? (
+      {!isArchived &&
+      (canSubmitSupervisor || isSacAdmin || requestHistory.length > 0) ? (
         <ClubSupervisorSubmitForm
           club={club}
           canSubmit={canSubmitSupervisor}
+          canView={isSacAdmin}
           onSubmitted={() => {
             setSupervisorNotice(`submitted-${Date.now()}`);
             onSupervisorSubmitted?.();

@@ -83,12 +83,16 @@ export function getClubRequestBlockedMessage({
   clubStatus,
   annualStatus,
   noun = "requests",
+  isSacAdmin = false,
 } = {}) {
   if (clubStatus === "ARCHIVED") {
     return `Archived clubs cannot submit ${noun}.`;
   }
   if (annualStatus === "PENDING_SUPERVISOR") {
     return `This club is not officially on the site yet. ${capitalize(noun)} unlock after teacher supervisor approval.`;
+  }
+  if (isSacAdmin) {
+    return `You can view this form, but only an active owner of this club can submit ${noun}.`;
   }
   return `Only an active owner of an officially active club can submit ${noun}.`;
 }

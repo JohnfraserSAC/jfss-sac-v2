@@ -15,6 +15,7 @@ export function AnnouncementForm({
   clubs = [],
   showTypeSelector = false,
   clubReadOnly = false,
+  disabled = false,
   reviewNotes = null,
   actions = [],
   submittingAction = null,
@@ -30,17 +31,21 @@ export function AnnouncementForm({
   );
 
   function updateField(event) {
+    if (disabled) return;
     const { name, value } = event.target;
     onChange?.({ ...values, [name]: value });
   }
 
   function handleTypeChange(event) {
+    if (disabled) return;
     const nextType = event.target.value;
     setAnnouncementType(nextType);
     if (nextType === "GENERAL") {
       onChange?.({ ...values, clubId: "", visibility: "PUBLIC" });
     }
   }
+
+  const fieldsDisabled = disabled || Boolean(submittingAction);
 
   return (
     <form
@@ -67,6 +72,7 @@ export function AnnouncementForm({
           label="Announcement type"
           value={announcementType}
           onChange={handleTypeChange}
+          disabled={fieldsDisabled}
         >
           <option value="GENERAL">General announcement</option>
           <option value="CLUB">Club announcement</option>
@@ -83,6 +89,7 @@ export function AnnouncementForm({
           onChange={updateField}
           error={fieldErrors.clubId}
           required={!showTypeSelector || announcementType === "CLUB"}
+          disabled={fieldsDisabled}
         >
           <option value="">Select a club</option>
           {clubs.map((club) => (
@@ -126,6 +133,7 @@ export function AnnouncementForm({
           onChange={updateField}
           error={fieldErrors.visibility}
           required
+          disabled={fieldsDisabled}
         >
           <option value="PUBLIC">Public announcement (everyone can see)</option>
           <option value="CLUB_MEMBERS">
@@ -143,6 +151,7 @@ export function AnnouncementForm({
         error={fieldErrors.title}
         required
         maxLength={160}
+        disabled={fieldsDisabled}
       />
 
       <TextArea
@@ -154,6 +163,7 @@ export function AnnouncementForm({
         error={fieldErrors.body}
         required
         rows={8}
+        disabled={fieldsDisabled}
       />
 
       <TextInput
@@ -165,6 +175,7 @@ export function AnnouncementForm({
         onChange={updateField}
         error={fieldErrors.scheduledPostingDate}
         min={minPostingDate}
+        disabled={fieldsDisabled}
         hint={
           isPublishNow
             ? "Today selected — once approved, this announcement publishes immediately."
@@ -178,29 +189,31 @@ export function AnnouncementForm({
         </p>
       ) : null}
 
-      <div className="button-row">
-        {actions.map((action) => (
-          <button
-            key={action.value}
-            type="button"
-            className={
-              action.primary
-                ? "button button--primary"
-                : "button button--secondary"
-            }
-            disabled={Boolean(submittingAction)}
-            onClick={() => onSubmitAction?.(action.value)}
-          >
-            {submittingAction === action.value ? (
-              <>
-                <Spinner size="sm" label="Saving" /> Working…
-              </>
-            ) : (
-              action.label
-            )}
-          </button>
-        ))}
-      </div>
+      {actions.length > 0 ? (
+        <div className="button-row">
+          {actions.map((action) => (
+            <button
+              key={action.value}
+              type="button"
+              className={
+                action.primary
+                  ? "button button--primary"
+                  : "button button--secondary"
+              }
+              disabled={fieldsDisabled}
+              onClick={() => onSubmitAction?.(action.value)}
+            >
+              {submittingAction === action.value ? (
+                <>
+                  <Spinner size="sm" label="Saving" /> Working…
+                </>
+              ) : (
+                action.label
+              )}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </form>
   );
 }

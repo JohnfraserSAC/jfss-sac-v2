@@ -22,6 +22,7 @@ import { getErrorMessage } from "../../utils/errors";
 export function ClubSupervisorSubmitForm({
   club,
   canSubmit = true,
+  canView = false,
   onSubmitted,
 }) {
   const { user } = useAuth();
@@ -144,15 +145,21 @@ export function ClubSupervisorSubmitForm({
         </div>
       ) : null}
 
-      {canSubmit ? (
+      {canSubmit || canView ? (
         <form className="stack" onSubmit={handleSubmit} noValidate>
+          {!canSubmit ? (
+            <p className="alert alert--warning" role="status">
+              You can view this form, but only an active owner of this club can
+              submit teacher supervisor requests.
+            </p>
+          ) : null}
           <TextInput
             id="teacher-full-name"
             label="Teacher full name"
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
-            disabled={busy}
+            disabled={busy || !canSubmit}
             autoComplete="name"
           />
           <TextInput
@@ -162,7 +169,7 @@ export function ClubSupervisorSubmitForm({
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
-            disabled={busy}
+            disabled={busy || !canSubmit}
             placeholder="p#######@pdsb.net"
             hint="Must be an exact @pdsb.net address."
             autoComplete="off"
@@ -173,7 +180,7 @@ export function ClubSupervisorSubmitForm({
             label="Teacher signature attachment"
             accept="image/jpeg,image/png,image/webp,application/pdf"
             required
-            disabled={busy}
+            disabled={busy || !canSubmit}
             files={signatureFile}
             buttonLabel="Choose attachment"
             emptyLabel="No attachment chosen"
@@ -183,23 +190,25 @@ export function ClubSupervisorSubmitForm({
           {signatureFile ? (
             <LocalFilePreview
               file={signatureFile}
-              disabled={busy}
+              disabled={busy || !canSubmit}
               alt="Selected teacher signature"
               removeLabel="Remove attachment"
               onRemove={() => setSignatureFile(null)}
             />
           ) : null}
 
-          <div className="button-row">
-            <button
-              type="submit"
-              className="button button--primary"
-              disabled={busy}
-            >
-              {busy ? <Spinner size="sm" label="Submitting" /> : null}
-              {busy ? "Submitting…" : "Submit supervisor request"}
-            </button>
-          </div>
+          {canSubmit ? (
+            <div className="button-row">
+              <button
+                type="submit"
+                className="button button--primary"
+                disabled={busy}
+              >
+                {busy ? <Spinner size="sm" label="Submitting" /> : null}
+                {busy ? "Submitting…" : "Submit supervisor request"}
+              </button>
+            </div>
+          ) : null}
         </form>
       ) : (
         <p className="muted">

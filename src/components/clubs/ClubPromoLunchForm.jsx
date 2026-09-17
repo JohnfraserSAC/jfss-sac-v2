@@ -20,6 +20,7 @@ import { TextInput } from "../ui/TextInput";
 export function ClubPromoLunchForm({
   club,
   canSubmit = true,
+  canView = false,
   blockedMessage,
 }) {
   const { user } = useAuth();
@@ -68,7 +69,7 @@ export function ClubPromoLunchForm({
     }
   }
 
-  if (!canSubmit) {
+  if (!canSubmit && !canView) {
     return (
       <p className="muted">
         {blockedMessage ||
@@ -89,8 +90,16 @@ export function ClubPromoLunchForm({
     );
   }
 
+  const fieldsDisabled = submitting || !canSubmit;
+
   return (
     <form className="stack" onSubmit={handleSubmit} noValidate>
+      {!canSubmit ? (
+        <p className="alert alert--warning" role="status">
+          {blockedMessage ||
+            "Only active club owners can submit this Club Promo Lunch sign-up."}
+        </p>
+      ) : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       <div className="alert alert--warning" role="status">
         Club Promo Lunch sign-ups are due {PROMO_LUNCH_DEADLINE_TEXT}.
@@ -109,7 +118,7 @@ export function ClubPromoLunchForm({
           onChange={(event) => setBoothDays(event.target.value)}
           error={fieldErrors.boothDays}
           required
-          disabled={submitting}
+          disabled={fieldsDisabled}
         >
           <option value="">Choose an option</option>
           {PROMO_LUNCH_DAYS.map((day) => (
@@ -138,7 +147,7 @@ export function ClubPromoLunchForm({
           }
           error={fieldErrors.approvalEmailReceived}
           required
-          disabled={submitting}
+          disabled={fieldsDisabled}
         >
           <option value="">Choose an option</option>
           <option value="YES">Yes</option>
@@ -153,19 +162,21 @@ export function ClubPromoLunchForm({
           error={fieldErrors.representatives}
           rows={5}
           required
-          disabled={submitting}
+          disabled={fieldsDisabled}
         />
       </section>
-      <div className="button-row">
-        <button
-          type="submit"
-          className="button button--primary"
-          disabled={submitting || !user}
-        >
-          {submitting ? <Spinner size="sm" label="Submitting" /> : null}
-          Submit sign-up
-        </button>
-      </div>
+      {canSubmit ? (
+        <div className="button-row">
+          <button
+            type="submit"
+            className="button button--primary"
+            disabled={fieldsDisabled || !user}
+          >
+            {submitting ? <Spinner size="sm" label="Submitting" /> : null}
+            Submit sign-up
+          </button>
+        </div>
+      ) : null}
     </form>
   );
 }

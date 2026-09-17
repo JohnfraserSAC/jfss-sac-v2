@@ -4,10 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { AnnouncementForm } from "../components/announcements/AnnouncementForm";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
-import {
-  createAnnouncement,
-  getApprovedClubsForStaffAnnouncements,
-} from "../services/announcements";
+import { createAnnouncement } from "../services/announcements";
 import {
   canPublishDirectly,
   validateAnnouncementForm,
@@ -40,7 +37,6 @@ export function CreateAnnouncementPage() {
   });
 
   const [values, setValues] = useState(EMPTY_VALUES);
-  const [staffClubs, setStaffClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState("");
@@ -53,11 +49,6 @@ export function CreateAnnouncementPage() {
       setLoading(true);
       try {
         await refreshOwnedClubs(user.id);
-        if (isStaff) {
-          const clubs = await getApprovedClubsForStaffAnnouncements();
-          if (!active) return;
-          setStaffClubs(clubs);
-        }
       } catch (loadError) {
         if (!active) return;
         setError(getErrorMessage(loadError, "Could not prepare the form."));
@@ -70,9 +61,9 @@ export function CreateAnnouncementPage() {
     return () => {
       active = false;
     };
-  }, [user.id, isStaff, refreshOwnedClubs]);
+  }, [user.id, refreshOwnedClubs]);
 
-  const clubs = isStaff ? staffClubs : ownedClubs;
+  const clubs = ownedClubs;
 
   const actions = [
     { value: "SUBMIT", label: "Submit for Review", primary: true },
@@ -164,7 +155,7 @@ export function CreateAnnouncementPage() {
           <h1>New announcement</h1>
           <p className="lede">
             {isStaff
-              ? "Create a general or club announcement draft, or submit it for review with a posting date."
+              ? "Create a general announcement, or a club announcement for a club you own."
               : "Create a club announcement as a draft or submit it for SAC review with a posting date."}
           </p>
         </div>

@@ -21,6 +21,7 @@ import { getErrorMessage } from "../../utils/errors";
 export function ClubEventForm({
   club,
   canSubmit = true,
+  canView = false,
   blockedMessage,
   onSubmitted,
 }) {
@@ -106,7 +107,7 @@ export function ClubEventForm({
     }
   }
 
-  if (!canSubmit) {
+  if (!canSubmit && !canView) {
     return (
       <p className="muted">
         {blockedMessage ||
@@ -129,10 +130,16 @@ export function ClubEventForm({
     );
   }
 
-  const fieldsDisabled = submitting;
+  const fieldsDisabled = submitting || !canSubmit;
 
   return (
     <form className="stack" onSubmit={handleSubmit} noValidate>
+      {!canSubmit ? (
+        <p className="alert alert--warning" role="status">
+          {blockedMessage ||
+            "Only active club owners can submit event proposals."}
+        </p>
+      ) : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <section
@@ -277,16 +284,18 @@ export function ClubEventForm({
       </section>
 
       {uploadProgress ? <p className="form-hint">{uploadProgress}</p> : null}
-      <div className="button-row">
-        <button
-          type="submit"
-          className="button button--primary"
-          disabled={fieldsDisabled}
-        >
-          {submitting ? <Spinner size="sm" label="Submitting" /> : null}
-          Submit event proposal
-        </button>
-      </div>
+      {canSubmit ? (
+        <div className="button-row">
+          <button
+            type="submit"
+            className="button button--primary"
+            disabled={fieldsDisabled}
+          >
+            {submitting ? <Spinner size="sm" label="Submitting" /> : null}
+            Submit event proposal
+          </button>
+        </div>
+      ) : null}
     </form>
   );
 }

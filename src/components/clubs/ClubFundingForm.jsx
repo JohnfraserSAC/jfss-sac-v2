@@ -71,6 +71,7 @@ function SignatureUpload({
 export function ClubFundingForm({
   club,
   canSubmit = true,
+  canView = false,
   blockedMessage,
   onSubmitted,
 }) {
@@ -167,7 +168,7 @@ export function ClubFundingForm({
     }
   }
 
-  if (!canSubmit) {
+  if (!canSubmit && !canView) {
     return (
       <p className="muted">
         {blockedMessage ||
@@ -191,10 +192,16 @@ export function ClubFundingForm({
     );
   }
 
-  const fieldsDisabled = submitting;
+  const fieldsDisabled = submitting || !canSubmit;
 
   return (
     <div className="stack">
+      {!canSubmit ? (
+        <p className="alert alert--warning" role="status">
+          {blockedMessage ||
+            "Only active club owners can submit funding requests."}
+        </p>
+      ) : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
 
       <section className="panel funding-guidelines" aria-labelledby="funding-guidelines-title">
@@ -344,16 +351,18 @@ export function ClubFundingForm({
           />
         </section>
 
-        <div className="button-row">
-          <button
-            type="submit"
-            className="button button--primary"
-            disabled={fieldsDisabled}
-          >
-            {submitting ? <Spinner size="sm" label="Submitting" /> : null}
-            {submitting ? uploadProgress || "Submitting…" : "Submit funding request"}
-          </button>
-        </div>
+        {canSubmit ? (
+          <div className="button-row">
+            <button
+              type="submit"
+              className="button button--primary"
+              disabled={fieldsDisabled}
+            >
+              {submitting ? <Spinner size="sm" label="Submitting" /> : null}
+              {submitting ? uploadProgress || "Submitting…" : "Submit funding request"}
+            </button>
+          </div>
+        ) : null}
       </form>
     </div>
   );

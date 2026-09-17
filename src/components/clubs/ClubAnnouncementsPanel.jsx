@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnnouncementForm } from "../announcements/AnnouncementForm";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { createAnnouncement } from "../../services/announcements";
-import {
-  canPublishDirectly,
-  validateAnnouncementForm,
-} from "../../utils/announcementPermissions";
+import { validateAnnouncementForm } from "../../utils/announcementPermissions";
 import {
   getClubRequestBlockedMessage,
   isClubOwner,
@@ -26,14 +23,19 @@ export function ClubAnnouncementsPanel({
   membership,
   annual,
   isSacAdmin = false,
-  isFacultyAdvisor = false,
 }) {
   const operationsAllowed =
     club?.status === "APPROVED" && annual?.status === "ACTIVE";
   const isOwner =
     isClubOwner(membership?.role) && membership?.status === "ACTIVE";
-  const isStaff = canPublishDirectly({ isSacAdmin, isFacultyAdvisor });
-  const canCreateClubAnnouncement = isOwner || isStaff;
+  const canSubmitAnnouncement = isOwner && operationsAllowed;
+  const canViewAnnouncementForm = isSacAdmin || canSubmitAnnouncement;
+  const blockedMessage = getClubRequestBlockedMessage({
+    clubStatus: club?.status,
+    annualStatus: annual?.status,
+    noun: "announcements",
+    isSacAdmin,
+  });
 
   const [values, setValues] = useState({
     ...EMPTY_ANNOUNCEMENT,
@@ -55,22 +57,12 @@ export function ClubAnnouncementsPanel({
     window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }, [success]);
 
-  const actions = [
-    { value: "SUBMIT", label: "Submit for Review", primary: true },
-  ];
+  const actions = canSubmitAnnouncement
+    ? [{ value: "SUBMIT", label: "Submit for Review", primary: true }]
+    : [];
 
   async function handleSubmitAction(action) {
-    if (submittingAction) return;
-    if (!operationsAllowed) {
-      setError(
-        getClubRequestBlockedMessage({
-          clubStatus: club?.status,
-          annualStatus: annual?.status,
-          noun: "announcements",
-        }),
-      );
-      return;
-    }
+    if (submittingAction || !canSubmitAnnouncement) return;
 
     const validation = validateAnnouncementForm(
       { ...values, clubId: club.id },
@@ -130,17 +122,16 @@ export function ClubAnnouncementsPanel({
           approved, or a future date to schedule midnight go-live.
         </p>
 
-        {!operationsAllowed ? (
-          <p className="muted">
-            {getClubRequestBlockedMessage({
-              clubStatus: club?.status,
-              annualStatus: annual?.status,
-              noun: "announcements",
-            })}
+        {!canSubmitAnnouncement ? (
+          <p
+            className={canViewAnnouncementForm ? "alert alert--warning" : "muted"}
+            role={canViewAnnouncementForm ? "status" : undefined}
+          >
+            {blockedMessage}
           </p>
         ) : null}
 
-        {canCreateClubAnnouncement && operationsAllowed ? (
+        {canViewAnnouncementForm ? (
           <>
             {error ? <ErrorMessage>{error}</ErrorMessage> : null}
             {success ? (
@@ -160,17 +151,18 @@ export function ClubAnnouncementsPanel({
               fieldErrors={fieldErrors}
               clubs={[club]}
               clubReadOnly
+              disabled={!canSubmitAnnouncement}
               actions={actions}
               submittingAction={submittingAction}
               onSubmitAction={handleSubmitAction}
               error=""
             />
           </>
-        ) : operationsAllowed ? (
+        ) : isOwner ? null : (
           <p className="muted">
             Only club owners can draft and submit announcements for this club.
           </p>
-        ) : null}
+        )}
       </section>
     </div>
   );
