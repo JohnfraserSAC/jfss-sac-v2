@@ -119,14 +119,10 @@ export async function getApprovedClubs() {
     throw new Error(getErrorMessage(error, "Could not load approved clubs."));
   }
 
-  return Promise.all(
-    (data ?? []).map((row) =>
-      withResolvedLogo({
-        ...row,
-        status: row.club_record_status || "APPROVED",
-      }),
-    ),
-  );
+  return (data ?? []).map((row) => ({
+    ...row,
+    status: row.club_record_status || "APPROVED",
+  }));
 }
 
 export async function getClubAnnualState(clubId) {

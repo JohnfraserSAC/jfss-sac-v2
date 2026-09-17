@@ -1309,6 +1309,12 @@ summary:focus-visible {
   align-items: stretch;
 }
 
+.club-explore-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
 .club-card {
   display: grid;
   grid-template-columns: 88px minmax(0, 1fr);
