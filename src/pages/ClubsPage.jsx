@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ClubCard } from "../components/clubs/ClubCard";
 import { ClubGridSkeleton } from "../components/clubs/ClubGridSkeleton";
@@ -8,16 +8,17 @@ import { TextInput } from "../components/ui/TextInput";
 import { getApprovedClubs } from "../services/clubs";
 import { getConfirmedClubPromoLunchClubIds } from "../services/clubPromoLunch";
 import {
+  CLUB_EXPLORE_LOAD_MORE_COUNT,
   CLUB_EXPLORE_MOBILE_QUERY,
-  getClubExplorePageSize,
+  getClubExploreInitialCount,
 } from "../utils/clubExplore";
 import { getErrorMessage } from "../utils/errors";
 
-function readClubExplorePageSize() {
+function readClubExploreInitialCount() {
   if (typeof window === "undefined") {
-    return getClubExplorePageSize(false);
+    return getClubExploreInitialCount(false);
   }
-  return getClubExplorePageSize(
+  return getClubExploreInitialCount(
     window.matchMedia(CLUB_EXPLORE_MOBILE_QUERY).matches,
   );
 }
@@ -31,13 +32,11 @@ export function ClubsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(location.state?.notice || "");
-  const [pageSize, setPageSize] = useState(readClubExplorePageSize);
+  const [initialCount, setInitialCount] = useState(readClubExploreInitialCount);
   const [visibleByFilter, setVisibleByFilter] = useState(() => ({
     key: "",
-    count: readClubExplorePageSize(),
+    count: readClubExploreInitialCount(),
   }));
-  const loadMoreRef = useRef(null);
-  const loadMoreCooldownRef = useRef(0);
 
   useEffect(() => {
     if (location.state?.notice) {
@@ -49,12 +48,12 @@ export function ClubsPage() {
 
   useEffect(() => {
     const media = window.matchMedia(CLUB_EXPLORE_MOBILE_QUERY);
-    function syncPageSize() {
-      setPageSize(getClubExplorePageSize(media.matches));
+    function syncInitialCount() {
+      setInitialCount(getClubExploreInitialCount(media.matches));
     }
-    syncPageSize();
-    media.addEventListener("change", syncPageSize);
-    return () => media.removeEventListener("change", syncPageSize);
+    syncInitialCount();
+    media.addEventListener("change", syncInitialCount);
+    return () => media.removeEventListener("change", syncInitialCount);
   }, []);
 
   const loadClubs = useCallback(async () => {
@@ -101,44 +100,25 @@ export function ClubsPage() {
     });
   }, [clubs, promoLunchClubIds, promoLunchOnly, search]);
 
-  const filterKey = `${promoLunchOnly ? "1" : "0"}:${search}:${pageSize}`;
+  const filterKey = `${promoLunchOnly ? "1" : "0"}:${search}:${initialCount}`;
   if (visibleByFilter.key !== filterKey) {
-    setVisibleByFilter({ key: filterKey, count: pageSize });
+    setVisibleByFilter({ key: filterKey, count: initialCount });
   }
 
   const visibleCount =
-    visibleByFilter.key === filterKey ? visibleByFilter.count : pageSize;
+    visibleByFilter.key === filterKey ? visibleByFilter.count : initialCount;
   const visibleClubs = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
-  const remaining = Math.max(filtered.length - visibleCount, 0);
-  const nextCount = Math.min(pageSize, remaining);
 
   const loadMore = useCallback(() => {
-    const now = Date.now();
-    if (now - loadMoreCooldownRef.current < 400) return;
-    loadMoreCooldownRef.current = now;
     setVisibleByFilter((current) => ({
       key: filterKey,
       count:
-        current.key === filterKey ? current.count + pageSize : pageSize * 2,
+        current.key === filterKey
+          ? current.count + CLUB_EXPLORE_LOAD_MORE_COUNT
+          : initialCount + CLUB_EXPLORE_LOAD_MORE_COUNT,
     }));
-  }, [filterKey, pageSize]);
-
-  useEffect(() => {
-    const node = loadMoreRef.current;
-    if (!node || !hasMore) return undefined;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          loadMore();
-        }
-      },
-      { rootMargin: "160px 0px" },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasMore, loadMore]);
+  }, [filterKey, initialCount]);
 
   return (
     <div className="page">
@@ -183,7 +163,7 @@ export function ClubsPage() {
         </div>
       ) : null}
 
-      {loading ? <ClubGridSkeleton count={pageSize} /> : null}
+      {loading ? <ClubGridSkeleton count={initialCount} /> : null}
 
       {!loading && !error && filtered.length === 0 ? (
         <EmptyState
@@ -210,13 +190,13 @@ export function ClubsPage() {
             ))}
           </div>
           {hasMore ? (
-            <div className="club-explore-more" ref={loadMoreRef}>
+            <div className="club-explore-more">
               <button
                 type="button"
                 className="button button--secondary"
                 onClick={loadMore}
               >
-                Load {nextCount} more {nextCount === 1 ? "club" : "clubs"}
+                Load six more
               </button>
             </div>
           ) : null}
