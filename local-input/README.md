@@ -16,8 +16,8 @@ node scripts/generate-past-clubs-seed.mjs
 
 The generator:
 
-- expects **83** named source rows
-- writes **82** canonical club records after the F.A.C.E. / Fraser Aces merge
+- expects **84** named source rows
+- writes **83** canonical club records after the F.A.C.E. / Fraser Aces merge
 - stops with an error if counts do not match
 - never imports former leader contacts or personal emails
 

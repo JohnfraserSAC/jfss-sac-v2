@@ -44,10 +44,11 @@ const NAME_FIXES = new Map([
     "John Fraser Secondary School's Badminton Club",
     "Badminton Club",
   ],
+  ["Fraser Threads", "JFSS Threads"],
 ]);
 
-const EXPECTED_NAMED_ROWS = 83;
-const EXPECTED_CANONICAL_CLUBS = 82;
+const EXPECTED_NAMED_ROWS = 84;
+const EXPECTED_CANONICAL_CLUBS = 83;
 
 const ADDITIONAL_CANONICAL = new Set([
   "Badminton Club",
