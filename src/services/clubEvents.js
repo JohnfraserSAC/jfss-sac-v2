@@ -2,6 +2,8 @@ import { supabase } from "../lib/supabase";
 import { getErrorMessage, logServiceError } from "../utils/errors";
 import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 import { getClubEventDisplayNames } from "../utils/clubEventDisplay";
+import { resolveClubLogoUrl } from "../utils/clubMedia";
+import { prepareImageFileForUpload } from "../utils/imageUpload";
 import {
   DISPLAY_PHOTO_MAX_EDGE,
   downscaleImageForDisplay,
@@ -319,8 +321,10 @@ export async function getPublishedClubEvents() {
     clubs: {
       name: event.club_name,
       slug: event.club_slug,
+      logo_url: resolveClubLogoUrl(event.club_logo_url),
     },
     club_names: getClubEventDisplayNames(event),
+    club_logo_url: resolveClubLogoUrl(event.club_logo_url),
     photo_url: getPublicClubEventPhotoUrl(event.photo_storage_path),
   }));
 }
