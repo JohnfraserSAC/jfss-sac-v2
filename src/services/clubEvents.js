@@ -3,7 +3,6 @@ import { getErrorMessage, logServiceError } from "../utils/errors";
 import { assertFileMatchesDeclaredType } from "../utils/fileMagic";
 import { getClubEventDisplayNames } from "../utils/clubEventDisplay";
 import { resolveClubLogoUrl } from "../utils/clubMedia";
-import { prepareImageFileForUpload } from "../utils/imageUpload";
 import {
   DISPLAY_PHOTO_MAX_EDGE,
   downscaleImageForDisplay,
